@@ -75,6 +75,8 @@ BEGIN_MESSAGE_MAP(CWQSG_NDSDlg, CDialog)
 	ON_NOTIFY(LVN_DELETEITEM, IDC_FSILIST, &CWQSG_NDSDlg::OnLvnDeleteitemFsilist)
 	ON_COMMAND(ID_RomClose, &CWQSG_NDSDlg::OnRomclose)
 	ON_BN_CLICKED(IDC_BUTTON_UPDIR, &CWQSG_NDSDlg::OnBnClickedButtonUpdir)
+	ON_COMMAND(ID_About, &CWQSG_NDSDlg::OnAbout)
+	ON_COMMAND(ID_Quit, &CWQSG_NDSDlg::OnQuit)
 END_MESSAGE_MAP()// CWQSG_NDSDlg 消息处理程序
 BOOL CWQSG_NDSDlg::OnInitDialog()
 {
@@ -136,7 +138,7 @@ BOOL CWQSG_NDSDlg::OnInitDialog()
 
 	OnLoadFSI();
 
-	SetTitle( NULL );
+	OnRomclose();
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -739,4 +741,18 @@ void CWQSG_NDSDlg::SetTitle(BOOL* a_bCanWrite)
 	}
 
 	SetWindowText( strTitle );
+}
+
+#include "About.h"
+void CWQSG_NDSDlg::OnAbout()
+{
+	// TODO: 在此添加命令处理程序代码
+	CAbout dlg;
+	dlg.DoModal();
+}
+
+void CWQSG_NDSDlg::OnQuit()
+{
+	// TODO: 在此添加命令处理程序代码
+	EndDialog(IDCANCEL);
 }

@@ -90,4 +90,7 @@ private:
 	bool WDir( CString a_strPathFile , const CStringA& a_strDirPath );
 
 	void SetTitle(BOOL* a_bCanWrite);
+public:
+	afx_msg void OnAbout();
+	afx_msg void OnQuit();
 };
