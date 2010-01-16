@@ -1,0 +1,122 @@
+//{{NO_DEPENDENCIES}}
+// Microsoft Visual C++ generated include file.
+// Used by WQSG 导出(导入).rc
+//
+#define IDR_WQSG                        5
+#define IDD_MFC_DIALOG                  102
+#define IDD_PTXT_OUT                    106
+#define IDD_PTXT_IN                     107
+#define IDD_DIALOG_TongJiZiPin          129
+#define IDD_DIALOG2                     134
+#define IDD_AB                          134
+#define IDD_WIPS                        136
+#define IDD_WIPS_I                      136
+#define IDR_EXE1                        138
+#define IDS_TXTIO                       139
+#define IDD_DIALOG3                     140
+#define IDD_TXT_R                       140
+#define IDS_APP_NAME                    140
+#define IDD_MAIN                        141
+#define IDS_APP_VER                     141
+#define IDD_TXT_O                       142
+#define IDS_APP_WQSG                    142
+#define IDD_TXT_I                       143
+#define IDD_TXT_IO                      144
+#define IDD_WIPS_O                      145
+#define IDD_chazhi                      146
+#define IDD_chazhiSearch                146
+#define IDD_ABOUT                       147
+#define IDC_BUTTON_ROM                  1000
+#define IDC_BUTTON_TXT_DIR              1001
+#define IDC_BUTTON_TBL2                 1003
+#define IDC_EDIT_TBL                    1007
+#define IDC_EDIT_ROM                    1008
+#define IDC_EDIT_TBL2                   1009
+#define IDC_EDIT_TXT_DIR                1010
+#define IDC_EDIT_NAME                   1014
+#define IDC_LIST2                       1015
+#define IDC_BUTTON_Add                  1018
+#define IDC_BUTTON_Edit                 1019
+#define IDC_BUTTON_Del                  1020
+#define IDC_TAB1                        1023
+#define IDC_CHECK_PTXT                  1024
+#define IDC_EDIT_MIN                    1027
+#define IDC_EDIT_MAX                    1028
+#define IDC_EDIT4                       1029
+#define IDC_BUTTON_START                1030
+#define IDC_COMBO1                      1031
+#define IDC_BUTTON_TBLTOOL              1031
+#define IDC_COMBO2                      1032
+#define IDC_COMBO3                      1033
+#define IDC_COMBO4                      1034
+#define IDC_COMBO5                      1035
+#define IDC_COMBO6                      1036
+#define IDC_BUTTON_BAT                  1037
+#define IDC_EDIT13                      1037
+#define IDC_BUTTON_TBL                  1039
+#define IDC_CHECK1                      1040
+#define IDC_BUTTON2                     1045
+#define IDC_BUTTON3                     1046
+#define IDC_CHECK2                      1047
+#define IDC_EDIT5                       1048
+#define IDC_BUTTON4                     1049
+#define IDC_EDIT6                       1050
+#define IDC_BUTTON5                     1051
+#define IDC_BUTTON6                     1052
+#define IDC_EDIT7                       1053
+#define IDC_EDIT8                       1054
+#define IDC_EDIT9                       1055
+#define IDC_LOGO                        1055
+#define IDC_EDIT10                      1056
+#define IDC_EDIT_ADDR_H                 1056
+#define IDC_EDIT_ADDR_KS_L              1057
+#define IDC_EDIT_ADDR_JS_L              1058
+#define IDC_CHKTBL                      1059
+#define IDC_EDIT_SP1                    1062
+#define IDC_EDIT_SP2                    1063
+#define IDC_CHECK4                      1064
+#define IDC_EDIT_EXT                    1065
+#define IDC_EDIT_LOG                    1066
+#define IDC_CHECK3                      1067
+#define IDC_CHECK5                      1069
+#define IDC_ICON0                       1070
+#define IDC_URL                         1071
+#define IDC_STATIC_WQSG                 1072
+#define IDC_APP_NAME                    1073
+#define IDC_APP_VER                     1074
+#define IDC_COMBO_OUT                   1074
+#define IDC_CHECK_YZ                    1098
+#define IDC_EDIT1                       1099
+#define IDC_EDIT11                      1100
+#define IDC_EDIT2                       1401
+#define IDC_EDIT3                       1403
+#define IDC_EDIT_TBL_1                  1500
+#define IDC_EDIT_TBL_TXT                1501
+#define IDC_EDIT_TBL_TBL                1502
+#define IDC_BUTTON_TBL_TXT              1503
+#define IDC_CHECK__TBL_TBL              1504
+#define IDC_CHECK_TBL_TBL               1504
+#define IDC_BUTTON1                     1505
+#define IDC_BUTTON_TBL_TBL              1505
+#define IDC_BUTTON_WIPS                 1505
+#define IDC_BUTTON_TBL_2                1506
+#define IDC_COMBO_TBL_1                 1507
+#define IDC_RADIO_TBL_1                 1508
+#define IDC_RADIO_TBL_2                 1509
+#define IDC_RADIO_TBL_3                 1510
+#define IDC_EDIT_TBL_2                  1511
+#define IDC_EDIT_TBL_3                  1512
+#define IDC_CHECK_TBL_1                 1513
+#define IDC_BUTTON_TBL_3                1514
+#define IDC_LIST99                      1515
+
+// Next default values for new objects
+// 
+#ifdef APSTUDIO_INVOKED
+#ifndef APSTUDIO_READONLY_SYMBOLS
+#define _APS_NEXT_RESOURCE_VALUE        148
+#define _APS_NEXT_COMMAND_VALUE         32773
+#define _APS_NEXT_CONTROL_VALUE         1075
+#define _APS_NEXT_SYMED_VALUE           101
+#endif
+#endif
