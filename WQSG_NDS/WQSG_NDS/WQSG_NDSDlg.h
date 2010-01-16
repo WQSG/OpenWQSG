@@ -88,4 +88,6 @@ public:
 private:
 	bool WFile( CString a_strPathFile , const SNdsFindData& a_DirData , CStringA a_strFile );
 	bool WDir( CString a_strPathFile , const CStringA& a_strDirPath );
+
+	void SetTitle(BOOL* a_bCanWrite);
 };

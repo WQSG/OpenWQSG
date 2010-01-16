@@ -136,6 +136,8 @@ BOOL CWQSG_NDSDlg::OnInitDialog()
 
 	OnLoadFSI();
 
+	SetTitle( NULL );
+
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -524,7 +526,7 @@ void CWQSG_NDSDlg::OnRomopen()
 
 	if( !m_Rom.Open( dlg.GetPathName() ) )
 	{
-		MessageBox( L"" );
+		MessageBox( L"打开文件失败" );
 	}
 
 	m_NdsFSI.EnableWindow( TRUE );
@@ -695,4 +697,27 @@ bool CWQSG_NDSDlg::WDir( CString a_strPathFile , const CStringA& a_strDirPath )
 	FindClose(handle);
 
 	return true;
+}
+
+
+void CWQSG_NDSDlg::SetTitle(BOOL* a_bCanWrite)
+{
+	CString str1,str2,str3;
+	str1.LoadString( IDS_APP_NAME );
+	str2.LoadString( IDS_APP_VER );
+
+	CString strTitle( str1 + L" v" + str2 ); 
+	if( a_bCanWrite )
+	{
+		if( *a_bCanWrite )
+		{
+			strTitle += L" [写模式]";
+		}
+		else	
+		{
+			strTitle += L" [只读模式]";
+		}
+	}
+
+	SetWindowText( strTitle );
 }
