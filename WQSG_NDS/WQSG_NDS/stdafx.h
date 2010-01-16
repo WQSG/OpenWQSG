@@ -213,6 +213,8 @@ class CNdsRom
 
 	__inline bool zzz_UdateRec( const SNdsFindData& a_DirData , const SNdsFindData& a_FileData );
 public:
+	CStringW m_strError;
+public:
 	CNdsRom();
 
 	virtual ~CNdsRom();

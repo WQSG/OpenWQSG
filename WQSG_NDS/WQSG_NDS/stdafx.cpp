@@ -94,7 +94,10 @@ __inline bool CNdsRom::zzz_Alloc( const CStringA& a_strPath )
 {
 	SNdsFindHandle* pHandle = FindFile( a_strPath );
 	if( !pHandle )
+	{
+		m_strError.Format( L"内存不足\r\nSNdsFindHandle* pHandle = FindFile( a_strPath )" );
 		return false;
+	}
 
 	SNdsFindData data;
 	while(true)
@@ -121,6 +124,7 @@ __inline bool CNdsRom::zzz_Alloc( const CStringA& a_strPath )
 		{
 			if( !m_pLinkBlock->AllocPos( data.m_File.m_uRomOffset , data.m_File.m_uSize ) )
 			{
+				m_strError.Format( L"Rom空间不足?\r\n这Rom有问题吧" );
 				ASSERT(0);
 				delete pHandle;
 				return false;
@@ -137,6 +141,7 @@ __inline bool CNdsRom::zzz_AllocSize( u32& a_uNewPos , const u32 a_uNewSize , co
 {
 	if( !m_pLinkBlock->Free( a_uOldPos ) )
 	{
+		m_strError.Format( L"%hs : !m_pLinkBlock->Free( a_uOldPos ),一定是bug", __FUNCDNAME__  );
 		ASSERT(0);
 		return false;//
 	}
@@ -150,6 +155,7 @@ __inline bool CNdsRom::zzz_AllocSize( u32& a_uNewPos , const u32 a_uNewSize , co
 		s32 nNewOffset = m_pLinkBlock->Alloc( a_uNewSize , a_uAlign , startFind );
 		if( nNewOffset == -1 )
 		{
+			m_strError.Format( L"%hs : Rom的空间不足", __FUNCDNAME__  );
 			//恢复现场
 			const bool bOk = m_pLinkBlock->AllocPos( a_uOldPos , a_uOldSize );
 			ASSERT(bOk);
@@ -166,12 +172,14 @@ __inline bool CNdsRom::zzz_UdateRec( const SNdsFindData& a_DirData , const SNdsF
 {
 	if( !a_DirData.m_bDir )
 	{
+		m_strError.Format( L"%hs : !a_DirData.m_bDir,一定是bug", __FUNCDNAME__  );
 		ASSERT(a_DirData.m_bDir);
 		return false;
 	}
 
 	if( a_FileData.m_bDir )
 	{
+		m_strError.Format( L"%hs : a_FileData.m_bDir,一定是bug", __FUNCDNAME__  );
 		ASSERT(!a_FileData.m_bDir);
 		return false;
 	}
@@ -192,7 +200,10 @@ __inline bool CNdsRom::zzz_UdateRec( const SNdsFindData& a_DirData , const SNdsF
 
 				m_hRom.Seek( 0 );
 				if( sizeof(m_NdsHeader) != m_hRom.Write( &m_NdsHeader , sizeof(m_NdsHeader) ) )
+				{
+					m_strError.Format( L"%hs : arm9 写 Rom 失败", __FUNCDNAME__  );
 					return false;
+				}
 			}
 			break;
 		case 1://arm7
@@ -206,10 +217,14 @@ __inline bool CNdsRom::zzz_UdateRec( const SNdsFindData& a_DirData , const SNdsF
 
 				m_hRom.Seek( 0 );
 				if( sizeof(m_NdsHeader) != m_hRom.Write( &m_NdsHeader , sizeof(m_NdsHeader) ) )
+				{
+					m_strError.Format( L"%hs : arm7 写 Rom 失败", __FUNCDNAME__  );
 					return false;
+				}
 			}
 			break;
 		default:
+			m_strError.Format( L"%hs : 根目录只能导入arm9好人arm7,一定是bug", __FUNCDNAME__  );
 			ASSERT(0);
 			return false;
 		}
@@ -230,6 +245,7 @@ __inline bool CNdsRom::zzz_UdateRec( const SNdsFindData& a_DirData , const SNdsF
 				const size_t count7 = m_NdsHeader.Arm7_Overlay_Size / sizeof(OVERLAYENTRY);
 				if( uFileID_InDir >= count7 )
 				{
+					m_strError.Format( L"%hs : auFileID_InDir >= count7" , __FUNCDNAME__  );
 					ASSERT( uFileID_InDir < count7 );
 					return false;
 				}
@@ -245,7 +261,10 @@ __inline bool CNdsRom::zzz_UdateRec( const SNdsFindData& a_DirData , const SNdsF
 
 			OVERLAYENTRY overlay;
 			if( sizeof(overlay) != m_hRom.Read( &overlay , sizeof(overlay) ) )
+			{
+				m_strError.Format( L"%hs : 读 OVERLAYENTRY 失败" , __FUNCDNAME__  );
 				return false;
+			}
 
 			offset = m_NdsHeader.Fat_Offset + overlay.file_id * sizeof(SNdsFileRec);
 
@@ -253,13 +272,17 @@ __inline bool CNdsRom::zzz_UdateRec( const SNdsFindData& a_DirData , const SNdsF
 
 			SNdsFileRec fileRec;
 			if( sizeof(fileRec) != m_hRom.Read( &fileRec , sizeof(fileRec) ) )
+			{
+				m_strError.Format( L"%hs : 读 SNdsFileRec 失败" , __FUNCDNAME__  );
 				return false;
+			}
 
 			const u32 uTop = a_FileData.m_File.m_uRomOffset;
 
 			const s64 sBottom = uTop + a_FileData.m_File.m_uSize;
 			if( sBottom > 0xFFFFFFFF )
 			{
+				m_strError.Format( L"%hs : sBottom > 0xFFFFFFFF" , __FUNCDNAME__  );
 				ASSERT( sBottom <= 0xFFFFFFFF );
 				return false;
 			}
@@ -274,7 +297,10 @@ __inline bool CNdsRom::zzz_UdateRec( const SNdsFindData& a_DirData , const SNdsF
 				m_hRom.Seek( offset );
 
 				if( sizeof(fileRec) != m_hRom.Write( &fileRec , sizeof(fileRec) ) )
+				{
+					m_strError.Format( L"%hs : OVERLAYENTRY 写 Rom 失败" , __FUNCDNAME__  );
 					return false;
+				}
 			}
 		}
 		break;
@@ -328,6 +354,7 @@ __inline bool CNdsRom::zzz_UdateRec( const SNdsFindData& a_DirData , const SNdsF
 #endif
 			if( a_FileData.m_File.m_nFatOffset < 0 )
 			{
+				m_strError.Format( L"%hs : a_FileData.m_File.m_nFatOffset < 0" , __FUNCDNAME__  );
 				ASSERT(a_FileData.m_File.m_nFatOffset >= 0);
 				return false;
 			}
@@ -338,13 +365,17 @@ __inline bool CNdsRom::zzz_UdateRec( const SNdsFindData& a_DirData , const SNdsF
 
 			SNdsFileRec fileRec;
 			if( sizeof(fileRec) != m_hRom.Read( &fileRec , sizeof(fileRec) ) )
+			{
+				m_strError.Format( L"%hs : 读文件记录" , __FUNCDNAME__  );
 				return false;
+			}
 
 			const u32 uTop = a_FileData.m_File.m_uRomOffset;
 
 			const s64 sBottom = uTop + a_FileData.m_File.m_uSize;
 			if( sBottom > 0xFFFFFFFF )
 			{
+				m_strError.Format( L"%hs : sBottom > 0xFFFFFFFF" , __FUNCDNAME__  );
 				ASSERT( sBottom <= 0xFFFFFFFF );
 				return false;
 			}
@@ -359,12 +390,16 @@ __inline bool CNdsRom::zzz_UdateRec( const SNdsFindData& a_DirData , const SNdsF
 				m_hRom.Seek( nPos );
 
 				if( sizeof(fileRec) != m_hRom.Write( &fileRec , sizeof(fileRec) ) )
+				{
+					m_strError.Format( L"%hs : 写文件记录失败" , __FUNCDNAME__  );
 					return false;
+				}
 			}
 		}
 		break;
 
 	default:
+		m_strError.Format( L"%hs : 未知目录类型,一定是bug", __FUNCDNAME__  );
 		ASSERT(0);
 		return false;
 	}
@@ -377,23 +412,41 @@ bool CNdsRom::Open( const CStringW& a_strFile )
 	Close();
 
 	if( !m_hRom.OpenFile( a_strFile.GetString() , 3 , 3 ) )
-		return false;
+	{
+		if( !m_hRom.OpenFile( a_strFile.GetString() , 1 , 3 ) )
+		{
+			m_strError = L"打开文件失败";
+			return false;
+		}
+	}
 
 	const n64 nSile = m_hRom.GetFileSize();
 
 	if( sizeof(m_NdsHeader) != m_hRom.Read( &m_NdsHeader , sizeof(m_NdsHeader) ) )
+	{
+		m_strError.Format( L"读文件头失败,确定这是NDS Rom?" );
 		goto __gtOpenErr;
+	}
 
 	if( nSile > (1024*1024*1024) )
+	{
+		m_strError.Format( L"Rom文件大于1GB了..." );
 		goto __gtOpenErr;
+	}
 
 	m_uRomSize = (u32)nSile;
 
 	if( m_NdsHeader.Arm9_Rom_Offset % 4096 )
+	{
+		m_strError.Format( L"Rom校验失败\r\nm_NdsHeader.Arm9_Rom_Offset % 4096\r\nm_NdsHeader.Arm9_Rom_Offset = %08X" , m_NdsHeader.Arm9_Rom_Offset );
 		goto __gtOpenErr;
+	}
 
 	if( m_NdsHeader.Arm7_Rom_Offset % 512 )
+	{
+		m_strError.Format( L"Rom校验失败\r\nm_NdsHeader.Arm7_Rom_Offset % 512\r\nm_NdsHeader.Arm7_Rom_Offset = %08X" , m_NdsHeader.Arm7_Rom_Offset );
 		goto __gtOpenErr;
+	}
 
 // 	if( m_NdsHeader.Arm9_Overlay_Offset % 512 )
 // 		goto __gtOpenErr;
@@ -402,20 +455,35 @@ bool CNdsRom::Open( const CStringW& a_strFile )
 // 		goto __gtOpenErr;
 
 	if( m_NdsHeader.Banner_Offset % 512 )
+	{
+		m_strError.Format( L"Rom校验失败\r\nm_NdsHeader.Banner_Offset % 512\r\nm_NdsHeader.Banner_Offset = %08X" , m_NdsHeader.Banner_Offset );
 		goto __gtOpenErr;
+	}
 
 	if( m_NdsHeader.Fnt_Offset % 4/*512*/ )
+	{
+		m_strError.Format( L"Rom校验失败\r\nm_NdsHeader.Fnt_Offset % 4\r\nm_NdsHeader.Fnt_Offset = %08X" , m_NdsHeader.Fnt_Offset );
 		goto __gtOpenErr;
+	}
 
 	if( m_NdsHeader.Fat_Offset % 4/*512*/ )
+	{
+		m_strError.Format( L"Rom校验失败\r\nm_NdsHeader.Fat_Offset % 4\r\nm_NdsHeader.Fat_Offset = %08X" , m_NdsHeader.Fat_Offset );
 		goto __gtOpenErr;
+	}
 
 	m_pLinkBlock = new CWQSG_PartitionList( m_uRomSize );
 	if( !m_pLinkBlock )
+	{
+		m_strError.Format( L"内存不足\r\nm_pLinkBlock = new CWQSG_PartitionList( m_uRomSize )" );
 		goto __gtOpenErr;
+	}
 
 	if( !m_pLinkBlock->AllocPos( 0 , 0x4000 ) )
+	{
+		m_strError.Format( L"Rom空间不足\r\nm_pLinkBlock->AllocPos( 0 , 0x4000 )" );
 		goto __gtOpenErr;
+	}
 
 // 	if( !m_pLinkBlock->AllocPos( m_NdsHeader.Arm9_Rom_Offset , m_NdsHeader.Arm9_Size ) )
 // 		goto __gtOpenErr;
@@ -432,13 +500,22 @@ bool CNdsRom::Open( const CStringW& a_strFile )
 // 			goto __gtOpenErr;
 
 	if( !m_pLinkBlock->AllocPos( m_NdsHeader.Fnt_Offset , m_NdsHeader.Fnt_Size ) )
+	{
+		m_strError.Format( L"Rom空间不足\r\nFnt" );
 		goto __gtOpenErr;
+	}
 
 	if( !m_pLinkBlock->AllocPos( m_NdsHeader.Fat_Offset , m_NdsHeader.Fat_Size ) )
+	{
+		m_strError.Format( L"Rom空间不足\r\nFat" );
 		goto __gtOpenErr;
+	}
 
 	if( !m_pLinkBlock->AllocPos( m_NdsHeader.Banner_Offset , 0x840 ) )
+	{
+		m_strError.Format( L"Rom空间不足\r\nBanner" );
 		goto __gtOpenErr;
+	}
 
 	if( !zzz_Alloc( "" ) )
 		goto __gtOpenErr;
@@ -512,7 +589,10 @@ void CNdsRom::FindClose( SNdsFindHandle* a_pHandle )
 bool CNdsRom::GetPath( SNdsFindData& a_Data , CStringA a_strPath )
 {
 	if( !IsOpen() )
+	{
+		m_strError.Format( L"%hs : 还没打开Rom?程序有bug", __FUNCDNAME__  );
 		return false;
+	}
 
 	CStringA strDirName;
 
@@ -532,7 +612,10 @@ bool CNdsRom::GetPath( SNdsFindData& a_Data , CStringA a_strPath )
 			return false;
 
 		if( !data.m_bDir )
+		{
+			m_strError.Format( L"%hs : 路径居然包含了文件,一定是bug", __FUNCDNAME__  );
 			return false;
+		}
 
 		a_Data = data;
 	}
@@ -543,7 +626,10 @@ bool CNdsRom::GetPath( SNdsFindData& a_Data , CStringA a_strPath )
 bool CNdsRom::FindNextFile( SNdsFindData& a_Data , SNdsFindHandle* a_pHandle /*, bool a_bFindNext */)
 {
 	if( !IsOpen() )
+	{
+		m_strError.Format( L"%hs : 还没打开Rom?程序有bug", __FUNCDNAME__  );
 		return false;
+	}
 
 	const s32 nNewOffset = zzz_FindNextFile( a_Data , a_pHandle->m_Data , a_pHandle->m_nOffset , a_pHandle->m_uFileId );
 	if( nNewOffset < 0 )
@@ -562,10 +648,16 @@ bool CNdsRom::GetRec_Root( SNdsFindData& a_Data , s32 a_nFileId )
 	memset( &a_Data , 0 , sizeof(a_Data) );
 
 	if( !IsOpen() )
+	{
+		m_strError.Format( L"%hs : 还没打开Rom?程序有bug" , __FUNCDNAME__ );
 		return false;
+	}
 
 	if( a_nFileId < 0 )
+	{
+		m_strError.Format( L"%hs : 参数错误\r\a_nFileId < 0" , __FUNCDNAME__ );
 		return false;
+	}
 
 	switch( a_nFileId )
 	{
@@ -621,10 +713,16 @@ bool CNdsRom::GetRec_Overlay( SNdsFindData& a_Data , s32 a_nFileId )
 	memset( &a_Data , 0 , sizeof(a_Data) );
 
 	if( !IsOpen() )
+	{
+		m_strError.Format( L"%hs : 还没打开Rom?程序有bug" , __FUNCDNAME__ );
 		return false;
+	}
 
 	if( a_nFileId < 0 )
+	{
+		m_strError.Format( L"%hs : 参数错误\r\a_nFileId < 0" , __FUNCDNAME__ );
 		return false;
+	}
 
 	const s32 nCount9 = m_NdsHeader.Arm9_Overlay_Size / sizeof(OVERLAYENTRY);
 
@@ -653,7 +751,10 @@ bool CNdsRom::GetRec_Overlay( SNdsFindData& a_Data , s32 a_nFileId )
 
 	OVERLAYENTRY overlay;
 	if( sizeof(overlay) != m_hRom.Read( &overlay , sizeof(overlay) ) )
+	{
+		m_strError.Format( L"%hs : 读OVERLAYENTRY失败" , __FUNCDNAME__ );
 		return false;
+	}
 
 	offset = m_NdsHeader.Fat_Offset + overlay.file_id * sizeof(SNdsFileRec);
 
@@ -661,7 +762,10 @@ bool CNdsRom::GetRec_Overlay( SNdsFindData& a_Data , s32 a_nFileId )
 
 	SNdsFileRec fileRec;
 	if( sizeof(fileRec) != m_hRom.Read( &fileRec , sizeof(fileRec) ) )
+	{
+		m_strError.Format( L"%hs : 读SNdsFileRec失败" , __FUNCDNAME__ );
 		return false;
+	}
 
 	sprintf( a_Data.m_szName , "overlay_%04d.bin" , nIndex );
 	a_Data.m_bDir = false;
@@ -673,10 +777,16 @@ bool CNdsRom::GetRec_Overlay( SNdsFindData& a_Data , s32 a_nFileId )
 	a_Data.m_File.m_uFileID_InDir = (u16)nIndex;
 
 	if( fileRec.top % 4 )
+	{
+		m_strError.Format( L"%hs : 文件校验失败\r\nfileRec.top % 4\r\nfileRec.top = %08X" , __FUNCDNAME__ , fileRec.top );
 		return false;
+	}
 
 	if( fileRec.bottom < fileRec.top )
+	{
+		m_strError.Format( L"%hs : 文件校验失败\r\fileRec.bottom < fileRec.top\r\nfileRec.top = %08X , fileRec.bottom = %08X" , __FUNCDNAME__ , fileRec.top , fileRec.bottom );
 		return false;
+	}
 
 	a_Data.m_File.m_uRomOffset = fileRec.top;
 	a_Data.m_File.m_uSize = fileRec.bottom - fileRec.top;
@@ -689,10 +799,16 @@ s32 CNdsRom::GetRec_Data( SNdsFindData& a_Data , u16 a_uDirID , u16 a_uFileId , 
 	memset( &a_Data , 0 , sizeof(a_Data) );
 
 	if( !IsOpen() )
+	{
+		m_strError.Format( L"%hs : 还没打开Rom?程序有bug", __FUNCDNAME__  );
 		return -1;
+	}
 
 	if( a_nOffset < 0 )
+	{
+		m_strError.Format( L"%hs : 参数错误\r\na_nOffset < 0", __FUNCDNAME__  );
 		return -1;
+	}
 
 	s64 nPos = m_NdsHeader.Fnt_Offset + ((u32)a_uDirID*sizeof(SNdsDirRec));
 
@@ -700,7 +816,10 @@ s32 CNdsRom::GetRec_Data( SNdsFindData& a_Data , u16 a_uDirID , u16 a_uFileId , 
 
 	SNdsDirRec dirRec;
 	if( sizeof(dirRec) != m_hRom.Read( &dirRec , sizeof(dirRec) ) )
+	{
+		m_strError.Format( L"%hs : 读Rom记录失败", __FUNCDNAME__  );
 		return -1;
+	}
 
 	nPos = m_NdsHeader.Fnt_Offset + dirRec.entry_start /*+ (a_uFileId + dirRec.top_file_id) * sizeof(info)*/;
 
@@ -708,7 +827,10 @@ s32 CNdsRom::GetRec_Data( SNdsFindData& a_Data , u16 a_uDirID , u16 a_uFileId , 
 
 	u8 info;
 	if( sizeof(info) != m_hRom.Read( &info , sizeof(info) ) )
+	{
+		m_strError.Format( L"%hs : 读Rom信息失败", __FUNCDNAME__  );
 		return -1;
+	}
 
 	a_Data.m_nFntOffset = a_nOffset;
 
@@ -721,14 +843,20 @@ s32 CNdsRom::GetRec_Data( SNdsFindData& a_Data , u16 a_uDirID , u16 a_uFileId , 
 		info &= 0x7F;
 
 		if( info != m_hRom.Read( a_Data.m_szName , info ) )
+		{
+			m_strError.Format( L"%hs : 读Rom信息失败2", __FUNCDNAME__  );
 			return -1;
+		}
 
 		a_nOffset += (info + 1);
 
 		if( a_Data.m_bDir )
 		{
 			if( sizeof(a_Data.m_Dir.m_uDir_ID) != m_hRom.Read( &a_Data.m_Dir.m_uDir_ID , sizeof(a_Data.m_Dir.m_uDir_ID) ) )
+			{
+				m_strError.Format( L"%hs : 读目录ID失败", __FUNCDNAME__  );
 				return -1;
+			}
 
 			a_Data.m_Dir.m_uDir_ID &= 0xFFF;
 
@@ -750,13 +878,22 @@ s32 CNdsRom::GetRec_Data( SNdsFindData& a_Data , u16 a_uDirID , u16 a_uFileId , 
 
 			SNdsFileRec fileRec;
 			if( sizeof(fileRec) != m_hRom.Read( &fileRec , sizeof(fileRec) ) )
+			{
+				m_strError.Format( L"%hs : 读Rom文件记录失败" , __FUNCDNAME__ );
 				return -1;
+			}
 
 			if( fileRec.top % 4 )
+			{
+				m_strError.Format( L"%hs : 文件校验失败\r\nfileRec.top % 4\r\nfileRec.top = %08X" , __FUNCDNAME__ , fileRec.top );
 				return -1;
+			}
 
 			if( fileRec.bottom < fileRec.top )
+			{
+				m_strError.Format( L"%hs : 文件校验失败\r\fileRec.bottom < fileRec.top\r\nfileRec.top = %08X , fileRec.bottom = %08X" , __FUNCDNAME__ , fileRec.top , fileRec.bottom );
 				return -1;
+			}
 
 			a_Data.m_File.m_uRomOffset = fileRec.top;
 			a_Data.m_File.m_uSize = fileRec.bottom - fileRec.top;
@@ -769,7 +906,10 @@ s32 CNdsRom::GetRec_Data( SNdsFindData& a_Data , u16 a_uDirID , u16 a_uFileId , 
 bool CNdsRom::zzz_FindFile( SNdsFindData& a_FileData , const SNdsFindData& a_DirData , CStringA a_strName )
 {
 	if( !IsOpen() )
+	{
+		m_strError.Format( L"%hs : 还没打开Rom?程序有bug" , __FUNCDNAME__ );
 		return false;
+	}
 
 	a_strName.MakeLower();
 
@@ -785,7 +925,10 @@ bool CNdsRom::zzz_FindFile( SNdsFindData& a_FileData , const SNdsFindData& a_Dir
 		nOffset = nNextOffset;
 
 		if( a_FileData.m_bEmpty )
+		{
+			m_strError.Format( L"%hs : 忘了什么问题,算是bug?" , __FUNCDNAME__ );
 			return false;
+		}
 
 		CStringA strName( a_FileData.m_szName );
 
@@ -796,13 +939,17 @@ bool CNdsRom::zzz_FindFile( SNdsFindData& a_FileData , const SNdsFindData& a_Dir
 			nFileID++;
 	}
 
+	m_strError.Format( L"%hs : 不可能执行这段?程序一定有bug" , __FUNCDNAME__ );
 	return false;
 }
 
 s32 CNdsRom::zzz_FindNextFile( SNdsFindData& a_FileData , const SNdsFindData& a_DirData , s32 a_nOffset , u16 a_uFileID )
 {
 	if( !IsOpen() )
+	{
+		m_strError.Format( L"%hs : 还没打开Rom?程序有bug" , __FUNCDNAME__ );
 		return -1;
+	}
 
 	if( a_DirData.m_bDir )
 	{
@@ -826,8 +973,12 @@ s32 CNdsRom::zzz_FindNextFile( SNdsFindData& a_FileData , const SNdsFindData& a_
 				return nNextOffset;
 			}
 			break;
+		default:
+			m_strError.Format( L"%hs : 未知的目录类型?程序有bug" , __FUNCDNAME__ );
 		}
 	}
+	else
+		m_strError.Format( L"%hs : 谁把文件当目录了?程序有bug" , __FUNCDNAME__ );
 
 	return -1;
 }
@@ -835,7 +986,10 @@ s32 CNdsRom::zzz_FindNextFile( SNdsFindData& a_FileData , const SNdsFindData& a_
 bool CNdsRom::ImportFile( const SNdsFindData& a_DirData , CWQSG_xFile& a_InFile , const CStringA& a_strName )
 {
 	if( !IsCanWrite() )
+	{
+		m_strError.Format( L"%hs : Rom不是写模式?程序有bug" , __FUNCDNAME__ );
 		return false;
+	}
 
 	if( a_DirData.m_bDir )
 	{
@@ -843,14 +997,23 @@ bool CNdsRom::ImportFile( const SNdsFindData& a_DirData , CWQSG_xFile& a_InFile 
 		bool bFind = zzz_FindFile( fileData , a_DirData , a_strName );
 
 		if( !bFind )
+		{
+			m_strError.Format( L"%hs : 暂时不支持添加新文件" , __FUNCDNAME__ );
 			return false;//不能创建新文件
+		}
 
 		if( bFind && fileData.m_bDir )
+		{
+			m_strError.Format( L"%hs : 已经存在同名目录" , __FUNCDNAME__ );
 			return false;//不能写目录
+		}
 
 		const s64 sInMaxSize = a_InFile.GetFileSize();
 		if( sInMaxSize > (1024*1024*1024) )
+		{
+			m_strError.Format( L"%hs : 不能导入大于1G的文件" , __FUNCDNAME__ );
 			return false;
+		}
 
 		u32 uNewPos;
 		const u32 uNewSize = (u32)sInMaxSize;
@@ -859,7 +1022,10 @@ bool CNdsRom::ImportFile( const SNdsFindData& a_DirData , CWQSG_xFile& a_InFile 
 		{
 		case E_NFHT_ROOT:
 			if( !bFind )
+			{
+				m_strError.Format( L"%hs : 不能在根目录添加文件" , __FUNCDNAME__ );
 				return false;//此目录不能创建新文件
+			}
 			else
 			{
 				if ( fileData.m_File.m_uFileID_InDir == 0 )
@@ -875,7 +1041,10 @@ bool CNdsRom::ImportFile( const SNdsFindData& a_DirData , CWQSG_xFile& a_InFile 
 
 		case E_NFHT_OVERLAY:
 			if( !bFind )
+			{
+				m_strError.Format( L"%hs : 不能在OVERLAY目录添加文件" , __FUNCDNAME__ );
 				return false;//此目录不能创建新文件
+			}
 			else if( !zzz_AllocSize( uNewPos , uNewSize , 4 , fileData.m_File.m_uRomOffset , fileData.m_File.m_uSize ) )
 				return false;
 
@@ -909,15 +1078,22 @@ bool CNdsRom::ImportFile( const SNdsFindData& a_DirData , CWQSG_xFile& a_InFile 
 			uRead -= uR;
 
 			if( uR != a_InFile.Read( pBuf , uR ) )
+			{
+				m_strError.Format( L"%hs : 文件读取失败" , __FUNCDNAME__ );
 				return false;
+			}
 
 			if( uR != m_hRom.Write( pBuf , uR ) )
+			{
+				m_strError.Format( L"%hs : Rom写入数据失败" , __FUNCDNAME__ );
 				return false;
+			}
 		}
 
 		return( zzz_UdateRec( a_DirData , fileData ) );
 	}
 
+	m_strError.Format( L"%hs : 谁在导入目录?程序有bug" , __FUNCDNAME__ );
 	ASSERT(0);
 	return false;
 }

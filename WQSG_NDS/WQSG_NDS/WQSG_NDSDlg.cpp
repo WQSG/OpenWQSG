@@ -370,7 +370,14 @@ void CWQSG_NDSDlg::OnLoadFSI(void)
 			while(true)
 			{
 				if( !m_Rom.FindNextFile( data , pHandle /*, true*/ ) )
+				{
+					if( IDYES != MessageBox( m_Rom.m_strError + L"\r\n\r\n要继续吗?" , NULL , MB_YESNO ) )
+					{
+						m_NdsFSI.DeleteAllItems();
+						break;
+					}
 					ASSERT(0);
+				}
 
 				if( data.m_bEmpty )
 					break;
@@ -526,7 +533,12 @@ void CWQSG_NDSDlg::OnRomopen()
 
 	if( !m_Rom.Open( dlg.GetPathName() ) )
 	{
-		MessageBox( L"打开文件失败" );
+		MessageBox( L"打开文件失败\r\n\r\n" + m_Rom.m_strError );
+	}
+	else
+	{
+		BOOL bCanW = m_Rom.IsCanWrite();
+		SetTitle( &bCanW );
 	}
 
 	m_NdsFSI.EnableWindow( TRUE );
@@ -574,6 +586,7 @@ void CWQSG_NDSDlg::OnRomclose()
 	// TODO: 在此添加命令处理程序代码
 	m_Rom.Close();
 	m_strPath = "";
+	SetTitle( NULL );
 
 	m_NdsFSI.EnableWindow( FALSE );
 
@@ -689,7 +702,13 @@ bool CWQSG_NDSDlg::WDir( CString a_strPathFile , const CStringA& a_strDirPath )
 			CStringA strNameA;
 			strNameA = data.cFileName;
 
-			WFile( a_strPathFile + data.cFileName , dirData , strNameA );
+			if( !WFile( a_strPathFile + data.cFileName , dirData , strNameA ) )
+			{
+				if( IDYES != MessageBox( m_Rom.m_strError + L"\r\n\r\n要继续吗?" , NULL , MB_YESNO ) )
+				{
+					break;
+				}
+			}
 		}
 	}
 	while ( FindNextFile( handle , &data ));
