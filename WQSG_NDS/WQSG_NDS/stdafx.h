@@ -73,94 +73,8 @@
 #endif
 #endif
 
-
-struct SNdsHeader
-{
-	char GameTitle[0x0C];
-	char GameCode[0x04];
-	char MakerCode[0x02];
-	BYTE UnitCode;
-	BYTE DeviceCode;						// type of device in the game card
-	BYTE DeviceCap;							// device capacity (128kb<<n Mbit)
-	BYTE Reserved_0x015[0x09];				// (zero filled)
-	BYTE RomVersion;
-	BYTE Autostart;							// (Bit2: Skip "Press Button" after Health and Safety) (Also skips bootmenu, even in Manual mode & even Start pressed)
-	UINT Arm9_Rom_Offset;					// copy src
-	UINT Arm9_Entry_Address;				// entry point
-	UINT Arm9_Ram_Address;					// copy dst
-	UINT Arm9_Size;							// size
-	UINT Arm7_Rom_Offset;
-	UINT Arm7_Entry_Address;
-	UINT Arm7_Ram_Address;
-	UINT Arm7_Size;
-	UINT Fnt_Offset;
-	UINT Fnt_Size;
-	UINT Fat_Offset;
-	UINT Fat_Size;
-	UINT Arm9_Overlay_Offset;
-	UINT Arm9_Overlay_Size;
-	UINT Arm7_Overlay_Offset;
-	UINT Arm7_Overlay_Size;
-	UINT Port_40001A4h_Normal_Commands;		// Port 40001A4h setting for normal commands (usually 00586000h)
-	UINT Port_40001A4h_KEY1_Commands;		// Port 40001A4h setting for KEY1 commands   (usually 001808F8h)
-	UINT Banner_Offset;
-	WORD Secure_Area_CRC;
-	WORD Secure_Area_Loading_Timeout;
-	UINT ARM9_Auto_Load_List_RAM_Address;	// ?
-	UINT ARM7_Auto_Load_List_RAM_Address;	// ?
-	UINT Secure_Area_Disable1;				// unique ID for homebrew
-	UINT Secure_Area_Disable2;				// unique ID for homebrew
-	UINT Application_End_Offset;			// Total Used ROM size
-	UINT Rom_Header_Size;
-	BYTE Reserved_0x088[0x38];				// Reserved (zero filled)
-	BYTE Nintendo_Logo[0x9C];
-	WORD Nintendo_Logo_CRC;
-	WORD Header_CRC;
-	UINT Debug_Rom_Offset;					// (0=none) (8000h and up)       ;only if debug
-	UINT Debug_Size;						// (0=none) (max 3BFE00h)        ;version with
-	UINT Debug_Ram_Address;					// (0=none) (2400000h..27BFE00h) ;SIO and 8MB
-	UINT Reserved_0x16C;
-	BYTE Zero[0x90];
-};
-
-
-#define HEADERCOUNT 8
-
-struct SNdsFileRec
-{
-	UINT top;
-	UINT bottom;	// size = bottom-top
-};
-
-struct OVERLAYENTRY
-{
-	UINT id;
-	UINT ram_address;
-	UINT ram_size;
-	UINT bss_size;
-	UINT sinit_init;
-	UINT sinit_init_end;
-	UINT file_id;
-	UINT reserved;
-};
-
-struct SNdsDirRec
-{
-	UINT entry_start;
-	WORD top_file_id;
-	WORD parent_id_or_count;
-};
-
 #include <WQSG_Lib.h>
 
-enum ENdsFindHandleType
-{
-	E_NFHT_ROOT,
-	E_NFHT_OVERLAY,
-	E_NFHT_DATA,
-
-	E_NFHT_MAX,
-};
 
 struct SNdsFindHandle;
 
@@ -168,6 +82,15 @@ struct SNdsFindData
 {
 	struct SDir
 	{
+		enum ENdsFindHandleType
+		{
+			E_NFHT_ROOT,
+			E_NFHT_OVERLAY,
+			E_NFHT_DATA,
+
+			E_NFHT_MAX,
+		};
+
 		ENdsFindHandleType m_eType;
 		u16 m_uDir_ID;//文件跟 fnt有关
 
@@ -198,10 +121,57 @@ struct SNdsFindData
 };
 
 
-#define DEF_Overlay "overlay"
-
 class CNdsRom
 {
+	struct SNdsHeader
+	{
+		char GameTitle[0x0C];
+		char GameCode[0x04];
+		char MakerCode[0x02];
+		BYTE UnitCode;
+		BYTE DeviceCode;						// type of device in the game card
+		BYTE DeviceCap;							// device capacity (128kb<<n Mbit)
+		BYTE Reserved_0x015[0x09];				// (zero filled)
+		BYTE RomVersion;
+		BYTE Autostart;							// (Bit2: Skip "Press Button" after Health and Safety) (Also skips bootmenu, even in Manual mode & even Start pressed)
+		UINT Arm9_Rom_Offset;					// copy src
+		UINT Arm9_Entry_Address;				// entry point
+		UINT Arm9_Ram_Address;					// copy dst
+		UINT Arm9_Size;							// size
+		UINT Arm7_Rom_Offset;
+		UINT Arm7_Entry_Address;
+		UINT Arm7_Ram_Address;
+		UINT Arm7_Size;
+		UINT Fnt_Offset;
+		UINT Fnt_Size;
+		UINT Fat_Offset;
+		UINT Fat_Size;
+		UINT Arm9_Overlay_Offset;
+		UINT Arm9_Overlay_Size;
+		UINT Arm7_Overlay_Offset;
+		UINT Arm7_Overlay_Size;
+		UINT Port_40001A4h_Normal_Commands;		// Port 40001A4h setting for normal commands (usually 00586000h)
+		UINT Port_40001A4h_KEY1_Commands;		// Port 40001A4h setting for KEY1 commands   (usually 001808F8h)
+		UINT Banner_Offset;
+		WORD Secure_Area_CRC;
+		WORD Secure_Area_Loading_Timeout;
+		UINT ARM9_Auto_Load_List_RAM_Address;	// ?
+		UINT ARM7_Auto_Load_List_RAM_Address;	// ?
+		UINT Secure_Area_Disable1;				// unique ID for homebrew
+		UINT Secure_Area_Disable2;				// unique ID for homebrew
+		UINT Application_End_Offset;			// Total Used ROM size
+		UINT Rom_Header_Size;
+		BYTE Reserved_0x088[0x38];				// Reserved (zero filled)
+		BYTE Nintendo_Logo[0x9C];
+		WORD Nintendo_Logo_CRC;
+		WORD Header_CRC;
+		UINT Debug_Rom_Offset;					// (0=none) (8000h and up)       ;only if debug
+		UINT Debug_Size;						// (0=none) (max 3BFE00h)        ;version with
+		UINT Debug_Ram_Address;					// (0=none) (2400000h..27BFE00h) ;SIO and 8MB
+		UINT Reserved_0x16C;
+		BYTE Zero[0x90];
+	};
+
 	CWQSG_File m_hRom;
 	u32 m_uRomSize;
 	CWQSG_PartitionList* m_pLinkBlock;
@@ -223,17 +193,17 @@ public:
 
 	void Close();
 
-	u32 GetRomSize()const
+	__inline u32 GetRomSize()const
 	{
 		return m_uRomSize;
 	}
 
-	bool IsOpen()const
+	__inline bool IsOpen()const
 	{
 		return m_hRom.IsOpen()?true:false;
 	}
 
-	bool IsCanWrite()const
+	__inline bool IsCanWrite()const
 	{
 		return IsOpen() && m_hRom.IsCanWrite();
 	}

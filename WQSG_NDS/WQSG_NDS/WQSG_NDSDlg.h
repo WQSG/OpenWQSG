@@ -22,13 +22,6 @@
 #pragma once
 #include "afxcmn.h"
 
-#define OVERLAY_FMT		_T("/FSI.CT/overlay%d_%04d.bin")
-#define GetNDSSize(header) ( 1 << (17 + header.devicecap) )
-#define HEADERCOUNT 8
-#define GETFILEID(Param) (LOWORD(Param))
-#define GETITEMID(Param) (HIWORD(Param))
-#define MAKEPARAM(nFileID, iItem) (MAKELONG(nFileID, iItem))
-
 
 // CWQSG_NDSDlg ¶Ô»°¿ò
 class CWQSG_NDSDlg : public CDialog
@@ -65,7 +58,6 @@ protected:
 	CNdsRom m_Rom;
 public:
 	afx_msg void OnSize(UINT nType, int cx, int cy);
-	afx_msg void OnHdnGetdispinfoFsilist(NMHDR *pNMHDR, LRESULT *pResult);
 
 	void OnLoadFSI(void);
 

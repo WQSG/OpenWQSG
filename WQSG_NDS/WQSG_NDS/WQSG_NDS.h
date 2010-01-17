@@ -32,7 +32,7 @@
 // 有关此类的实现，请参阅 WQSG_NDS.cpp
 //
 
-class CWQSG_NDSApp : public CWinAppEx
+class CWQSG_NDSApp : public CWinApp
 {
 public:
 	CWQSG_NDSApp();

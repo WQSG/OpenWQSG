@@ -27,29 +27,13 @@
 #define new DEBUG_NEW
 #endif
 
-
-// CWQSG_NDSDlg 对话框
-
-
-#define FSI_ICON_UNK	0
-#define FSI_ICON_TILE	1
-#define FSI_ICON_SOUND	2
-#define FSI_ICON_ANIME	3
-#define FSI_ICON_NDS	4
-#define FSI_ICON_PAL	5
-#define FSI_ICON_TEXT	6
-#define FSI_ICON_MAP	7
-#define FSI_ICON_LZ		8
-#define FSI_ICON_HAN	9
-#define FSI_ICON_OT		10
-
 #define FSI_SUB_FILENAME	0
 #define FSI_SUB_FILEID		1
 #define FSI_SUB_FILEOFFSET	2
 #define FSI_SUB_FILESIZE	3
 #define FSI_SUB_FILEHEADER	4
 #define FSI_SUB_FILEINFO	5
-
+// CWQSG_NDSDlg 对话框
 
 
 CWQSG_NDSDlg::CWQSG_NDSDlg(CWnd* pParent /*=NULL*/)
@@ -69,7 +53,6 @@ BEGIN_MESSAGE_MAP(CWQSG_NDSDlg, CDialog)
 	ON_WM_QUERYDRAGICON()	//}}AFX_MSG_MAP
 	ON_WM_CLOSE()
 	ON_WM_SIZE()
-	ON_NOTIFY(HDN_GETDISPINFO, 0, &CWQSG_NDSDlg::OnHdnGetdispinfoFsilist)
 	ON_COMMAND(ID_RomOpen, &CWQSG_NDSDlg::OnRomopen)
 	ON_NOTIFY(LVN_ITEMACTIVATE, IDC_FSILIST, &CWQSG_NDSDlg::OnLvnItemActivateFsilist)
 	ON_NOTIFY(LVN_DELETEITEM, IDC_FSILIST, &CWQSG_NDSDlg::OnLvnDeleteitemFsilist)
@@ -112,11 +95,7 @@ BOOL CWQSG_NDSDlg::OnInitDialog()
 
 	//CView *pView = m_pParentWnd;
 	//m_pParentWnd = pView->GetParent();
-#if 0
-	GetWindowText(header);
-	header.Append(m_pTileView->GetDocument()->GetTitle());
-	SetWindowText(header);
-#endif
+
 #if 0
 	m_hImageList = ImageList_Create(16, 16, ILC_COLOR8, 0, 0);
 	DWORD dwSize;
@@ -134,7 +113,7 @@ BOOL CWQSG_NDSDlg::OnInitDialog()
 	//m_NdsFSI.SetImageList(&il, LVSIL_SMALL);
 	m_NdsFSI.SendMessage( LVM_SETIMAGELIST , LVSIL_SMALL , (LPARAM)m_hImageList );
 
-	SetIcon(ImageList_GetIcon(m_hImageList, FSI_ICON_NDS, 0), FALSE);
+	//SetIcon(ImageList_GetIcon(m_hImageList, FSI_ICON_NDS, 0), FALSE);
 
 	OnLoadFSI();
 
@@ -215,146 +194,6 @@ void CWQSG_NDSDlg::OnSize(UINT nType, int cx, int cy)
 	// TODO: 在此处添加消息处理程序代码
 }
 
-void CWQSG_NDSDlg::OnHdnGetdispinfoFsilist(NMHDR *pNMHDR, LRESULT *pResult)
-{
-	LPNMHDDISPINFO pDispInfo = reinterpret_cast<LPNMHDDISPINFO>(pNMHDR);
-	// TODO: 在此添加控件通知处理程序代码
-
-	UINT FileID = (UINT)pDispInfo->iItem; CString text;
-	if(FileID>=HEADERCOUNT)
-	{
-#if 0
-		FileID = GETFILEID(pDispInfo->lParam);
-		NDSFILEREC *pFileRec;
-		//memcpy((BYTE*)&filerec, m_pRom+m_pHeader->fat_offset+(FileID<<3), sizeof(filerec));
-		pFileRec = (NDSFILEREC*)(m_Rom.GetBuf()+m_pHeader->Fat_Offset+(FileID<<3));
-//#if 0
-		if(pDispInfo->mask & LVIF_TEXT)
-		{
-			switch(pDispInfo->iSubItem)
-			{
-			case FSI_SUB_FILEID://ID
-				text.Format(_T("%04d"), FileID);
-				break;
-			case FSI_SUB_FILEOFFSET://Offset
-				text.Format(_T("%08X"), pFileRec->top);
-				break;
-			case FSI_SUB_FILESIZE://Size
-				{
-					text.Format(_T("%d"), pFileRec->bottom-pFileRec->top);
-					int nPos=text.GetLength();
-					while(nPos>3)	{nPos-=3; text.Insert(nPos, _T(','));}
-				}break;
-			case FSI_SUB_FILEHEADER://HeaderInfo
-				{
-					LVITEM lvi; memset(&lvi, 0, sizeof(lvi));
-					lvi.iItem = pDispInfo->iItem; lvi.mask = LVIF_IMAGE;
-					m_NdsFSI.GetItem(&lvi);
-					if(lvi.iImage==FSI_ICON_TEXT)
-					{
-						UINT nSize = pFileRec->bottom-pFileRec->top;
-						if(nSize>0x10) nSize=0x10;
-						//text.Append(m_pRom+pFileRec->top, nSize);
-						LPTSTR p = text.GetBuffer(0x20);
-						memset(p, 0, sizeof(TCHAR)*0x20);
-						MultiByteToWideChar(932, 0, (LPCSTR)(m_Rom.GetBuf()+pFileRec->top), nSize,
-							p, 0x20);
-						text.ReleaseBuffer(0x20);
-					}else
-					{
-						text = GetSubHeader(pFileRec->top, lvi.iItem);
-						text.Replace(_T('\n'), _T(' '));
-					}
-				}
-				break;
-			case FSI_SUB_FILEINFO:
-				{
-					LVITEM lvi = {};
-					lvi.iItem = pDispInfo->iItem; lvi.mask = LVIF_IMAGE;
-					m_NdsFSI.GetItem(&lvi);
-					CString h, sub;
-					h.LoadString(IDS_NDSHEADERINFO);
-					AfxExtractSubString(text, h, HEADERCOUNT+lvi.iImage);
-					sub = m_NdsFSI.GetItemText(lvi.iItem, FSI_SUB_FILEOFFSET);
-					UINT nOff = StrToIntEX(sub);
-					if(nOff==-1) break;
-					sub = GetSubHeader(nOff, lvi.iItem);
-					UINT i=0, nSize;
-					while(TRUE)
-					{
-						AfxExtractSubString(h, sub, i);
-						nSize = StrToIntEX(h.Right(h.GetLength()-5), FALSE);
-						h = h.Left(4);
-						/*if(h==_T("CMAP"))
-						{
-						NDSCMAP *cmap = (NDSCMAP*)(m_pRom+nOff);
-						h.LoadString(IDS_NDSCMAP_INFO);
-						text.AppendFormat(h, cmap->nBeginCode, cmap->nEndCode, cmap->nType,
-						cmap->nOffset, cmap->wChar[0], cmap->wChar[0]);
-						}else*/
-						if(h==_T("CWDH"))
-						{
-							NDSCWDH *cwdh = (NDSCWDH*)(m_Rom.GetBuf()+nOff);
-							//h.LoadString(IDS_NDSCWDH_INFO);
-							text.AppendFormat(h, cwdh->wCount+1, cwdh->nWDH[0][0], cwdh->nWDH[0][1], cwdh->nWDH[0][2]);
-						}
-						else if(h==_T("CGLP"))
-						{
-							NDSCGLP *cglp = (NDSCGLP*)(m_Rom.GetBuf()+nOff);
-							//h.LoadString(IDS_NDSCGLP_INFO);
-							text.AppendFormat(h, cglp->nWidth, cglp->nHeight, cglp->nTileSize, cglp->nBits, cglp->nTileSize*8/(cglp->nWidth*cglp->nHeight));
-						}
-						else if(h.IsEmpty())
-							break;
-
-						nOff += nSize;
-						i++;
-					}
-				}break;
-			}
-			if(text.GetLength()>pDispInfo->cchTextMax)
-			{
-				text = text.Left(pDispInfo->cchTextMax-4);
-				text.Append(_T("..."));
-			}
-			::lstrcpy(pDispInfo->pszText, text);
-		}
-#endif
-	}
-	else
-	{
-#if 0
-		if(pDispInfo->mask & LVIF_TEXT)
-		{
-			switch(pDispInfo->iSubItem)
-			{
-			case FSI_SUB_FILEID://ID
-				text.LoadString(IDS_NDSHEADER);
-				break;
-			case FSI_SUB_FILEOFFSET://Offset
-				text.Format(_T("%08X"), m_SpecRec[FileID].nTop);
-				break;
-			case FSI_SUB_FILESIZE://Size
-				{
-					text.Format(_T("%d"), m_SpecRec[FileID].nBottom-m_SpecRec[FileID].nTop);
-					int nPos=text.GetLength();while(nPos>3){nPos-=3; text.Insert(nPos, _T(','));}
-				}
-				break;
-			case FSI_SUB_FILEINFO:
-				{
-					CString h;h.LoadString(IDS_NDSHEADERINFO);
-					AfxExtractSubString(text, h, FileID);
-				}
-				break;
-			}
-			::lstrcpy(pDispInfo->pszText, text);
-		}
-#endif
-	}
-
-	*pResult = 0;
-}
-
 void CWQSG_NDSDlg::OnLoadFSI(void)
 {
 	m_NdsFSI.SetRedraw(FALSE);
@@ -431,89 +270,9 @@ void CWQSG_NDSDlg::OnLoadFSI(void)
 
 			m_Rom.FindClose( pHandle );
 		}
-
 	}
 
 	m_NdsFSI.SetRedraw();
-#if 0
-	OnUpdateNds();
-
-	/*POSITION pos = m_NdsFSI.GetFirstSelectedItemPosition();
-	int nSel = -1;
-	if(pos)
-	nSel = m_NdsFSI.GetNextSelectedItem(pos);*/
-	int nSel = GetCurSel();
-
-	m_NdsFSI.DeleteAllItems();
-
-	if( m_pHeader )
-	{
-		m_nOverlayFiles9 = m_pHeader->Arm9_Overlay_Size / sizeof(OVERLAYENTRY);
-		m_nOverlayFiles7 = m_pHeader->Arm7_Overlay_Size / sizeof(OVERLAYENTRY);
-
-		m_nRomFitSize = 0;	int nItem = 0;
-
-		for( ; nItem<HEADERCOUNT ; nItem++ )
-			m_NdsFSI.InsertItem(nItem, m_SpecRec[nItem].FileName, FSI_ICON_NDS);
-
-		CString OverlayFiles;
-		m_nOverlayFileSize = 0; 
-		OVERLAYENTRY* OverlayEntry = (OVERLAYENTRY*)(m_Rom.GetBuf()+m_pHeader->Arm9_Overlay_Offset);
-		NDSFILEREC* pFileRec;
-		for( UINT i= 0 ; i < m_nOverlayFiles9 ; i++ )
-		{
-			OverlayFiles.Format(OVERLAY_FMT, 9, i);
-
-			pFileRec = (NDSFILEREC*)(m_Rom.GetBuf()+m_pHeader->Fat_Offset+(OverlayEntry->file_id<<3));
-			m_nOverlayFileSize += pFileRec->bottom-pFileRec->top;
-
-			m_NdsFSI.InsertItem(LVIF_TEXT|LVIF_PARAM|LVIF_IMAGE, nItem,
-				OverlayFiles, 0, 0, FSI_ICON_OT, MAKEPARAM(OverlayEntry->file_id, nItem));
-			nItem++;
-			OverlayEntry++;
-		}
-		OverlayEntry = (OVERLAYENTRY*)(m_Rom.GetBuf()+m_pHeader->Arm7_Overlay_Offset);
-		for( UINT i = 0 ; i < m_nOverlayFiles7 ; i++ )
-		{
-			OverlayFiles.Format(OVERLAY_FMT, 7, i);
-
-			pFileRec = (NDSFILEREC*)(m_Rom.GetBuf()+m_pHeader->Fat_Offset+(OverlayEntry->file_id<<3));
-			m_nOverlayFileSize += pFileRec->bottom-pFileRec->top;
-
-			m_NdsFSI.InsertItem( LVIF_TEXT | LVIF_PARAM | LVIF_IMAGE , nItem ,
-				OverlayFiles , 0 , 0 , FSI_ICON_OT , MAKEPARAM(OverlayEntry->file_id, nItem) );
-
-			nItem++;
-			OverlayEntry++;
-		}
-
-		OverlayFiles  = _T("/");
-		ExtractDirectory(OverlayFiles);
-
-		m_nRomFitSize +=
-			sizeof(NDSHEADER)							//ndsheader
-			+m_pHeader->Arm9_Size						//arm9
-			+m_pHeader->Arm7_Size						//arm7
-			+m_pHeader->Arm9_Overlay_Size				//arm9ovltable
-			+m_pHeader->Arm7_Overlay_Size				//arm7ovltable
-			+0x840									//banner
-			+m_nOverlayFileSize;					//OverlayFileSize
-
-		LVCOLUMN col = {};
-		col.mask = LVCF_TEXT; col.iSubItem = 2; m_NdsFSI.GetColumn(3, &col);
-		OverlayFiles.Format(_T("大小(%d)"), m_nRomFitSize);
-		col.pszText = (LPTSTR)(LPCTSTR)OverlayFiles; col.mask = LVCF_TEXT;
-		m_NdsFSI.SetColumn( 3 , &col );
-	}
-
-	m_NdsFSI.SetRedraw();
-
-	if( nSel != -1 )
-	{
-		m_NdsFSI.SetItemState(nSel, LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED);
-		m_NdsFSI.SendMessage(WM_KEYDOWN, VK_LEFT);
-	}
-#endif
 }
 
 
@@ -573,6 +332,7 @@ void CWQSG_NDSDlg::OnLvnDeleteitemFsilist(NMHDR *pNMHDR, LRESULT *pResult)
 	const SNdsFindData* pData = (SNdsFindData*)m_NdsFSI.GetItemData( pNMLV->iItem );
 	if( pData )
 		delete pData;
+
 }
 
 BOOL CWQSG_NDSDlg::DestroyWindow()
@@ -586,7 +346,9 @@ BOOL CWQSG_NDSDlg::DestroyWindow()
 void CWQSG_NDSDlg::OnRomclose()
 {
 	// TODO: 在此添加命令处理程序代码
+
 	m_Rom.Close();
+
 	m_strPath = "";
 	SetTitle( NULL );
 
@@ -716,10 +478,8 @@ bool CWQSG_NDSDlg::WDir( CString a_strPathFile , const CStringA& a_strDirPath )
 	while ( FindNextFile( handle , &data ));
 
 	FindClose(handle);
-
 	return true;
 }
-
 
 void CWQSG_NDSDlg::SetTitle(BOOL* a_bCanWrite)
 {

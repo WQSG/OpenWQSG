@@ -30,7 +30,7 @@
 
 // CWQSG_NDSApp
 
-BEGIN_MESSAGE_MAP(CWQSG_NDSApp, CWinAppEx)
+BEGIN_MESSAGE_MAP(CWQSG_NDSApp, CWinApp)
 	ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
 END_MESSAGE_MAP()
 
@@ -63,7 +63,7 @@ BOOL CWQSG_NDSApp::InitInstance()
 	InitCtrls.dwICC = ICC_WIN95_CLASSES;
 	InitCommonControlsEx(&InitCtrls);
 
-	CWinAppEx::InitInstance();
+	CWinApp::InitInstance();
 
 	// 标准初始化
 	// 如果未使用这些功能并希望减小

@@ -22,6 +22,33 @@
 
 #include "stdafx.h"
 #include <vector>
+
+struct OVERLAYENTRY
+{
+	UINT id;
+	UINT ram_address;
+	UINT ram_size;
+	UINT bss_size;
+	UINT sinit_init;
+	UINT sinit_init_end;
+	UINT file_id;
+	UINT reserved;
+};
+
+struct SNdsFileRec
+{
+	UINT top;
+	UINT bottom;	// size = bottom-top
+};
+
+struct SNdsDirRec
+{
+	UINT entry_start;
+	WORD top_file_id;
+	WORD parent_id_or_count;
+};
+
+
 static const u16 g_crc16tab[] =
 {
 	0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241,
@@ -65,6 +92,7 @@ __inline static u16 CalcCrc16( const u8* a_pData , u32 a_uLength , u16 a_crc = ~
 
 	return a_crc;
 }
+
 
 struct SNdsFindHandle
 {
@@ -186,7 +214,7 @@ __inline bool CNdsRom::zzz_UdateRec( const SNdsFindData& a_DirData , const SNdsF
 
 	switch ( a_DirData.m_Dir.m_eType )
 	{
-	case E_NFHT_ROOT:
+	case SNdsFindData::SDir::E_NFHT_ROOT:
 		switch( a_FileData.m_File.m_uFileID_InDir )
 		{
 		case 0://arm9
@@ -230,7 +258,7 @@ __inline bool CNdsRom::zzz_UdateRec( const SNdsFindData& a_DirData , const SNdsF
 		}
 		break;
 
-	case E_NFHT_OVERLAY:
+	case SNdsFindData::SDir::E_NFHT_OVERLAY:
 		{
 			u16 uFileID_InDir = a_FileData.m_File.m_uFileID_InDir;
 
@@ -305,53 +333,10 @@ __inline bool CNdsRom::zzz_UdateRec( const SNdsFindData& a_DirData , const SNdsF
 		}
 		break;
 
-	case E_NFHT_DATA:
+	case SNdsFindData::SDir::E_NFHT_DATA:
 		{
 			s64 nPos;
-#if 0
-			if( a_off < 0 )
-				return false;
 
-			nPos = m_NdsHeader.Fnt_Offset + ((u32)a_DirData.m_Dir.m_uDir_ID*sizeof(SNdsDirRec));
-
-			m_hRom.Seek( nPos );
-
-			SNdsDirRec dirRec;
-			if( sizeof(dirRec) != m_hRom.Read( &dirRec , sizeof(dirRec) ) )
-				return false;
-
-			nPos = m_NdsHeader.Fnt_Offset + dirRec.entry_start /*+ (a_uFileId + dirRec.top_file_id) * sizeof(info)*/;
-
-			
-			m_hRom.Seek( nPos + a_off );
-
-			u8 info;
-			if( sizeof(info) != m_hRom.Read( &info , sizeof(info) ) )
-				return false;
-
-			const bool bEmpty = info == 0;
-
-			if( bEmpty )
-				return false;
-
-			const bool bDir = (info & 0x80) != 0;
-			if( bDir )
-				return false;
-
-			info &= 0x7F;
-
-// 			if( info != m_hRom.Read( a_Data.m_szName , info ) )
-// 				return -1;
-
-				a_nOffset += (info + 1);
-
-
-				a_Data.m_File.m_uFileID_InRom = a_uFileId + dirRec.top_file_id;
-				a_Data.m_File.m_uFileID_InDir = a_uFileId;
-
-				a_Data.m_File.m_nFatOffset = ((s32)a_FileData.m_File.m_uFileID_InRom * sizeof(SNdsFileRec));
-				
-#endif
 			if( a_FileData.m_File.m_nFatOffset < 0 )
 			{
 				m_strError.Format( L"%hs : a_FileData.m_File.m_nFatOffset < 0" , __FUNCDNAME__  );
@@ -598,7 +583,7 @@ bool CNdsRom::GetPath( SNdsFindData& a_Data , CStringA a_strPath )
 
 	memset( &a_Data , 0 , sizeof(a_Data) );
 	a_Data.m_bDir = true;
-	a_Data.m_Dir.m_eType = E_NFHT_ROOT;
+	a_Data.m_Dir.m_eType = SNdsFindData::SDir::E_NFHT_ROOT;
 
 	SNdsFindData data;
 	while( !a_strPath.IsEmpty() )
@@ -684,11 +669,11 @@ bool CNdsRom::GetRec_Root( SNdsFindData& a_Data , s32 a_nFileId )
 		
 		break;
 	case 2:
-		strcpy( a_Data.m_szName , DEF_Overlay );
+		strcpy( a_Data.m_szName , "overlay" );
 
 		a_Data.m_bDir = true;
 
-		a_Data.m_Dir.m_eType = E_NFHT_OVERLAY;
+		a_Data.m_Dir.m_eType = SNdsFindData::SDir::E_NFHT_OVERLAY;
 		a_Data.m_Dir.m_uDir_ID = 0;
 
 		break;
@@ -697,7 +682,7 @@ bool CNdsRom::GetRec_Root( SNdsFindData& a_Data , s32 a_nFileId )
 
 		a_Data.m_bDir = true;
 
-		a_Data.m_Dir.m_eType = E_NFHT_DATA;
+		a_Data.m_Dir.m_eType = SNdsFindData::SDir::E_NFHT_DATA;
 		a_Data.m_Dir.m_uDir_ID = 0;
 
 		break;
@@ -862,7 +847,7 @@ s32 CNdsRom::GetRec_Data( SNdsFindData& a_Data , u16 a_uDirID , u16 a_uFileId , 
 
 			a_nOffset += sizeof(a_Data.m_Dir.m_uDir_ID);
 
-			a_Data.m_Dir.m_eType = E_NFHT_DATA;
+			a_Data.m_Dir.m_eType = SNdsFindData::SDir::E_NFHT_DATA;
 		}
 		else
 		{
@@ -955,19 +940,19 @@ s32 CNdsRom::zzz_FindNextFile( SNdsFindData& a_FileData , const SNdsFindData& a_
 	{
 		switch ( a_DirData.m_Dir.m_eType )
 		{
-		case E_NFHT_ROOT:
+		case SNdsFindData::SDir::E_NFHT_ROOT:
 			if( GetRec_Root( a_FileData , a_nOffset ) )
 			{
 				return a_nOffset + 1;
 			}
 			break;
-		case E_NFHT_OVERLAY:
+		case SNdsFindData::SDir::E_NFHT_OVERLAY:
 			if( GetRec_Overlay( a_FileData , a_nOffset ) )
 			{
 				return a_nOffset + 1;
 			}
 			break;
-		case E_NFHT_DATA:
+		case SNdsFindData::SDir::E_NFHT_DATA:
 			{
 				const s32 nNextOffset = GetRec_Data( a_FileData , a_DirData.m_Dir.m_uDir_ID , a_uFileID , a_nOffset );
 				return nNextOffset;
@@ -975,6 +960,7 @@ s32 CNdsRom::zzz_FindNextFile( SNdsFindData& a_FileData , const SNdsFindData& a_
 			break;
 		default:
 			m_strError.Format( L"%hs : 未知的目录类型?程序有bug" , __FUNCDNAME__ );
+			break;
 		}
 	}
 	else
@@ -1020,7 +1006,7 @@ bool CNdsRom::ImportFile( const SNdsFindData& a_DirData , CWQSG_xFile& a_InFile 
 
 		switch ( a_DirData.m_Dir.m_eType )
 		{
-		case E_NFHT_ROOT:
+		case SNdsFindData::SDir::E_NFHT_ROOT:
 			if( !bFind )
 			{
 				m_strError.Format( L"%hs : 不能在根目录添加文件" , __FUNCDNAME__ );
@@ -1039,7 +1025,7 @@ bool CNdsRom::ImportFile( const SNdsFindData& a_DirData , CWQSG_xFile& a_InFile 
 
 			break;
 
-		case E_NFHT_OVERLAY:
+		case SNdsFindData::SDir::E_NFHT_OVERLAY:
 			if( !bFind )
 			{
 				m_strError.Format( L"%hs : 不能在OVERLAY目录添加文件" , __FUNCDNAME__ );
@@ -1050,7 +1036,7 @@ bool CNdsRom::ImportFile( const SNdsFindData& a_DirData , CWQSG_xFile& a_InFile 
 
 			break;
 
-		case E_NFHT_DATA:
+		case SNdsFindData::SDir::E_NFHT_DATA:
 			if( !bFind )
 				return false;//此目录暂时不支持创建新文件
 			else if( !zzz_AllocSize( uNewPos , uNewSize , 4 , fileData.m_File.m_uRomOffset , fileData.m_File.m_uSize ) )

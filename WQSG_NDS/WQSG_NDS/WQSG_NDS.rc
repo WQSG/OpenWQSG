@@ -170,7 +170,7 @@ BEGIN
     IDS_NDSHEADER           "IDS_NDSHEADER"
     IDS_NDSHEADERINFO       "IDS_NDSHEADERINFO"
     IDS_APP_NAME            "WQSG_NDS"
-    IDS_APP_VER             "1.0.2010.01160"
+    IDS_APP_VER             "1.0.2010.01170"
     IDS_APP_AUTHOR          "WQSG"
     IDS_APP_AUTHOR2         "∂Ò√ŒµƒÀ¿…Ò"
 END
