@@ -64,6 +64,6 @@
 #endif
 #endif
 
-#include <WQSG.h>
+#include <WQSG_lib.h>
 
 
