@@ -222,8 +222,7 @@ public:
 		MessageBox( L"查找结束" );
 	}
 };
-#define DEF_XXX( DEF_X ) \
-	C相对搜索<DEF_X>::C相对搜索( HWND hwnd , CString 标题 ): m_hWnd( hwnd ), m_标题(标题){}
+#define DEF_XXX( DEF_X ) C相对搜索<DEF_X>::C相对搜索( HWND hwnd , CString 标题 ): m_hWnd( hwnd ), m_标题(标题){}
 DEF_XXX(u8)
 DEF_XXX(u16)
 DEF_XXX(u32)

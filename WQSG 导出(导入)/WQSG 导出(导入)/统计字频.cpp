@@ -134,7 +134,8 @@ void 取双字节编码_低(int*高位,int*低位,WCHAR*位置)
 {
 	::swprintf(位置++,3,L"%02x",*高位);
 	::swprintf(++位置,3,L"%02x",(*低位)++);
-	if(*低位 > 255){
+	if(*低位 > 255)
+	{
 		*低位 = 0;(*高位)++;
 		if(*高位 > 255)
 			*高位 = 0;
@@ -152,9 +153,9 @@ void 取双字节编码_高(int*高位,int*低位,WCHAR*位置)
 			*低位 = 0;
 	}
 }
-void 开始编码(::CWQSG_File * TBL_File,const WCHAR*文本,int 高位,int 低位,void(*取码表编码)(int*高位,int*低位,WCHAR*位置)){
-
-	TBL_File->Write("\377\376",2);
+void 开始编码(::CWQSG_File * TBL_File,const WCHAR*文本,int 高位,int 低位,void(*取码表编码)(int*高位,int*低位,WCHAR*位置))
+{
+	TBL_File->Write("\xff\xfe",2);
 	WCHAR 码表左边[5];
 	CStringW 码表;
 	while(*文本)
@@ -246,13 +247,15 @@ BOOL C统计字频::载入码表()
 	{
 		WCHAR* tmp = ::WQSG_DelSP_L(一行);
 		delete[]一行;
-		if(0 == *tmp){
+		if(0 == *tmp)
+		{
 			delete[]tmp;
 			continue;
 		}
 		/////////////////////////////
 		INT I = ::WQSG_strchr(tmp,L'=');
-		if(-1 == I){
+		if(-1 == I)
+		{
 			CStringW message(L"错误,找不到 =\n\n");
 			message += tmp;
 			delete[]tmp;
@@ -261,7 +264,8 @@ BOOL C统计字频::载入码表()
 		}
 		//////////////////////////////////
 		一行 = ::WQSG_getstrL(tmp + I + 1,-1);
-		if(0 == ::WQSG_strlen(一行)){
+		if(0 == ::WQSG_strlen(一行))
+		{
 			CStringW message(L"错误,码表右边只能有一个字\n\n");
 			message += tmp;
 			delete[]tmp;
@@ -286,7 +290,8 @@ void C统计字频::OnCancel()
 
 INT_PTR C统计字频::DoModal()
 {
-	if(0 == W_窗口类型){
+	if(0 == W_窗口类型)
+	{
 		W_窗口类型 = 1;
 		return CDialog::DoModal();
 	}
@@ -638,7 +643,8 @@ void C统计字频::OnEnChangeEdit3()
 void C统计字频::OnEnKillfocusEdit3()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	if(W_第一个编码.GetLength()&1){
+	if(W_第一个编码.GetLength()&1)
+	{
 		W_第一个编码 = _T("0") + W_第一个编码;
 		UpdateData(FALSE);
 		//MessageBox(_T("HEX 的位数必须为 2 的倍数"));
@@ -666,14 +672,16 @@ void C统计字频::OnBnClickedButtonTbl3()
 	INT LLLEN;
 	if(编码表)
 	{
-		if(W_编码表.GetLength() == 0){
+		if(W_编码表.GetLength() == 0)
+		{
 			MessageBox(_T("编码表 不能为空"));
 			return;
 		}
 	}
 	else
 	{
-		if(0 == (LLLEN = W_第一个编码.GetLength())){
+		if(0 == (LLLEN = W_第一个编码.GetLength()))
+		{
 			MessageBox(_T("首编码 不能为空"));
 			return;
 		}
@@ -705,23 +713,24 @@ void C统计字频::OnBnClickedButtonTbl3()
 		{
 			int 高位,低位;
 			const TCHAR* s1 = W_第一个编码.GetString();
-			switch(LLLEN){
-				case 2:
-					::_stscanf_s(s1,_T("%2x"),&低位);
-					高位 = 0;
-					开始编码(&TBL_File,W_等待编码的字.GetString(),高位,低位,&::取单字节编码);
-					break;
-				case 4:
-					::_stscanf_s(s1++,_T("%2x"),&高位);
-					::_stscanf_s(++s1,_T("%2x"),&低位);
-					if(W_高低交换)
-						开始编码(&TBL_File,W_等待编码的字.GetString(),高位,低位,&::取双字节编码_高);
-					else
-						开始编码(&TBL_File,W_等待编码的字.GetString(),高位,低位,&::取双字节编码_低);
-					break;
-				default:
-					MessageBox(_T("??? 2"));
-					return;
+			switch(LLLEN)
+			{
+			case 2:
+				::_stscanf_s(s1,_T("%2x"),&低位);
+				高位 = 0;
+				开始编码(&TBL_File,W_等待编码的字.GetString(),高位,低位,&::取单字节编码);
+				break;
+			case 4:
+				::_stscanf_s(s1++,_T("%2x"),&高位);
+				::_stscanf_s(++s1,_T("%2x"),&低位);
+				if(W_高低交换)
+					开始编码(&TBL_File,W_等待编码的字.GetString(),高位,低位,&::取双字节编码_高);
+				else
+					开始编码(&TBL_File,W_等待编码的字.GetString(),高位,低位,&::取双字节编码_低);
+				break;
+			default:
+				MessageBox(_T("??? 2"));
+				return;
 			}
 		}
 		MessageBox(_T("完毕"));
@@ -795,7 +804,8 @@ BOOL C统计字频::编码表编码(::CWQSG_File * TXT_File)
 		if(-1 == 位置)
 		{
 			delete[]tmp;
-			if(IDOK != 对话框.show(一行,L"找不到等号,此行作废,要继续吗?",MB_YESNO)){
+			if(IDOK != 对话框.show(一行,L"找不到等号,此行作废,要继续吗?",MB_YESNO))
+			{
 				delete[]一行;
 				return FALSE;
 			}
@@ -852,7 +862,8 @@ void C统计字频::OnClose()
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 
 	CDialog::OnClose();
-//	if( IDOK == MessageBox(_T("是否要退出?"),NULL,MB_OKCANCEL) ){
+//	if( IDOK == MessageBox(_T("是否要退出?"),NULL,MB_OKCANCEL) )
+//	{
 		//ReleaseMutex(WQSG_Mutex);
 		switch(W_窗口类型)
 		{

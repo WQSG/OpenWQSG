@@ -107,7 +107,8 @@ DWORD WINAPI CWQSG导出导入Dlg::普通导出(LPVOID lpParameter)
 	return 0;
 }
 
-DWORD WINAPI CWQSG导出导入Dlg::普通导入(LPVOID lpParameter){
+DWORD WINAPI CWQSG导出导入Dlg::普通导入(LPVOID lpParameter)
+{
 	//W_page_TXT_IN.UpdateData();
 	参数结构*参数表 = (参数结构*)lpParameter;
 
@@ -118,28 +119,36 @@ DWORD WINAPI CWQSG导出导入Dlg::普通导入(LPVOID lpParameter){
 	int kk;
 	CString tmp;
 	tmp = W_page_TXT_IN.单字节填充;
-	if(W_page_TXT_IN.填充类型 & 1){
-		if(0 == (tmp.GetLength())){
-			if(IDNO == ::MessageBox( 前端窗口 , _T("单字节填充 为空,程序自动以 00 填充\n要继续吗?"),_T("WQSG 导入程序"),MB_OK)){
+	if(W_page_TXT_IN.填充类型 & 1)
+	{
+		if(0 == (tmp.GetLength()))
+		{
+			if(IDNO == ::MessageBox( 前端窗口 , _T("单字节填充 为空,程序自动以 00 填充\n要继续吗?"),_T("WQSG 导入程序"),MB_OK))
+			{
 				::SendMessage( 参数表->hwnd , WM_WQSG_设置前端内容 , 0 , (LPARAM)0 );
 				return 0;
 			}
 		}
-		while(2 != (tmp.GetLength())){
+		while(2 != (tmp.GetLength()))
+		{
 			tmp.Insert(0,_T('0'));
 		}
 		::_stscanf_s(tmp.GetBuffer(),_T("%2x"),&kk);
 		单 = kk;
 	}
 	tmp = W_page_TXT_IN.双字节填充;
-	if(W_page_TXT_IN.填充类型 & 2){
-		if(0 == (tmp.GetLength())){
-			if(IDNO == ::MessageBox( 前端窗口 , _T("双字节填充 为空,程序自动以 0000 填充\n要继续吗?"),_T("WQSG 导入程序"),MB_OK)){
+	if(W_page_TXT_IN.填充类型 & 2)
+	{
+		if(0 == (tmp.GetLength()))
+		{
+			if(IDNO == ::MessageBox( 前端窗口 , _T("双字节填充 为空,程序自动以 0000 填充\n要继续吗?"),_T("WQSG 导入程序"),MB_OK))
+			{
 				::SendMessage( 参数表->hwnd , WM_WQSG_设置前端内容 , 0 , (LPARAM)0 );
 				return 0;
 			}
 		}
-		while( 4 != (tmp.GetLength())){
+		while( 4 != (tmp.GetLength()))
+		{
 			tmp.Insert(0,_T('0'));
 		}
 		::_stscanf_s(tmp.GetBuffer(),_T("%2x"),&kk);
@@ -196,7 +205,8 @@ DWORD WINAPI CWQSG导出导入Dlg::地址_指针导出(LPVOID lpParameter)
 	::SendMessage( 参数表->hwnd , WM_WQSG_设置前端内容 , 0 , (LPARAM)0 );
 	return 0;
 }
-DWORD WINAPI CWQSG导出导入Dlg::地址_指针导入(LPVOID lpParameter){
+DWORD WINAPI CWQSG导出导入Dlg::地址_指针导入(LPVOID lpParameter)
+{
 	参数结构*参数表 = (参数结构*)lpParameter;
 	U64 文本区开始地址,文本区界限地址;
 
@@ -213,8 +223,10 @@ DWORD WINAPI CWQSG导出导入Dlg::地址_指针导入(LPVOID lpParameter){
 	::SendMessage( 参数表->hwnd , WM_WQSG_取前端窗口 , 0 , (LPARAM)&前端窗口 );
 
 	::WQSG_pTXT_I WQSG(前端窗口,L"WQSG 指针导入程序");
-	if(WQSG.载入码表(参数表->TBL.GetBuffer(),参数表->TBL2.GetBuffer(),参数表->验证)){
-		if(WQSG.导入文本(参数表->ROM.GetBuffer(),参数表->TXT.GetBuffer(),文本区开始地址,文本区界限地址)){
+	if(WQSG.载入码表(参数表->TBL.GetBuffer(),参数表->TBL2.GetBuffer(),参数表->验证))
+	{
+		if(WQSG.导入文本(参数表->ROM.GetBuffer(),参数表->TXT.GetBuffer(),文本区开始地址,文本区界限地址))
+		{
 			::MessageBox(前端窗口,_T("恭喜,导入成功"),_T("WQSG 导入程序"),MB_OK);
 		}
 	}
@@ -261,13 +273,15 @@ void CWQSG导出导入Dlg::写配置(void)
 	WritePrivateProfileString(m_NAME,_T("p文本区界限地址"),W_page_PTXT_IN.m_p文本区界限地址,配置文件);
 	WritePrivateProfileString(m_NAME,_T("p文本区开始地址"),W_page_PTXT_IN.m_p文本区开始地址,配置文件);
 }
-void CWQSG导出导入Dlg::写列表(CListBox * lb_tmp){
+void CWQSG导出导入Dlg::写列表(CListBox * lb_tmp)
+{
 	::CWQSG_File wfile;
-	if(wfile.OpenFile(配置列表文件,4,3)){
+	if(wfile.OpenFile(配置列表文件,4,3))
+	{
+		wfile.Write("\xff\xfe",2);
 
-		wfile.Write("\377\376",2);
-
-		for( int k = lb_tmp->GetCount(),i = 0;i < k;i++){
+		for( int k = lb_tmp->GetCount(),i = 0;i < k;i++)
+		{
 			CString tmp;
 			lb_tmp->GetText(i,tmp);
 			tmp += _T("\r\n");
@@ -275,35 +289,41 @@ void CWQSG导出导入Dlg::写列表(CListBox * lb_tmp){
 		}
 	}
 }
-void CWQSG导出导入Dlg::改变选项(void){
+void CWQSG导出导入Dlg::改变选项(void)
+{
 	CButton*tmp = (CButton*)GetDlgItem(IDC_CHECK_PTXT);
-	switch(W_TabC.GetCurSel()){
-		case 0:
-			W_page_TXT_IN.ShowWindow(FALSE);
-			W_page_PTXT_IN.ShowWindow(FALSE);
-			if(tmp->GetCheck()){
-				W_page_TXT_OUT.ShowWindow(FALSE);
-				W_page_PTXT_OUT.ShowWindow(TRUE);
-			}
-			else{
-				W_page_TXT_OUT.ShowWindow(TRUE);
-				W_page_PTXT_OUT.ShowWindow(FALSE);
-			}			
-			break;
-		case 1:
+	switch(W_TabC.GetCurSel())
+	{
+	case 0:
+		W_page_TXT_IN.ShowWindow(FALSE);
+		W_page_PTXT_IN.ShowWindow(FALSE);
+		if(tmp->GetCheck())
+		{
 			W_page_TXT_OUT.ShowWindow(FALSE);
+			W_page_PTXT_OUT.ShowWindow(TRUE);
+		}
+		else
+		{
+			W_page_TXT_OUT.ShowWindow(TRUE);
 			W_page_PTXT_OUT.ShowWindow(FALSE);
-			if(tmp->GetCheck()){
-				W_page_TXT_IN.ShowWindow(FALSE);
-				W_page_PTXT_IN.ShowWindow(TRUE);
-			}
-			else{
-				W_page_TXT_IN.ShowWindow(TRUE);
-				W_page_PTXT_IN.ShowWindow(FALSE);
-			}
-			break;
-		default:
-			;
+		}			
+		break;
+	case 1:
+		W_page_TXT_OUT.ShowWindow(FALSE);
+		W_page_PTXT_OUT.ShowWindow(FALSE);
+		if(tmp->GetCheck())
+		{
+			W_page_TXT_IN.ShowWindow(FALSE);
+			W_page_PTXT_IN.ShowWindow(TRUE);
+		}
+		else
+		{
+			W_page_TXT_IN.ShowWindow(TRUE);
+			W_page_PTXT_IN.ShowWindow(FALSE);
+		}
+		break;
+	default:
+		;
 	}
 }
 
@@ -414,16 +434,18 @@ BOOL CWQSG导出导入Dlg::OnInitDialog()
 	W_TabC.SetCurSel(0);
 
 	::CWQSG_File wfile;
-	if(wfile.OpenFile(配置列表文件,1,3)){
+	if(wfile.OpenFile(配置列表文件,1,3))
+	{
 		CListBox
 			*lb_tmp = ((CListBox*)GetDlgItem(IDC_LIST2));
 
 		WCHAR * 全文 = NULL;
 		U64 SIZE;
 		wfile.GetFileSize(&SIZE);
-		if(SIZE <= 1048576){
-
-			switch(::WQSG_A_U_X(wfile.GetFileHANDLE())){
+		if(SIZE <= 1048576)
+		{
+			switch(::WQSG_A_U_X(wfile.GetFileHANDLE()))
+			{
 				case 1:
 					wfile.Seek(0);
 					{
@@ -446,9 +468,11 @@ BOOL CWQSG导出导入Dlg::OnInitDialog()
 				default:
 					break;
 			}
-			if(全文 != NULL){
+			if(全文 != NULL)
+			{
 				WCHAR * const 全文_del = 全文;
-				while(WCHAR * const 一行 = ::WQSG_GetTXT_Line(&全文)){
+				while(WCHAR * const 一行 = ::WQSG_GetTXT_Line(&全文))
+				{
 					lb_tmp->AddString(一行);
 					delete[]一行;
 				}
@@ -602,16 +626,19 @@ void CWQSG导出导入Dlg::OnLbnSelchangeList2()
 		*lb_tmp = ((CListBox*)GetDlgItem(IDC_LIST2));
 	INT
 		j = lb_tmp->GetCurSel();
-	if(-1 != j){
+	if(-1 != j)
+	{
 		lb_tmp->GetText(j,W_NAME);
 		UpdateData(FALSE);
 
 		TCHAR tmp [1024];
 		GetPrivateProfileString(W_NAME,_T("地址段"),NULL,tmp,1024,配置文件);
-		if(0 == *tmp){
+		if(0 == *tmp)
+		{
 			W_page_TXT_OUT.W_KS2 = _T("0");
 		}
-		else{
+		else
+		{
 			W_page_TXT_OUT.W_KS2 = tmp;
 		}
 		GetPrivateProfileString(W_NAME,_T("开始地址"),NULL,tmp,1024,配置文件);
@@ -754,12 +781,14 @@ void CWQSG导出导入Dlg::OnEnKillfocusEditName()
 		}
 	}
 
-void CWQSG导出导入Dlg::OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult){
+void CWQSG导出导入Dlg::OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult)
+{
 	// TODO: 在此添加控件通知处理程序代码
 	改变选项();
 	*pResult = 0;
 }
-void CWQSG导出导入Dlg::OnBnClickedCheckPtxt(){
+void CWQSG导出导入Dlg::OnBnClickedCheckPtxt()
+{
 	// TODO: 在此添加控件通知处理程序代码
 	改变选项();
 }
@@ -828,25 +857,30 @@ void CWQSG导出导入Dlg::OnBnClickedButtonBat()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	CButton*tmp = (CButton*)GetDlgItem(IDC_CHECK_PTXT);
-	switch(W_TabC.GetCurSel()){
-		case 0:
-			if(tmp->GetCheck()){
-			}
-			else{
-				ShowWindow(FALSE);
-				导出批处理 BAT;
-				BAT.DoModal();
-				ShowWindow(TRUE);
-			}			
-			break;
-		case 1:
-			if(tmp->GetCheck()){
-			}
-			else{
-			}
-			break;
-		default:
-			;
+	switch(W_TabC.GetCurSel())
+	{
+	case 0:
+		if(tmp->GetCheck())
+		{
+		}
+		else
+		{
+			ShowWindow(FALSE);
+			导出批处理 BAT;
+			BAT.DoModal();
+			ShowWindow(TRUE);
+		}			
+		break;
+	case 1:
+		if(tmp->GetCheck())
+		{
+		}
+		else
+		{
+		}
+		break;
+	default:
+		;
 	}
 }
 void CWQSG导出导入Dlg::OnBnClickedButtonStart(){

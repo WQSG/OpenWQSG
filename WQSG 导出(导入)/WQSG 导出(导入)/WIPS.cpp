@@ -39,7 +39,8 @@ CWIPS_O_Dlg::CWIPS_O_Dlg(CWnd* pParent /*=NULL*/)
 //	if(NULL == hrexe)return FALSE;
 
 	DWORD dwSize = ::SizeofResource(NULL, hrexe);
-	if(dwSize != 0){
+	if(dwSize != 0)
+	{
 	}
 	HGLOBAL hgdexe = ::LoadResource(NULL,hrexe);
 //	if(NULL == hgdexe)return FALSE;
@@ -121,11 +122,13 @@ void CWIPS_O_Dlg::OnBnClickedButton4()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	UpdateData();
-	if(W_原文件.GetLength() == 0){
+	if(W_原文件.GetLength() == 0)
+	{
 		MessageBox(_T("原文件不能为空"));
 		return;
 	}
-	if(W_新文件.GetLength() == 0){
+	if(W_新文件.GetLength() == 0)
+	{
 		MessageBox(_T("新文件不能为空"));
 		return;
 	}
@@ -195,7 +198,8 @@ void CWIPS_O_Dlg::OnClose()
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 
 	CDialog::OnClose();
-//	if(IDOK == MessageBox(_T("要结束WIPS补丁程序?"),NULL,MB_OKCANCEL)){
+//	if(IDOK == MessageBox(_T("要结束WIPS补丁程序?"),NULL,MB_OKCANCEL))
+//	{
 		CDialog::OnCancel();
 //	}
 }
