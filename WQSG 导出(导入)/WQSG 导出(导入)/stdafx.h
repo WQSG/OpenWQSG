@@ -68,8 +68,9 @@
 #endif // _AFX_NO_AFXCMN_SUPPORT
 
 #include <WQSG_LIB.h>
-#include<2/WQSG_afx.h>
-#include<WQSG导出导入.h>
+#include <WQSG_DirDlg.h>
+#include <2/WQSG_afx.h>
+#include <WQSG导出导入.h>
 
 #include "WQSG_cfg.h"
 
@@ -429,56 +430,5 @@ inline	void	WQSG_Milliseconds2struct( const float _Milliseconds , WQSG_tgElapsed
 	_tgTime.wSecond = (WORD)( milliSeconds / 1000.0f );
 	_tgTime.wMilliseconds = (WORD)(milliSeconds - ( _tgTime.wSecond * 1000.0f ));
 }
-
-class CWQSGFileDialog : public CFileDialog
-{
-	CString m_strFolderPath;
-public:
-	explicit CWQSGFileDialog(BOOL bOpenFileDialog, // TRUE for FileOpen, FALSE for FileSaveAs
-		LPCTSTR lpszDefExt = NULL,
-		LPCTSTR lpszFileName = NULL,
-		DWORD dwFlags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-		LPCTSTR lpszFilter = NULL,
-		CWnd* pParentWnd = NULL,
-		DWORD dwSize = 0,
-		BOOL bVistaStyle = TRUE)
-		: CFileDialog( bOpenFileDialog,lpszDefExt,lpszFileName,dwFlags,lpszFilter,pParentWnd,dwSize,bVistaStyle)
-	{
-
-	}
-
-	virtual ~CWQSGFileDialog(){}
-
-	CString GetFolderPath() const
-	{
-		CString strResult;
-		if (m_bVistaStyle == TRUE)
-			strResult = CFileDialog::GetFolderPath();
-		else
-		{
-			strResult = m_strFolderPath;
-		}
-		return strResult;
-	}
-
-	virtual BOOL OnFileNameOK()
-	{
-		if (!m_bVistaStyle)
-		{
-			CString strResult;
-			ASSERT(::IsWindow(m_hWnd));
-			ASSERT(m_ofn.Flags & OFN_EXPLORER);
-
-			if (GetParent()->SendMessage(CDM_GETFOLDERPATH, (WPARAM)MAX_PATH, (LPARAM)strResult.GetBuffer(MAX_PATH)) < 0)
-				strResult.Empty();
-			else
-				strResult.ReleaseBuffer();
-
-			m_strFolderPath = strResult;
-		}
-
-		return CFileDialog::OnFileNameOK();
-	}
-};
 
 #include "atlstr.h"

@@ -321,10 +321,6 @@ CWQSG导出导入Dlg::CWQSG导出导入Dlg(CWnd* pParent /*=NULL*/)
 	, W_ROM(_T(""))
 	, W_TBL(_T(""))
 	, W_TBL2(_T(""))
-	, m_ROM目录(_T(""))
-	, m_TBL目录(_T(""))
-	, m_TBL2目录(_T(""))
-	, m_TXT目录(_T(""))
 	, m_EDIT_ROM(_T(""))
 {
 	W_标题.LoadStringW(IDS_TXTIO);
@@ -515,30 +511,28 @@ int CWQSG导出导入Dlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	
 	return 0;
 }
-void CWQSG导出导入Dlg::OnBnClickedButtonRom(){
+void CWQSG导出导入Dlg::OnBnClickedButtonRom()
+{
 	// TODO: 在此添加控件通知处理程序代码
-	CFileDialog fopendlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,_T("ROM文件(*.*)|*.*||"));
-	fopendlg.m_ofn.lpstrTitle = _T("选择一个ROM...");
-	if(m_ROM目录 != _T("")){
-		fopendlg.m_ofn.lpstrInitialDir = m_ROM目录;
-	}
-	if(IDOK == fopendlg.DoModal()){
+	static CWQSGFileDialog_Open fopendlg(_T("ROM文件(*.*)|*.*||"));
+
+	fopendlg.SetWindowTitle( _T("选择一个ROM...") );
+
+	if(IDOK == fopendlg.DoModal())
+	{
 		W_page_TXT_OUT.W_ROM地址 = W_ROM = fopendlg.GetPathName();
-		m_ROM目录 = 取路径(W_ROM);
 	}
 	UpdateData(FALSE);
 }
 void CWQSG导出导入Dlg::OnBnClickedButtonTbl()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	CFileDialog fopendlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,_T("码表文件(*.TBL,*.TXT)|*.TBL;*.TXT||"));
-	fopendlg.m_ofn.lpstrTitle = _T("选择一个码表文件...");
-	if(m_TBL目录 != _T("")){
-		fopendlg.m_ofn.lpstrInitialDir = m_TBL目录;
-	}
-	if(IDOK == fopendlg.DoModal()){
+	static CWQSGFileDialog_Open fopendlg(_T("码表文件(*.TBL,*.TXT)|*.TBL;*.TXT||"));
+	fopendlg.SetWindowTitle( _T("选择一个码表文件...") );
+
+	if(IDOK == fopendlg.DoModal())
+	{
 		W_TBL = fopendlg.GetPathName();
-		m_TBL目录 = 取路径(W_TBL);
 	}
 	UpdateData(FALSE);
 }
@@ -546,15 +540,12 @@ void CWQSG导出导入Dlg::OnBnClickedButtonTbl()
 void CWQSG导出导入Dlg::OnBnClickedButtonTbl2()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	CFileDialog fopendlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,_T("码表文件(*.TBL,*.TXT)|*.TBL;*.TXT||"));
-	fopendlg.m_ofn.lpstrTitle = _T("选择一个控制码表...");
+	static CWQSGFileDialog_Open fopendlg(_T("码表文件(*.TBL,*.TXT)|*.TBL;*.TXT||"));
+	fopendlg.SetWindowTitle( _T("选择一个控制码表...") );
 
-	if(m_TBL2目录 != _T("")){
-		fopendlg.m_ofn.lpstrInitialDir = m_TBL2目录;
-	}
-	if(IDOK == fopendlg.DoModal()){
+	if(IDOK == fopendlg.DoModal())
+	{
 		W_TBL2 = fopendlg.GetPathName();
-		m_TBL2目录 = 取路径(W_TBL2);
 	}
 	UpdateData(FALSE);
 }
@@ -892,30 +883,30 @@ void CWQSG导出导入Dlg::OnBnClickedButtonStart(){
 	{
 		case 0://导出
 			{
-				CFileDialog fopendlg(FALSE,_T("TXT"),W_NAME,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,_T("文本文件(*.TXT)|*.TXT||"));
-				if(m_TXT目录 != _T(""))
-					fopendlg.m_ofn.lpstrInitialDir = m_TXT目录;
+				static CWQSGFileDialog_Save fopendlg( _T("文本文件(*.TXT)|*.TXT||") , _T("TXT") , W_NAME );
+				fopendlg.SetWindowTitle( _T("文本保存到...") );
 
-				fopendlg.m_ofn.lpstrTitle = _T("文本保存到...");
 				HANDLE handle;
 				if( IDOK == fopendlg.DoModal() )
 				{
 					m_参数表.TXT = fopendlg.GetPathName();
-					m_TXT目录 = 取路径( m_参数表.TXT );
 
 					if(tmp->GetCheck() != 0)//指针
 					{
 						W_page_PTXT_OUT.UpdateData();
 
-						if(0 == W_page_PTXT_OUT.W_pKS.GetLength()){
+						if(0 == W_page_PTXT_OUT.W_pKS.GetLength())
+						{
 							err = L"首指针地址 不能为空";
 							goto __gt出错退出;
 						}
-						if(0 == W_page_PTXT_OUT.W_pJS.GetLength()){
+						if(0 == W_page_PTXT_OUT.W_pJS.GetLength())
+						{
 							err = L"最后指针地址 不能为空";
 							goto __gt出错退出;
 						}
-						if(0 == W_page_PTXT_OUT.W_p文本基础.GetLength()){
+						if(0 == W_page_PTXT_OUT.W_p文本基础.GetLength())
+						{
 							err = L"文本基础地址 不能为空";
 							goto __gt出错退出;
 						}
@@ -941,11 +932,13 @@ void CWQSG导出导入Dlg::OnBnClickedButtonStart(){
 					{
 						W_page_TXT_OUT.UpdateData();
 
-						if(0 == W_page_TXT_OUT.W_KS.GetLength()){
+						if(0 == W_page_TXT_OUT.W_KS.GetLength())
+						{
 							err = L"开始地址 不能为空";
 							goto __gt出错退出;
 						}
-						if(0 == W_page_TXT_OUT.W_JS.GetLength()){
+						if(0 == W_page_TXT_OUT.W_JS.GetLength())
+						{
 							err = L"结束地址 不能为空";
 							goto __gt出错退出;
 						}
@@ -960,14 +953,12 @@ void CWQSG导出导入Dlg::OnBnClickedButtonStart(){
 			break;
 		case 1://导入
 			{
-				CFileDialog fopendlg(TRUE,_T("TXT"),W_NAME,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,_T("文本文件(*.TXT)|*.TXT||"));
-				if(m_TXT目录 != _T(""))
-					fopendlg.m_ofn.lpstrInitialDir = m_TXT目录;
+				static CWQSGFileDialog_Open fopendlg(_T("文本文件(*.TXT)|*.TXT||"),W_NAME);
+				fopendlg.SetWindowTitle( _T("请选择要导入的文本...") );
 
-				fopendlg.m_ofn.lpstrTitle = _T("请选择要导入的文本...");
-				if(IDOK == fopendlg.DoModal()){
+				if(IDOK == fopendlg.DoModal())
+				{
 					m_参数表.TXT = fopendlg.GetPathName();
-					m_TXT目录 = 取路径(m_参数表.TXT);
 
 					HANDLE handle;
 					if(tmp->GetCheck()!=0)
@@ -987,7 +978,8 @@ void CWQSG导出导入Dlg::OnBnClickedButtonStart(){
 						::CloseHandle(handle);
 						return;
 					}
-					else{
+					else
+					{
 						W_page_TXT_IN.UpdateData();
 
 						SendMessage( WM_WQSG_设置前端内容 , 0 , (LPARAM)L"正在导入..." );

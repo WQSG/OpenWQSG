@@ -84,11 +84,6 @@ protected:
 
 	CString W_运行目录;
 
-	CString m_ROM目录,
-		m_TBL目录,
-		m_TBL2目录,
-		m_TXT目录;
-
 protected:
 	afx_msg LRESULT 设置前端内容( WPARAM 保留 , LPARAM 内容 );
 	afx_msg LRESULT 取前端窗口( WPARAM 保留 , LPARAM 窗口指针 );

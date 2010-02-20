@@ -464,15 +464,10 @@ void CchazhiSearch::OnBnClickedButton5()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	UpdateData();
-	static CString strPath;
-
-	CWQSGFileDialog dlg( TRUE );
-	dlg.m_ofn.lpstrInitialDir = strPath;
+	static CWQSGFileDialog_Open dlg;
 
 	if( dlg.DoModal() != IDOK )
 		return;
-
-	strPath = dlg.GetFolderPath();
 
 	m_文件路径 = dlg.GetPathName();
 	UpdateData( FALSE );
