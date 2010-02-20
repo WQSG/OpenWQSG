@@ -282,9 +282,10 @@ END_MESSAGE_MAP()
 void 导出批处理::OnBnClickedButtonTbl()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	CFileDialog fopendlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,_T("码表文件(*.TBL,*.TXT)|*.TBL;*.TXT||"));
+	static CWQSGFileDialog_Open fopendlg(_T("码表文件(*.TBL,*.TXT)|*.TBL;*.TXT||"));
 	fopendlg.m_ofn.lpstrTitle = _T("选择一个码表...");
-	if(IDOK == fopendlg.DoModal()){
+	if(IDOK == fopendlg.DoModal())
+	{
 		W_默认码表 = fopendlg.GetPathName();
 	}
 	UpdateData(FALSE);
@@ -293,9 +294,10 @@ void 导出批处理::OnBnClickedButtonTbl()
 void 导出批处理::OnBnClickedButtonTbl2()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	CFileDialog fopendlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,_T("码表文件(*.TBL,*.TXT)|*.TBL;*.TXT||"));
+	static CWQSGFileDialog_Open fopendlg(_T("码表文件(*.TBL,*.TXT)|*.TBL;*.TXT||"));
 	fopendlg.m_ofn.lpstrTitle = _T("选择一个控制码表...");
-	if(IDOK == fopendlg.DoModal()){
+	if(IDOK == fopendlg.DoModal())
+	{
 		W_默认控制码表 = fopendlg.GetPathName();
 	}
 	UpdateData(FALSE);
@@ -364,11 +366,13 @@ void 导出批处理::OnBnClickedButtonAdd()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	UpdateData();
-	if(0 == W_默认码表.GetLength()){
+	if(0 == W_默认码表.GetLength())
+	{
 		MessageBox(_T("码表地址不能为空"));
 		return;
 	}
-	if(0 == W_默认控制码表.GetLength()){
+	if(0 == W_默认控制码表.GetLength())
+	{
 		MessageBox(_T("控制码表地址不能为空"));
 		return;
 	}
@@ -381,12 +385,14 @@ void 导出批处理::OnBnClickedButtonAdd()
 		return;
 	}
 
-	CFileDialog fopendlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,_T("ROM文件(*.*)|*.*||"));
+	static CWQSGFileDialog_Open fopendlg(_T("ROM文件(*.*)|*.*||"));
 	fopendlg.m_ofn.lpstrTitle = _T("选择一个ROM...");
-	if(IDOK == fopendlg.DoModal()){
+	if(IDOK == fopendlg.DoModal())
+	{
 		W_ROM = fopendlg.GetPathName();
 		INT 位置 = W_列表下一个位置;
-		if(W_列表下一个位置){
+		if(W_列表下一个位置)
+		{
 			位置--;
 		}
 		TCHAR 编号[6];
@@ -397,10 +403,12 @@ void 导出批处理::OnBnClickedButtonAdd()
 		W_列表->SetItemText(位置,3,W_默认控制码表);
 		W_列表->SetItemText(位置,4,W_开始地址);
 		W_列表->SetItemText(位置,5,W_结束地址);
-		if(W_验证){
+		if(W_验证)
+		{
 			W_列表->SetItemText(位置,6,_T("○"));
 		}
-		else{
+		else
+		{
 			W_列表->SetItemText(位置,6,_T("×"));
 		}
 		W_列表->SetItemText(位置,7,W_MIN);
@@ -415,13 +423,15 @@ void 导出批处理::OnBnClickedButtonDel()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	POSITION P = W_列表->GetFirstSelectedItemPosition();
-	if(NULL != P){
+	if(NULL != P)
+	{
 		INT 索引 = (INT)P - 1;
 		W_列表->DeleteItem(索引);
 		W_列表下一个位置--;
 		WCHAR 编码[6];
 		INT tmp;
-		for(;索引 < (W_列表下一个位置 - 1);索引++){
+		for(;索引 < (W_列表下一个位置 - 1);索引++)
+		{
 			tmp = ::_ttoi(W_列表->GetItemText(索引,0)) - 1;
 			::swprintf_s(编码,6,L"%05d",tmp);
 			W_列表->SetItemText(索引,0,编码);
@@ -435,7 +445,8 @@ void 导出批处理::OnLvnItemActivateListW(NMHDR *pNMHDR, LRESULT *pResult)
 	LPNMITEMACTIVATE pNMIA = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
 	// TODO: 在此添加控件通知处理程序代码
 	POSITION P = W_列表->GetFirstSelectedItemPosition();
-	if(	NULL != P ){
+	if(	NULL != P )
+	{
 		UpdateData();
 		INT 位置 = (INT)P - 1;
 		W_默认码表 = W_列表->GetItemText(位置,2);
@@ -443,10 +454,12 @@ void 导出批处理::OnLvnItemActivateListW(NMHDR *pNMHDR, LRESULT *pResult)
 		W_开始地址 = W_列表->GetItemText(位置,4);
 		W_结束地址 = W_列表->GetItemText(位置,5);
 		W_MIN = W_列表->GetItemText(位置,6);
-		if(W_MIN == _T("○")){
+		if(W_MIN == _T("○"))
+		{
 			W_验证 = TRUE;
 		}
-		else{
+		else
+		{
 			W_验证 = FALSE;
 		}
 		W_MIN = W_列表->GetItemText(位置,7);
@@ -459,25 +472,30 @@ void 导出批处理::OnBnClickedButtonEdit()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	UpdateData();
-	if(0 == W_默认码表.GetLength()){
+	if(0 == W_默认码表.GetLength())
+	{
 		MessageBox(_T("码表地址不能为空"));
 		return;
 	}
-	if(0 == W_默认控制码表.GetLength()){
+	if(0 == W_默认控制码表.GetLength())
+	{
 		MessageBox(_T("控制码表地址不能为空"));
 		return;
 	}
-	if(0 == W_开始地址.GetLength()){
+	if(0 == W_开始地址.GetLength())
+	{
 		MessageBox(_T("开始地址不能为空"));
 		return;
 	}
-	if(0 == W_结束地址.GetLength()){
+	if(0 == W_结束地址.GetLength())
+	{
 		MessageBox(_T("结束地址不能为空"));
 		return;
 	}
 
 	POSITION P = W_列表->GetFirstSelectedItemPosition();
-	if(	NULL != P ){
+	if(	NULL != P )
+	{
 		UpdateData();
 		INT 位置 = (INT)P - 1;
 
@@ -485,10 +503,12 @@ void 导出批处理::OnBnClickedButtonEdit()
 		W_列表->SetItemText(位置,3,W_默认控制码表);
 		W_列表->SetItemText(位置,4,W_开始地址);
 		W_列表->SetItemText(位置,5,W_结束地址);
-		if(W_验证){
+		if(W_验证)
+		{
 			W_列表->SetItemText(位置,6,_T("○"));
 		}
-		else{
+		else
+		{
 			W_列表->SetItemText(位置,6,_T("×"));
 		}
 		W_列表->SetItemText(位置,7,W_MIN);
@@ -542,15 +562,17 @@ void 导出批处理::OnBnClickedButtonStart()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	CString 项目编号,ROM,TBL,TBL2,TXT;
-	U64 KS,JS;
+	u64 KS,JS;
 	INT 验证;
 	UINT MIN,MAX;
 
 	::WQSG_普通导出任务 WQSG(m_hWnd,L"WQSG 批量导出");
 	INT 总数 = W_列表->GetItemCount();
 
-	for(INT I = 0;I < 总数;I++){
-		if(W_列表->GetCheck(I)){
+	for(INT I = 0;I < 总数;I++)
+	{
+		if(W_列表->GetCheck(I))
+		{
 			项目编号 = W_列表->GetItemText(I,0);
 			ROM = W_列表->GetItemText(I,1);
 			TBL = W_列表->GetItemText(I,2);
@@ -564,10 +586,12 @@ void 导出批处理::OnBnClickedButtonStart()
 			_stscanf_s(TXT,_T("%x"),&JS);
 
 			TXT = W_列表->GetItemText(I,6);
-			if(_T("○") == TXT){
+			if(_T("○") == TXT)
+			{
 				验证 = 1;
 			}
-			else{
+			else
+			{
 				验证 = 0;
 			}
 			TXT = W_列表->GetItemText(I,7);

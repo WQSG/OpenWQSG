@@ -275,14 +275,13 @@ void CWQSG_NDSDlg::OnLoadFSI(void)
 	m_NdsFSI.SetRedraw();
 }
 
-
+#include <WQSG_DirDlg.h>
 void CWQSG_NDSDlg::OnRomopen()
 {
 	// TODO: 在此添加命令处理程序代码
 	UpdateData();
 
-	CFileDialog dlg( TRUE );
-	dlg.m_ofn.lpstrFilter = L"*.nds\0*.nds\0\0";
+	static CWQSGFileDialog_Open dlg( L"*.nds|*.nds||" );
 
 	if( dlg.DoModal() != IDOK )
 		return;
