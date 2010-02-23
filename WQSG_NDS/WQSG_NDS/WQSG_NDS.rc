@@ -89,26 +89,6 @@ BEGIN
     EDITTEXT        IDC_EDIT_PATH,28,7,285,14,ES_AUTOHSCROLL | ES_READONLY
 END
 
-IDD_DIALOG_ABOUT DIALOGEX 0, 0, 259, 184
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Dialog"
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    DEFPUSHBUTTON   "»∑∂®",IDOK,95,163,50,14
-    ICON            IDR_MAINFRAME,IDC_STATIC,86,8,21,20
-    CONTROL         "<a>http://code.google.com/p/openwqsg/</a>",IDC_SYSLINK1,
-                    "SysLink",WS_TABSTOP,69,44,168,14
-    CONTROL         "<a>http://code.google.com/p/wqsglib/</a>",IDC_SYSLINK2,
-                    "SysLink",WS_TABSTOP,70,62,136,14
-    CONTROL         "<a>http://wqsg.ys168.com/</a>",IDC_SYSLINK3,"SysLink",WS_TABSTOP,84,80,102,14
-    LTEXT           "æ≤Ã¨",IDC_APP_NAME,113,10,61,8
-    LTEXT           "æ≤Ã¨",IDC_APP_VER,113,21,61,8
-    LTEXT           "œÓƒøsvn :",IDC_STATIC,32,44,33,8
-    LTEXT           "“¿¿µø‚svn :",IDC_STATIC,25,63,41,8
-    LTEXT           "Programmed by",IDC_STATIC,93,95,51,8
-    EDITTEXT        IDC_EDIT1,7,111,245,49,ES_CENTER | ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY
-END
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -124,14 +104,6 @@ BEGIN
         RIGHTMARGIN, 313
         TOPMARGIN, 7
         BOTTOMMARGIN, 193
-    END
-
-    IDD_DIALOG_ABOUT, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 252
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 177
     END
 END
 #endif    // APSTUDIO_INVOKED
