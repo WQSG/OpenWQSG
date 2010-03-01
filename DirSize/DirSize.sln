@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirSize", "DirSize\DirSize.vcproj", "{C42F77DB-DDD1-4164-9325-4CB994471AE8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C42F77DB-DDD1-4164-9325-4CB994471AE8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C42F77DB-DDD1-4164-9325-4CB994471AE8}.Debug|Win32.Build.0 = Debug|Win32
+		{C42F77DB-DDD1-4164-9325-4CB994471AE8}.Release|Win32.ActiveCfg = Release|Win32
+		{C42F77DB-DDD1-4164-9325-4CB994471AE8}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
