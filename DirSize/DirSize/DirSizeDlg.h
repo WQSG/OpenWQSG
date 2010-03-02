@@ -109,4 +109,5 @@ public:
 	afx_msg void OnLvnItemActivateList1(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnBnClickedButtonDirUp();
 	afx_msg void OnFileOpenDir();
+	afx_msg void OnAboutAbout();
 };

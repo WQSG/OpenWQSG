@@ -55,6 +55,7 @@ BEGIN_MESSAGE_MAP(CDirSizeDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_DIR_UP, &CDirSizeDlg::OnBnClickedButtonDirUp)
 	ON_COMMAND(ID_FILE_OPEN_DIR, &CDirSizeDlg::OnFileOpenDir)
 	ON_NOTIFY(LVN_ITEMACTIVATE, IDC_LIST1+44, &CDirSizeDlg::OnLvnItemActivateList1)
+	ON_COMMAND(ID_ABOUT_ABOUT, &CDirSizeDlg::OnAboutAbout)
 END_MESSAGE_MAP()
 
 #define DEF_NAME 0
@@ -446,4 +447,25 @@ void CDirSizeDlg::OnFileOpenDir()
 
 	Open( outPath );
 	m_WList.Invalidate( FALSE );
+}
+
+void CDirSizeDlg::OnAboutAbout()
+{
+	// TODO: 在此添加命令处理程序代码
+
+	CString strAppName;
+	strAppName.LoadString( IDS_APP_NAME );
+
+	CString strAppVer;
+	strAppVer.LoadString( IDS_APP_VER );
+
+	CString strAuthor1;
+	strAuthor1.LoadString( IDS_APP_AUTHOR );
+
+	CString strAuthor2;
+	strAuthor2.LoadString( IDS_APP_AUTHOR2 );
+
+	WQSG_About( m_hIcon , m_hWnd , L"关于本软件" , strAppName + L"\r\nv" + strAppVer ,
+		L"项目svn : <A HREF=\"http://code.google.com/p/openwqsg\">http://code.google.com/p/openwqsg</A>\r\n依赖库svn : <A HREF=\"http://code.google.com/p/wqsglib\">http://code.google.com/p/wqsglib</A>\r\n                 <A HREF=\"http://wqsg.ys168.com\">http://wqsg.ys168.com</A>\r\n" ,
+		strAuthor2 + L"(" + strAuthor1 + L")" );
 }
