@@ -68,4 +68,6 @@ public:
 	bool Vmc_Mkdir( const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified );
 	bool Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified );
 	bool Vmc_DeleteFile( const CStringA& a_strPath , const CStringA& a_strName );
+
+	bool In_Psu( const CString& a_strPathName );
 };

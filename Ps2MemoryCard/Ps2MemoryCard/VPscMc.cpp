@@ -803,6 +803,9 @@ bool CVPscMc::removeObject( const SPs2DirEntry& a_parent , u32 a_uEntryIndex )
 	if( !getDirentryFromDirentry( dirent , a_parent , a_uEntryIndex ) )
 		return false;
 
+	if( !(dirent.mode & DF_EXISTS) )
+		return false;
+
 	u32 last_cluster    = dirent.cluster;
 
 	DEBUGPRINT ( 3 , "vmcfs: Searching last cluster of direntry\n" );
@@ -841,12 +844,51 @@ bool CVPscMc::removeObject( const SPs2DirEntry& a_parent , u32 a_uEntryIndex )
 	if( !setFatEntry ( last_cluster , FREE_CLUSTER , FAT_RESET ) )// set the last cluster of the file as free
 		return false;
 
-	if( dirent.mode & DF_EXISTS )
+	// Set object as deleted. ( Remove DF_EXISTS flag )
+	dirent.mode = dirent.mode ^ DF_EXISTS;
+	if( !setDirentryFromDirentry( dirent , a_parent , a_uEntryIndex ) )
+		return false;
+
+	return true;
+}
+
+bool CVPscMc::In_Psu( const CString& a_strPathName )
+{
+	CWQSG_File fp;
+	if( !fp.OpenFile( a_strPathName.GetString() , 1 , 3 ) )
+		return false;
+
+	SPsu_header head = {};
+	if( sizeof(head) != fp.Read( &head , sizeof(head) ) )
+		return false;
+
+	if( !(head.attr & DF_DIRECTORY) )
+		return false;
+
+	if( !Vmc_Mkdir( "" , (const char*)head.name , &head.cTime , &head.mTime ) )
+		return false;
+
+	for( u32 i = 0 ; i < head.size ; ++i )
 	{
-		// Set object as deleted. ( Remove DF_EXISTS flag )
-		dirent.mode = dirent.mode ^ DF_EXISTS;
-		if( !setDirentryFromDirentry( dirent , a_parent , a_uEntryIndex ) )
+		SPsu_header head1 = {};
+		if( sizeof(head1) != fp.Read( &head1 , sizeof(head1) ) )
+		if( head1.attr & DF_DIRECTORY )
+		{
+			if( head1.size == 0 )
+				continue;
+
 			return false;
+		}
+
+		if( !Vmc_WriteFile( fp , head1.size , (const char*)head.name , (const char*)head1.name , &head1.cTime , &head1.mTime ) )
+			return false;
+
+		const u32 p = head1.size % 0x400;
+
+		if( p )
+			fp.Seek( fp.Tell() + head1.size + (0x400 - p) );
+		else
+			fp.Seek( fp.Tell() + head1.size );
 	}
 
 	return true;

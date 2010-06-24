@@ -53,34 +53,6 @@ BOOL CPs2MemoryCardDlg::OnInitDialog()
 	//CVPscMc gg;
 	//gg.LoadMc( L"D:\\WQSG\\Documents\\pcsx2\\memcards\\Mcd002.ps2" );
 
-	CWQSG_File fp;
-	ASSERT( fp.OpenFile( L"c:\\BISCAJ-20028ToD2sv01.psu" , 1 , 3 ) );
-
-	SPsu_header head = {};
-	ASSERT( sizeof(head) == fp.Read( &head , sizeof(head) ) );
-	ASSERT( head.attr & DF_DIRECTORY );
-
-	for( u32 i = 0 ; i < head.size ; ++i )
-	{
-		SPsu_header head1 = {};
-		ASSERT( sizeof(head1) == fp.Read( &head1 , sizeof(head1) ) );
-		if( head1.attr & DF_DIRECTORY )
-		{
-			if( head1.size == 0 )
-				continue;
-
-			ASSERT( head1.size == 0 );
-			return FALSE;
-		}
-
-		const u32 p = head1.size % 0x400;
-
-		if( p )
-			fp.Seek( fp.Tell() + head1.size + (0x400 - p) );
-		else
-			fp.Seek( fp.Tell() + head1.size );
-	}
-
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
