@@ -19,14 +19,35 @@ class CVPscMc
 
 	std::vector<u8> m_Bufs;
 	bool m_bOpen;
+
+	std::vector<u8> m_BakBufs;
 public:
 	CVPscMc(void);
 	virtual ~CVPscMc(void);
 
 	bool LoadMc( const CStringW& a_strPathName );
+	bool SaveMc( const CStringW& a_strPathName );
 
 	bool isOpen()const{return m_bOpen;}
 	//-----------------------
+	bool Bak()
+	{
+		if( isOpen() )
+		{
+			m_BakBufs = m_Bufs;
+			return true;
+		}
+		return false;
+	}
+	bool UnBak()
+	{
+		if( isOpen() )
+		{
+			m_Bufs = m_BakBufs;
+			return true;
+		}
+		return false;
+	}
 protected:
 	bool getDirentryFromPathOld( SPs2DirEntry& a_DirEnt , const CStringA& a_strPath );
 	bool getDirentryFromPath ( SPs2DirEntry& a_DirEnt , const CStringA& a_strPath );
@@ -72,5 +93,5 @@ public:
 	bool Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified );
 	bool Vmc_DeleteFile( const CStringA& a_strPath , const CStringA& a_strName );
 
-	bool In_Psu( const CString& a_strPathName );
+	bool Import_Psu( const CString& a_strPathName );
 };

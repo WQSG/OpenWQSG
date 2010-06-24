@@ -4,7 +4,7 @@
 
 #pragma once
 
-
+#include "VPscMc.h"
 
 // CPs2MemoryCardDlg 对话框
 class CPs2MemoryCardDlg : public CDialog
@@ -23,6 +23,7 @@ public:
 // 实现
 protected:
 	HICON m_hIcon;
+	CVPscMc m_Mc;
 
 	// 生成的消息映射函数
 	virtual BOOL OnInitDialog();
@@ -31,4 +32,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnClose();
+	afx_msg void OnBnClickedButtonOpenMc();
+	afx_msg void OnBnClickedButtonSaveMc();
+	afx_msg void OnBnClickedButtonImportPsu();
 };

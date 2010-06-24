@@ -276,5 +276,9 @@
 		</File>
 	</Files>
 	<Globals>
+		<Global
+			Name="RESOURCE_FILE"
+			Value="Ps2MemoryCard.rc"
+		/>
 	</Globals>
 </VisualStudioProject>

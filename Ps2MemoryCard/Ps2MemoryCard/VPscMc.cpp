@@ -24,10 +24,23 @@ bool CVPscMc::LoadMc( const CStringW& a_strPathName )
 	m_pBuf = &m_Bufs[0];
 	m_pHead = (SPs2MemoryCardHead*)m_pBuf;
 
-	fp.Read( m_pBuf , nSize );
+	if( nSize != fp.Read( m_pBuf , nSize ) )
+		return false;
 
 	m_bOpen = true;
 	return true;
+}
+
+bool CVPscMc::SaveMc( const CStringW& a_strPathName )
+{
+	if( !isOpen() )
+		return false;
+
+	CWQSG_File fp;
+	if( !fp.OpenFile( a_strPathName.GetString() , 4 , 3 ) )
+		return false;
+
+	return ( m_Bufs.size() == fp.Write( m_pBuf , m_Bufs.size() ) );
 }
 
 bool CVPscMc::getDirentryFromPathOld ( SPs2DirEntry& a_DirEnt , const CStringA& a_strPath )
@@ -258,7 +271,7 @@ bool CVPscMc::GetClusterIndex_ByEntryIndex( u32& a_OutClusterIndex , u32& a_OutP
 	for( u32 uIndex = 0 ; uIndex < uClustetOffset ; ++uIndex )
 	{
 		u32 uNext;
-		if( getFatEntry ( uNext , a_OutClusterIndex ) )
+		if( !getFatEntry ( uNext , a_OutClusterIndex ) )
 			return false;
 
 		if( uNext == ERROR_CLUSTER )
@@ -415,14 +428,16 @@ u32 CVPscMc::getFreeCluster()
 
 			for( std::vector<u32>::size_type uFatLow = 0 ; uFatLow < fat_cluster.size() ; ++uFatLow )
 			{
-				const u32 free_cluster = fat_cluster[uHigh2Low];
+				const u32 free_cluster = fat_cluster[uFatLow];
 
 				if( FREE_CLUSTER == free_cluster ||
-					(ERROR_CLUSTER != free_cluster && (free_cluster & MASK_CLUSTER) == MASK_CLUSTER) )
+					(ERROR_CLUSTER != free_cluster && (free_cluster & MASK_CLUSTER) != MASK_CLUSTER) )
 				{
 					const u32 uMod = m_pHead->cluster_size / sizeof(u32);
 
-					return uHigh2Low + uHigh2Low * uMod + uFatHigh_Index * uMod * uMod;
+					const u32 uRt = uFatLow + uHigh2Low * uMod + uFatHigh_Index * uMod * uMod;
+
+					return uRt;
 				}
 			}
 		}
@@ -743,7 +758,7 @@ bool CVPscMc::addObject( SPs2DirEntry& a_parent , SPs2DirEntry& a_dirent , bool 
 		ASSERT( !bFindOldName || !(dirent_file.mode & DF_EXISTS) );
 	}
 
-	if( bFindOldName )
+	if( !bFindOldName )
 	{
 		for( ; uEntryIndex < a_parent.length ; ++uEntryIndex )
 		{
@@ -888,7 +903,7 @@ bool CVPscMc::_Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , const CStringA
 	return _Vmc_WriteFile( a_InFp , a_uSize , dirent_path , a_strName , a_pCreated , a_pModified , a_puMode );
 }
 
-bool CVPscMc::In_Psu( const CString& a_strPathName )
+bool CVPscMc::Import_Psu( const CString& a_strPathName )
 {
 	if( !isOpen() )
 		return false;
@@ -911,6 +926,8 @@ bool CVPscMc::In_Psu( const CString& a_strPathName )
 	{
 		SPsu_header head1 = {};
 		if( sizeof(head1) != fp.Read( &head1 , sizeof(head1) ) )
+			return false;
+
 		if( head1.attr & DF_DIRECTORY )
 		{
 			if( head1.size == 0 )
@@ -925,9 +942,7 @@ bool CVPscMc::In_Psu( const CString& a_strPathName )
 		const u32 p = head1.size % 0x400;
 
 		if( p )
-			fp.Seek( fp.Tell() + head1.size + (0x400 - p) );
-		else
-			fp.Seek( fp.Tell() + head1.size );
+			fp.Seek( fp.Tell() + (0x400 - p) );
 	}
 
 	return true;
