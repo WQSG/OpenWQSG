@@ -1,5 +1,115 @@
 #include "StdAfx.h"
 #include "VPscMc.h"
+//----------------------------------------------------------------------------
+// XOR table use for Error Correcting Code ( ECC ) calculation.
+//----------------------------------------------------------------------------
+const unsigned char ECC_XOR_Table[ 256 ]= {
+	0x00, 0x87, 0x96, 0x11, 0xA5, 0x22, 0x33, 0xB4, 
+	0xB4, 0x33, 0x22, 0xA5, 0x11, 0x96, 0x87, 0x00, 
+	0xC3, 0x44, 0x55, 0xD2, 0x66, 0xE1, 0xF0, 0x77, 
+	0x77, 0xF0, 0xE1, 0x66, 0xD2, 0x55, 0x44, 0xC3, 
+	0xD2, 0x55, 0x44, 0xC3, 0x77, 0xF0, 0xE1, 0x66, 
+	0x66, 0xE1, 0xF0, 0x77, 0xC3, 0x44, 0x55, 0xD2, 
+	0x11, 0x96, 0x87, 0x00, 0xB4, 0x33, 0x22, 0xA5, 
+	0xA5, 0x22, 0x33, 0xB4, 0x00, 0x87, 0x96, 0x11, 
+	0xE1, 0x66, 0x77, 0xF0, 0x44, 0xC3, 0xD2, 0x55, 
+	0x55, 0xD2, 0xC3, 0x44, 0xF0, 0x77, 0x66, 0xE1, 
+	0x22, 0xA5, 0xB4, 0x33, 0x87, 0x00, 0x11, 0x96, 
+	0x96, 0x11, 0x00, 0x87, 0x33, 0xB4, 0xA5, 0x22, 
+	0x33, 0xB4, 0xA5, 0x22, 0x96, 0x11, 0x00, 0x87, 
+	0x87, 0x00, 0x11, 0x96, 0x22, 0xA5, 0xB4, 0x33, 
+	0xF0, 0x77, 0x66, 0xE1, 0x55, 0xD2, 0xC3, 0x44, 
+	0x44, 0xC3, 0xD2, 0x55, 0xE1, 0x66, 0x77, 0xF0, 
+	0xF0, 0x77, 0x66, 0xE1, 0x55, 0xD2, 0xC3, 0x44, 
+	0x44, 0xC3, 0xD2, 0x55, 0xE1, 0x66, 0x77, 0xF0, 
+	0x33, 0xB4, 0xA5, 0x22, 0x96, 0x11, 0x00, 0x87, 
+	0x87, 0x00, 0x11, 0x96, 0x22, 0xA5, 0xB4, 0x33, 
+	0x22, 0xA5, 0xB4, 0x33, 0x87, 0x00, 0x11, 0x96, 
+	0x96, 0x11, 0x00, 0x87, 0x33, 0xB4, 0xA5, 0x22, 
+	0xE1, 0x66, 0x77, 0xF0, 0x44, 0xC3, 0xD2, 0x55, 
+	0x55, 0xD2, 0xC3, 0x44, 0xF0, 0x77, 0x66, 0xE1, 
+	0x11, 0x96, 0x87, 0x00, 0xB4, 0x33, 0x22, 0xA5, 
+	0xA5, 0x22, 0x33, 0xB4, 0x00, 0x87, 0x96, 0x11, 
+	0xD2, 0x55, 0x44, 0xC3, 0x77, 0xF0, 0xE1, 0x66, 
+	0x66, 0xE1, 0xF0, 0x77, 0xC3, 0x44, 0x55, 0xD2, 
+	0xC3, 0x44, 0x55, 0xD2, 0x66, 0xE1, 0xF0, 0x77, 
+	0x77, 0xF0, 0xE1, 0x66, 0xD2, 0x55, 0x44, 0xC3, 
+	0x00, 0x87, 0x96, 0x11, 0xA5, 0x22, 0x33, 0xB4, 
+	0xB4, 0x33, 0x22, 0xA5, 0x11, 0x96, 0x87, 0x00, 
+};
+
+
+int calculateECC ( char* ECC_Chunk, const unsigned char* Data_Chunk ) 
+{
+	int i, c;
+
+	ECC_Chunk[ 0 ]= ECC_Chunk[ 1 ]= ECC_Chunk[ 2 ]= 0;
+
+	for ( i = 0; i < 0x80; i++ ) 
+	{
+
+		c = ECC_XOR_Table[ Data_Chunk[ i ] ];
+
+		ECC_Chunk[ 0 ] ^= c;
+
+		if ( c & 0x80 ) 
+		{
+
+			ECC_Chunk[ 1 ] ^= ~i;
+			ECC_Chunk[ 2 ] ^= i;
+
+		}
+
+	}
+
+	ECC_Chunk[ 0 ] = ~ECC_Chunk[ 0 ];
+	ECC_Chunk[ 0 ] &= 0x77;
+	ECC_Chunk[ 1 ] = ~ECC_Chunk[ 1 ];
+	ECC_Chunk[ 1 ] &= 0x7f;
+	ECC_Chunk[ 2 ] = ~ECC_Chunk[ 2 ];
+	ECC_Chunk[ 2 ] &= 0x7f;
+
+	return 1;
+
+}
+
+
+//----------------------------------------------------------------------------
+// Build ECC from a complet page of data
+//----------------------------------------------------------------------------
+int buildECC ( char* Page_Data, char* ECC_Data ) 
+{
+
+	u8 Data_Chunk[ 4 ][ 128 ];
+	char ECC_Chunk[ 4 ][ 3 ];
+	char ECC_Pad[ 4 ];
+
+	// This is to divide the page in 128 bytes chunks
+	memcpy ( Data_Chunk[ 0 ], Page_Data +   0, 128 );
+	memcpy ( Data_Chunk[ 1 ], Page_Data + 128, 128 );
+	memcpy ( Data_Chunk[ 2 ], Page_Data + 256, 128 );
+	memcpy ( Data_Chunk[ 3 ], Page_Data + 384, 128 );
+
+	// Ask for 128 bytes chunk ECC calculation, it returns 3 bytes per chunk
+	calculateECC ( ECC_Chunk[ 0 ], Data_Chunk[ 0 ]);
+	calculateECC ( ECC_Chunk[ 1 ], Data_Chunk[ 1 ]);
+	calculateECC ( ECC_Chunk[ 2 ], Data_Chunk[ 2 ]);
+	calculateECC ( ECC_Chunk[ 3 ], Data_Chunk[ 3 ]);
+
+	// Prepare Padding as ECC took only 12 bytes and stand on 16 bytes
+	memset ( ECC_Pad , 0 , sizeof ( ECC_Pad )  );
+
+	// "MemCopy" our four 3 bytes ECC chunks into our 16 bytes ECC data buffer
+	// Finaly "MemCopy" our 4 bytes PAD chunks into last 4 bytes of our ECC data buffer
+	memcpy ( ECC_Data + 0, ECC_Chunk[ 0 ], 3 );
+	memcpy ( ECC_Data + 3, ECC_Chunk[ 1 ], 3 );
+	memcpy ( ECC_Data + 6, ECC_Chunk[ 2 ], 3 );
+	memcpy ( ECC_Data + 9, ECC_Chunk[ 3 ], 3 );
+	memcpy ( ECC_Data + 12, ECC_Pad      , 4 );
+
+	return 1;
+
+}
 
 CVPscMc::CVPscMc(void)
 : m_bOpen(false)
@@ -298,6 +408,8 @@ bool CVPscMc::WritePage( const void* a_OutBuf , n32 a_nPageIndex )
 
 	memcpy( m_pBuf + position , a_OutBuf , m_pHead->page_size );
 
+	buildECC( (char*)m_pBuf + position , (char*)m_pBuf + position + m_pHead->page_size );
+
 	return true;
 }
 
@@ -532,12 +644,12 @@ bool CVPscMc::_Vmc_Mkdir( SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strNam
 		if( !setFatEntry( dirent_new.cluster , ERROR_CLUSTER , FAT_SET ) )
 			return false;
 
-		if( !writeDirBase( dirent_new.cluster , a_DirEnt_Path , a_DirEnt_Path.length ) )
-			return false;
-
 		dirent_new.length = 2;
 
-		if( !addObject( a_DirEnt_Path , dirent_new , false ) )
+		if( !addObject( uEntryIndex , a_DirEnt_Path , dirent_new , false ) )
+			return false;
+
+		if( !writeDirBase( dirent_new.cluster , a_DirEnt_Path , uEntryIndex ) )
 			return false;
 	}
 
@@ -703,7 +815,7 @@ bool CVPscMc::_Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , SPs2DirEntry& 
 		uOldCluster = uCluster;
 	}
 	//---------------------------------------------------
-	return addObject( a_DirEnt_Path , dirent_file , bHasOldFile );
+	return addObject( uOldCluster , a_DirEnt_Path , dirent_file , bHasOldFile );
 }
 
 bool CVPscMc::writeDirBase( u32 a_uPageStart , const SPs2DirEntry& a_Parent , u32 a_uEntryIndex )
@@ -741,7 +853,7 @@ bool CVPscMc::writeDirBase( u32 a_uPageStart , const SPs2DirEntry& a_Parent , u3
 	return true;
 }
 
-bool CVPscMc::addObject( SPs2DirEntry& a_parent , SPs2DirEntry& a_dirent , bool a_bUseOldName ) 
+bool CVPscMc::addObject( u32& a_uEntryIndex , SPs2DirEntry& a_parent , SPs2DirEntry& a_dirent , bool a_bUseOldName ) 
 {
 	if( !isOpen() )
 		return false;
@@ -749,34 +861,34 @@ bool CVPscMc::addObject( SPs2DirEntry& a_parent , SPs2DirEntry& a_dirent , bool 
 	ASSERT( a_parent.mode & DF_DIRECTORY );
 
 	bool bFindOldName = false;
-	u32 uEntryIndex = 2;
+	a_uEntryIndex = 2;
 	if( a_bUseOldName )
 	{
 		SPs2DirEntry dirent_file;
-		bFindOldName = FindDirentryFromDirentry( dirent_file , uEntryIndex , a_parent , a_dirent.name );
+		bFindOldName = FindDirentryFromDirentry( dirent_file , a_uEntryIndex , a_parent , a_dirent.name );
 
 		ASSERT( !bFindOldName || !(dirent_file.mode & DF_EXISTS) );
 	}
 
 	if( !bFindOldName )
 	{
-		for( ; uEntryIndex < a_parent.length ; ++uEntryIndex )
+		for( ; a_uEntryIndex < a_parent.length ; ++a_uEntryIndex )
 		{
 			SPs2DirEntry dirent;
-			if( !getDirentryFromDirentry( dirent , a_parent , uEntryIndex ) )
+			if( !getDirentryFromDirentry( dirent , a_parent , a_uEntryIndex ) )
 				return false;
 
 			if( !(dirent.mode & DF_EXISTS) )
 				break;
 		}
 
-		if( uEntryIndex == a_parent.length )//没找到标记删除的
+		if( a_uEntryIndex == a_parent.length )//没找到标记删除的
 		{
 			if( (a_parent.length % m_pHead->pages_per_cluster) == 0 )//簇用完,需要添加
 			{
 				u32 current_cluster;
 				u32 uItem;
-				if( !GetClusterIndex_ByEntryIndex( current_cluster , uItem , a_parent , uEntryIndex - 1 ) )
+				if( !GetClusterIndex_ByEntryIndex( current_cluster , uItem , a_parent , a_uEntryIndex - 1 ) )
 					return false;
 				// Get a free cluster because our object require an additional cluster
 				const u32 nextfree_cluster = getFreeCluster();
@@ -802,10 +914,10 @@ bool CVPscMc::addObject( SPs2DirEntry& a_parent , SPs2DirEntry& a_dirent , bool 
 		}
 	}
 
-	if( !setDirentryFromDirentry( a_dirent , a_parent , uEntryIndex ) )
+	if( !setDirentryFromDirentry( a_dirent , a_parent , a_uEntryIndex ) )
 		return false;
 
-	if( uEntryIndex == a_parent.length )
+	if( a_uEntryIndex == a_parent.length )
 	{
 		SPs2DirEntry parentparent;
 		if( !getDirentryFromDirentry( parentparent , a_parent , 0 ) )

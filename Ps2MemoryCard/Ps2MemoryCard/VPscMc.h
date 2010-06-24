@@ -83,7 +83,7 @@ protected:
 
 	bool writeDirBase( u32 a_uPageStart , const SPs2DirEntry& a_Parent , u32 a_uEntryIndex );
 
-	bool addObject( SPs2DirEntry& a_parent , SPs2DirEntry& a_dirent , bool a_bUseOldName );
+	bool addObject( u32& a_uEntryIndex , SPs2DirEntry& a_parent , SPs2DirEntry& a_dirent , bool a_bUseOldName );
 	bool removeObject( const SPs2DirEntry& a_parent , u32 a_uEntryIndex );
 
 	bool _Vmc_Mkdir( const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified , const u16* a_puMode );
