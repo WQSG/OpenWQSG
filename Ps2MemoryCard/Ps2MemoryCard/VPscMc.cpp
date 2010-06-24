@@ -436,14 +436,7 @@ bool CVPscMc::Vmc_Mkdir( const CStringA& a_strPath , const CStringA& a_strName ,
 	if( !isOpen() )
 		return false;
 
-	DEBUGPRINT ( 1, "vmcfs: mkdir %s\n", a_strPath.GetString() );
-
-	SPs2DirEntry dirent_dir;
-
-	if( !getDirentryFromPath( dirent_dir , a_strPath ) )
-		return false;
-
-	return _Vmc_Mkdir( dirent_dir , a_strName , a_pCreated , a_pModified );
+	return _Vmc_Mkdir( a_strPath , a_strName , a_pCreated , a_pModified , NULL );
 }
 
 void getPs2Time( SPs2DateTime* a_pModified )
@@ -466,14 +459,25 @@ void getPs2Time( SPs2DateTime* a_pModified )
 	a_pModified->sec = (u8)time.wSecond;
 }
 
-bool CVPscMc::_Vmc_Mkdir( SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified )
+bool CVPscMc::_Vmc_Mkdir( SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified , const u16* a_puMode )
 {
 	if( !isOpen() )
 		return false;
 
 	SPs2DirEntry dirent_new = {};
 
-	dirent_new.mode = DF_EXISTS | DF_0400 | DF_DIRECTORY | DF_READ | DF_WRITE | DF_EXECUTE; //  0x8427
+	if( a_puMode )
+	{
+		dirent_new.mode = *a_puMode;
+		if( !(dirent_new.mode & DF_EXISTS) ||
+			!(dirent_new.mode & DF_DIRECTORY) ||
+			(dirent_new.mode & DF_FILE) )
+			return false;
+	}
+	else
+	{
+		dirent_new.mode = DF_EXISTS | DF_0400 | DF_DIRECTORY | DF_READ | DF_WRITE | DF_EXECUTE; //  0x8427
+	}
 	strcpy( dirent_new.name , a_strName.GetString() );
 
 	if( a_pCreated )
@@ -592,17 +596,10 @@ bool CVPscMc::_Vmc_DeleteFile( const SPs2DirEntry& a_DirEnt_Path , SPs2DirEntry&
 
 bool CVPscMc::Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified )
 {
-	if( !isOpen() )
-		return false;
-
-	SPs2DirEntry dirent_path;
-	if( !getDirentryFromPath( dirent_path , a_strPath ) )
-		return false;
-
-	return _Vmc_WriteFile( a_InFp , a_uSize , dirent_path , a_strName , a_pCreated , a_pModified );
+	return _Vmc_WriteFile( a_InFp , a_uSize , a_strPath , a_strName , a_pCreated , a_pModified , NULL );
 }
 
-bool CVPscMc::_Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified )
+bool CVPscMc::_Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified , const u16* a_puMode )
 {
 	if( !isOpen() )
 		return false;
@@ -631,7 +628,19 @@ bool CVPscMc::_Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , SPs2DirEntry& 
 	strcpy ( dirent_file.name , a_strName.GetString() );
 	dirent_file.length  = a_uSize;
 	dirent_file.cluster = ERROR_CLUSTER;
-	dirent_file.mode    = DF_EXISTS | DF_0400 | DF_FILE | DF_READ | DF_WRITE | DF_EXECUTE; //  0x8417
+
+	if( a_puMode )
+	{
+		dirent_file.mode = *a_puMode;
+		if( !(dirent_file.mode & DF_EXISTS) ||
+			!(dirent_file.mode & DF_FILE) ||
+			(dirent_file.mode & DF_DIRECTORY) )
+			return false;
+	}
+	else
+	{
+		dirent_file.mode = DF_EXISTS | DF_0400 | DF_FILE | DF_READ | DF_WRITE | DF_EXECUTE; //  0x8417
+	}
 
 	if( a_pCreated )
 		dirent_file.created = *a_pCreated;
@@ -852,8 +861,38 @@ bool CVPscMc::removeObject( const SPs2DirEntry& a_parent , u32 a_uEntryIndex )
 	return true;
 }
 
+bool CVPscMc::_Vmc_Mkdir( const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified , const u16* a_puMode )
+{
+	if( !isOpen() )
+		return false;
+
+	DEBUGPRINT ( 1, "vmcfs: mkdir %s\n", a_strPath.GetString() );
+
+	SPs2DirEntry dirent_dir;
+
+	if( !getDirentryFromPath( dirent_dir , a_strPath ) )
+		return false;
+
+	return _Vmc_Mkdir( dirent_dir , a_strName , a_pCreated , a_pModified , a_puMode );
+}
+
+bool CVPscMc::_Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified , const u16* a_puMode )
+{
+	if( !isOpen() )
+		return false;
+
+	SPs2DirEntry dirent_path;
+	if( !getDirentryFromPath( dirent_path , a_strPath ) )
+		return false;
+
+	return _Vmc_WriteFile( a_InFp , a_uSize , dirent_path , a_strName , a_pCreated , a_pModified , a_puMode );
+}
+
 bool CVPscMc::In_Psu( const CString& a_strPathName )
 {
+	if( !isOpen() )
+		return false;
+
 	CWQSG_File fp;
 	if( !fp.OpenFile( a_strPathName.GetString() , 1 , 3 ) )
 		return false;
@@ -865,7 +904,7 @@ bool CVPscMc::In_Psu( const CString& a_strPathName )
 	if( !(head.attr & DF_DIRECTORY) )
 		return false;
 
-	if( !Vmc_Mkdir( "" , (const char*)head.name , &head.cTime , &head.mTime ) )
+	if( !_Vmc_Mkdir( "" , (const char*)head.name , &head.cTime , &head.mTime , &head.attr ) )
 		return false;
 
 	for( u32 i = 0 ; i < head.size ; ++i )
@@ -880,7 +919,7 @@ bool CVPscMc::In_Psu( const CString& a_strPathName )
 			return false;
 		}
 
-		if( !Vmc_WriteFile( fp , head1.size , (const char*)head.name , (const char*)head1.name , &head1.cTime , &head1.mTime ) )
+		if( !_Vmc_WriteFile( fp , head1.size , (const char*)head.name , (const char*)head1.name , &head1.cTime , &head1.mTime , &head1.attr ) )
 			return false;
 
 		const u32 p = head1.size % 0x400;

@@ -53,17 +53,20 @@ protected:
 
 	u32 getFreeCluster();
 
-	bool _Vmc_Mkdir( SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified );
+	bool _Vmc_Mkdir( SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified , const u16* a_puMode );
 
 	bool _Vmc_DeleteFile( const SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName );
 	bool _Vmc_DeleteFile( const SPs2DirEntry& a_DirEnt_Path , SPs2DirEntry& a_DirEnt_File , u32 a_uEntryIndex );
 
-	bool _Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified );
+	bool _Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified , const u16* a_puMode );
 
 	bool writeDirBase( u32 a_uPageStart , const SPs2DirEntry& a_Parent , u32 a_uEntryIndex );
 
 	bool addObject( SPs2DirEntry& a_parent , SPs2DirEntry& a_dirent , bool a_bUseOldName );
 	bool removeObject( const SPs2DirEntry& a_parent , u32 a_uEntryIndex );
+
+	bool _Vmc_Mkdir( const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified , const u16* a_puMode );
+	bool _Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified , const u16* a_puMode );
 public:
 	bool Vmc_Mkdir( const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified );
 	bool Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified );
