@@ -34,7 +34,7 @@
 #include <afxcmn.h>             // MFC 对 Windows 公共控件的支持
 #endif // _AFX_NO_AFXCMN_SUPPORT
 
-#include <afxcontrolbars.h>     // 功能区和控件条的 MFC 支持
+//#include <afxcontrolbars.h>     // 功能区和控件条的 MFC 支持
 
 
 
@@ -118,7 +118,8 @@ struct SPs2DirEntry
 	u8	unused2[ 416 ];
 };
 
-typedef struct {                  //Offs:  Example content
+struct SPsu_header
+{                  //Offs:  Example content
 	u16 attr;                       //0x00:  0x8427  (=normal folder, 8497 for normal file)
 	u16 unknown_1_u16;              //0x02:  2 zero bytes
 	u32 size;                       //0x04:  header_count-1, file size, 0 for pseudo
@@ -129,7 +130,7 @@ typedef struct {                  //Offs:  Example content
 	u8  unknown_3_24_bytes[24];     //0x28:  24 zero bytes
 	u8  name[32];                   //0x40:  32 name bytes, padded with zeroes
 	u8  unknown_4_416_bytes[0x1A0]; //0x60:  zero byte padding to reach 0x200 size
-} psu_header;                     //0x200: End of psu_header struct
+};                     //0x200: End of psu_header struct
 
 #pragma pack(pop)
 

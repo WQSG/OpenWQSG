@@ -13,7 +13,7 @@
 
 // CPs2MemoryCardApp
 
-BEGIN_MESSAGE_MAP(CPs2MemoryCardApp, CWinAppEx)
+BEGIN_MESSAGE_MAP(CPs2MemoryCardApp, CWinApp)
 	ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
 END_MESSAGE_MAP()
 
@@ -46,7 +46,7 @@ BOOL CPs2MemoryCardApp::InitInstance()
 	InitCtrls.dwICC = ICC_WIN95_CLASSES;
 	InitCommonControlsEx(&InitCtrls);
 
-	CWinAppEx::InitInstance();
+	CWinApp::InitInstance();
 
 	// 标准初始化
 	// 如果未使用这些功能并希望减小

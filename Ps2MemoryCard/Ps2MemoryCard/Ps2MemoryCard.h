@@ -15,7 +15,7 @@
 // 有关此类的实现，请参阅 Ps2MemoryCard.cpp
 //
 
-class CPs2MemoryCardApp : public CWinAppEx
+class CPs2MemoryCardApp : public CWinApp
 {
 public:
 	CPs2MemoryCardApp();
