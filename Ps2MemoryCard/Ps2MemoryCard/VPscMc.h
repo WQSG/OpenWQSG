@@ -79,11 +79,12 @@ protected:
 
 	bool _Vmc_Mkdir( const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified , const u16* a_puMode );
 	bool _Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified , const u16* a_puMode );
-	bool _Vmc_ReadFile( CWQSG_xFile& a_OutFp , const CStringA& a_strPath , const CStringA& a_strName , SPs2DateTime* a_pCreated , SPs2DateTime* a_pModified , u16* a_puMode );
-	bool _Vmc_ReadFile( CWQSG_xFile& a_OutFp , const SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName , SPs2DateTime* a_pCreated , SPs2DateTime* a_pModified , u16* a_puMode );
+	bool _Vmc_ReadFile( CWQSG_xFile* a_pOutFp , const CStringA& a_strPath , const CStringA& a_strName , SPs2DateTime* a_pCreated , SPs2DateTime* a_pModified , u16* a_puMode );
+	bool _Vmc_ReadFile( CWQSG_xFile* a_pOutFp , const SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName , SPs2DateTime* a_pCreated , SPs2DateTime* a_pModified , u16* a_puMode );
 public:
 	bool Vmc_Mkdir( const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified );
 	bool Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified );
+	bool Vmc_ReadFile( CWQSG_xFile& a_OutFp , const CStringA& a_strPath , const CStringA& a_strName );
 	bool Vmc_DeleteFile( const CStringA& a_strPath , const CStringA& a_strName );
 
 	bool Import_Psu( const CString& a_strPathName );

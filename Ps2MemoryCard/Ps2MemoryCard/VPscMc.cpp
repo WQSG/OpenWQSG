@@ -81,6 +81,18 @@ bool CVPscMc::Import_Psu( const CString& a_strPathName )
 	if( !(psu_head.attr & DF_EXISTS) )
 		return false;
 
+	{
+		static const SPsu_header psu_x = {};
+
+		if( psu_head.unknown_1_u16 != 0 || psu_head.unknown_2_u64 != 0 || psu_head.EMS_used_u64 != 0 )
+			return false;
+
+		if( memcmp( psu_head.unknown_3_24_bytes , psu_x.unknown_3_24_bytes , sizeof(psu_x.unknown_3_24_bytes) ) != 0 ||
+			memcmp( psu_head.unknown_4_416_bytes , psu_x.unknown_4_416_bytes , sizeof(psu_x.unknown_4_416_bytes) ) != 0)
+			return false;
+	}
+
+
 	if( !_Vmc_Mkdir( "" , (const char*)psu_head.name , &psu_head.cTime , &psu_head.mTime , &psu_head.attr ) )
 		return false;
 
@@ -89,6 +101,17 @@ bool CVPscMc::Import_Psu( const CString& a_strPathName )
 		SPsu_header head1 = {};
 		if( sizeof(head1) != fp.Read( &head1 , sizeof(head1) ) )
 			return false;
+
+		{
+			static const SPsu_header psu_x = {};
+
+			if( head1.unknown_1_u16 != 0 || head1.unknown_2_u64 != 0 || head1.EMS_used_u64 != 0 )
+				return false;
+
+			if( memcmp( head1.unknown_3_24_bytes , psu_x.unknown_3_24_bytes , sizeof(psu_x.unknown_3_24_bytes) ) != 0 ||
+				memcmp( head1.unknown_4_416_bytes , psu_x.unknown_4_416_bytes , sizeof(psu_x.unknown_4_416_bytes) ) != 0)
+				return false;
+		}
 
 		if( head1.attr & DF_DIRECTORY )
 		{
@@ -143,6 +166,20 @@ bool CVPscMc::Export_Psu( const CString& a_strPathName , const CStringA a_strDir
 
 	if( sizeof(psu_head) != fp.Write( &psu_head , sizeof(psu_head) ) )
 		return false;
+	//------------------------------------------
+	{
+		SPsu_header psu_head0 = {};
+		psu_head0.attr = 0x8427;  //Standard folder attr, for pseudo "." and ".."
+		psu_head0.cTime = psu_head.cTime;
+		psu_head0.mTime = psu_head.mTime;
+		psu_head0.name[0] = '.';  //Set name entry to "."
+		if( sizeof(psu_head0) != fp.Write( &psu_head0 , sizeof(psu_head0) ) )
+			return false;
+		psu_head0.name[1] = '.';  //Change name entry to ".."
+		if( sizeof(psu_head0) != fp.Write( &psu_head0 , sizeof(psu_head0) ) )
+			return false;
+	}
+	//------------------------------------------
 
 	std::vector<SFileInfo> datas;
 	if( !GetFiles( datas , a_strDirName ) )
@@ -172,7 +209,7 @@ bool CVPscMc::Export_Psu( const CString& a_strPathName , const CStringA a_strDir
 		//psu_file.mTime = dirent_path.modified;
 
 		CWQSG_memFile mf;
-		if( !_Vmc_ReadFile( mf , a_strDirName , info.szName , &psu_file.cTime , &psu_file.mTime , &psu_file.attr ) )
+		if( !_Vmc_ReadFile( &mf , a_strDirName , info.szName , &psu_file.cTime , &psu_file.mTime , &psu_file.attr ) )
 			return false;
 
 		if( sizeof(psu_file) != fp.Write( &psu_file , sizeof(psu_file) ) )

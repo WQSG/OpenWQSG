@@ -5,6 +5,7 @@
 #pragma once
 
 #include "VPscMc.h"
+#include "afxcmn.h"
 
 // CPs2MemoryCardDlg ¶Ô»°¿ò
 class CPs2MemoryCardDlg : public CDialog
@@ -35,4 +36,10 @@ public:
 	afx_msg void OnBnClickedButtonOpenMc();
 	afx_msg void OnBnClickedButtonSaveMc();
 	afx_msg void OnBnClickedButtonImportPsu();
+
+	void UpdateUI();
+private:
+	CListCtrl m_cList;
+public:
+	afx_msg void OnBnClickedButtonExportPsu();
 };

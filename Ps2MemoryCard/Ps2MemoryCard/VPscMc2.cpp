@@ -684,7 +684,7 @@ bool CVPscMc::_Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , SPs2DirEntry& 
 	return addObject( uOldCluster , a_DirEnt_Path , dirent_file , bHasOldFile );
 }
 
-bool CVPscMc::_Vmc_ReadFile( CWQSG_xFile& a_OutFp , const CStringA& a_strPath , const CStringA& a_strName , SPs2DateTime* a_pCreated , SPs2DateTime* a_pModified , u16* a_puMode )
+bool CVPscMc::_Vmc_ReadFile( CWQSG_xFile* a_pOutFp , const CStringA& a_strPath , const CStringA& a_strName , SPs2DateTime* a_pCreated , SPs2DateTime* a_pModified , u16* a_puMode )
 {
 	if( !isOpen() )
 		return false;
@@ -693,11 +693,11 @@ bool CVPscMc::_Vmc_ReadFile( CWQSG_xFile& a_OutFp , const CStringA& a_strPath , 
 	if( !getDirentryFromPath( dirent_path , a_strPath , true ) )
 		return false;
 
-	return _Vmc_ReadFile( a_OutFp , dirent_path , a_strName , a_pCreated , a_pModified , a_puMode );
+	return _Vmc_ReadFile( a_pOutFp , dirent_path , a_strName , a_pCreated , a_pModified , a_puMode );
 	
 }
 
-bool CVPscMc::_Vmc_ReadFile( CWQSG_xFile& a_OutFp , const SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName , SPs2DateTime* a_pCreated , SPs2DateTime* a_pModified , u16* a_puMode )
+bool CVPscMc::_Vmc_ReadFile( CWQSG_xFile* a_pOutFp , const SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName , SPs2DateTime* a_pCreated , SPs2DateTime* a_pModified , u16* a_puMode )
 {
 	if( !isOpen() )
 		return false;
@@ -711,30 +711,33 @@ bool CVPscMc::_Vmc_ReadFile( CWQSG_xFile& a_OutFp , const SPs2DirEntry& a_DirEnt
 	if( !FindDirentryFromDirentry( dirent_file , uEntryIndex , a_DirEnt_Path , a_strName , true ) )
 		return false;
 	//---------------------------------------------------
-	std::vector<u8> buffer;
-	buffer.resize( m_pHead->cluster_size , 0 );
-	u32 uCluster = dirent_file.cluster;
-	u32 uFileSize = dirent_file.length;
-
-	while( uFileSize > 0 )
+	if( a_pOutFp )
 	{
-		if( uCluster == ERROR_CLUSTER || uCluster == FREE_CLUSTER )
-			return false;
+		std::vector<u8> buffer;
+		buffer.resize( m_pHead->cluster_size , 0 );
+		u32 uCluster = dirent_file.cluster;
+		u32 uFileSize = dirent_file.length;
 
-		const u32 uRead = (uFileSize > m_pHead->cluster_size)?m_pHead->cluster_size:uFileSize;
-		uFileSize -= uRead;
+		while( uFileSize > 0 )
+		{
+			if( uCluster == ERROR_CLUSTER || uCluster == FREE_CLUSTER )
+				return false;
 
-		if( !readCluster( &buffer[0] , uCluster + m_pHead->first_allocatable ) )
-			return false;
+			const u32 uRead = (uFileSize > m_pHead->cluster_size)?m_pHead->cluster_size:uFileSize;
+			uFileSize -= uRead;
 
-		if( uRead != a_OutFp.Write( &buffer[0] , uRead ) )
-			return false;
+			if( !readCluster( &buffer[0] , uCluster + m_pHead->first_allocatable ) )
+				return false;
 
-		u32 uNextCluster;
-		if( !getFatEntry( uNextCluster , uCluster ) )
-			return false;
+			if( uRead != a_pOutFp->Write( &buffer[0] , uRead ) )
+				return false;
 
-		uCluster = uNextCluster;
+			u32 uNextCluster;
+			if( !getFatEntry( uNextCluster , uCluster ) )
+				return false;
+
+			uCluster = uNextCluster;
+		}
 	}
 
 	if( a_puMode )
@@ -947,3 +950,7 @@ bool CVPscMc::_Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , const CStringA
 	return _Vmc_WriteFile( a_InFp , a_uSize , dirent_path , a_strName , a_pCreated , a_pModified , a_puMode );
 }
 
+bool CVPscMc::Vmc_ReadFile( CWQSG_xFile& a_OutFp , const CStringA& a_strPath , const CStringA& a_strName )
+{
+	return _Vmc_ReadFile( &a_OutFp , a_strPath , a_strName , NULL , NULL , NULL );
+}
