@@ -580,10 +580,32 @@ bool CVPscMc::_Vmc_DeleteFile( const SPs2DirEntry& a_DirEnt_Path , SPs2DirEntry&
 		if( !getFatEntry( uNext , uCluster ) )
 			return false;
 
-		if( !setFatEntry( uCluster , ERROR_CLUSTER , FAT_RESET ) )
+		if( uNext == ERROR_CLUSTER )
+		{
+			if( !setFatEntry( uCluster , FREE_CLUSTER , FAT_RESET ) )
+				return false;
+		}
+		else if( uNext == FREE_CLUSTER )
+		{
+			ASSERT(uCluster != FREE_CLUSTER);
 			return false;
+		}
+		else
+		{
+#if 0
+			if( !setFatEntry( uCluster , uNext , FAT_RESET ) )
+				return false;
+#else
+			if( !setFatEntry( uCluster , FREE_CLUSTER , FAT_RESET ) )
+				return false;
+#endif
+		}
+
+		uCluster = uNext;
 	}
 
+	a_DirEnt_File.cluster = ERROR_CLUSTER;
+	a_DirEnt_File.mode ^= DF_EXISTS;
 	return setDirentryFromDirentry( a_DirEnt_File , a_DirEnt_Path , a_uEntryIndex );
 }
 
@@ -599,6 +621,14 @@ bool CVPscMc::_Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , SPs2DirEntry& 
 
 	ASSERT( a_DirEnt_Path.mode & DF_DIRECTORY );
 	ASSERT( a_DirEnt_Path.mode & DF_EXISTS );
+
+	if( a_puMode )
+	{
+		if( !(*a_puMode & DF_EXISTS) ||
+			!(*a_puMode & DF_FILE) ||
+			(*a_puMode & DF_DIRECTORY) )
+			return false;
+	}
 
 	SPs2DirEntry dirent_file;
 	u32 uEntryIndex;
@@ -625,10 +655,6 @@ bool CVPscMc::_Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , SPs2DirEntry& 
 	if( a_puMode )
 	{
 		dirent_file.mode = *a_puMode;
-		if( !(dirent_file.mode & DF_EXISTS) ||
-			!(dirent_file.mode & DF_FILE) ||
-			(dirent_file.mode & DF_DIRECTORY) )
-			return false;
 	}
 	else
 	{
