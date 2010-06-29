@@ -221,6 +221,10 @@
 				RelativePath=".\VPscMc.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\VPscMc2.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Í·ÎÄ¼þ"
