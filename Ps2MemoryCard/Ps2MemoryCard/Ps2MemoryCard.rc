@@ -85,9 +85,10 @@ FONT 9, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "Open MC",IDC_BUTTON_OPEN_MC,7,7,50,14
     PUSHBUTTON      "Save MC",IDC_BUTTON_SAVE_MC,58,7,50,14
-    PUSHBUTTON      "导入PSU",IDC_BUTTON_IMPORT_PSU,241,7,50,14
+    PUSHBUTTON      "导入PSU",IDC_BUTTON_IMPORT_PSU,137,7,50,14
     CONTROL         "",IDC_LIST1,"SysListView32",LVS_REPORT | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,26,337,167
-    PUSHBUTTON      "导出PSU",IDC_BUTTON_EXPORT_PSU,294,7,50,14
+    PUSHBUTTON      "导出PSU",IDC_BUTTON_EXPORT_PSU,190,7,50,14
+    PUSHBUTTON      "关于软件",IDC_BUTTON_ABOUT,294,7,50,14
 END
 
 
@@ -147,6 +148,20 @@ BEGIN
     END
 END
 #endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_APP_NAME            "Ps2MemoryCard"
+    IDS_APP_VER             "0.9.2010.06300"
+    IDS_APP_AUTHOR          "WQSG"
+    IDS_APP_AUTHOR2         "恶梦的死神"
+END
 
 #endif    // 中文(中华人民共和国) resources
 /////////////////////////////////////////////////////////////////////////////

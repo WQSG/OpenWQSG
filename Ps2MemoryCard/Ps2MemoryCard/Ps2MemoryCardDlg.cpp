@@ -1,3 +1,20 @@
+/*  OpenWQSG - Ps2MemoryCard
+*  Copyright (C) WQSG <wqsg@qq.com>
+*
+*  This program is free software; you can redistribute it and/or modify
+*  it under the terms of the GNU General Public License as published by
+*  the Free Software Foundation; either version 2 of the License, or
+*  (at your option) any later version.
+*
+*  This program is distributed in the hope that it will be useful,
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*  GNU General Public License for more details.
+*
+*  You should have received a copy of the GNU General Public License
+*  along with this program; if not, write to the Free Software
+*  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+*/
 
 // Ps2MemoryCardDlg.cpp : 实现文件
 //
@@ -39,6 +56,7 @@ BEGIN_MESSAGE_MAP(CPs2MemoryCardDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_SAVE_MC, &CPs2MemoryCardDlg::OnBnClickedButtonSaveMc)
 	ON_BN_CLICKED(IDC_BUTTON_IMPORT_PSU, &CPs2MemoryCardDlg::OnBnClickedButtonImportPsu)
 	ON_BN_CLICKED(IDC_BUTTON_EXPORT_PSU, &CPs2MemoryCardDlg::OnBnClickedButtonExportPsu)
+	ON_BN_CLICKED(IDC_BUTTON_ABOUT, &CPs2MemoryCardDlg::OnBnClickedButtonAbout)
 END_MESSAGE_MAP()
 
 
@@ -246,4 +264,25 @@ void CPs2MemoryCardDlg::UpdateUI()
 	}
 
 	m_cList.SetRedraw( TRUE );
+}
+
+void CPs2MemoryCardDlg::OnBnClickedButtonAbout()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	CString strAppName;
+	strAppName.LoadString( IDS_APP_NAME );
+
+	CString strAppVer;
+	strAppVer.LoadString( IDS_APP_VER );
+
+	CString strAuthor1;
+	strAuthor1.LoadString( IDS_APP_AUTHOR );
+
+	CString strAuthor2;
+	strAuthor2.LoadString( IDS_APP_AUTHOR2 );
+
+	WQSG_About( m_hIcon , m_hWnd , L"关于本软件" , strAppName + L"\r\nv" + strAppVer ,
+		L"项目svn : <A HREF=\"http://code.google.com/p/wqsg-umd\">http://code.google.com/p/OpenWqsg</A>\r\n"
+		L"依赖库svn : <A HREF=\"http://code.google.com/p/wqsglib\">http://code.google.com/p/wqsglib</A>\r\n                 <A HREF=\"http://wqsg.ys168.com\">http://wqsg.ys168.com</A>\r\n" ,
+		strAuthor2 + L"(" + strAuthor1 + L")" );
 }
