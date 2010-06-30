@@ -23,7 +23,7 @@
 #define DEBUGPRINT( level, args , ... ) \
 	/*if( DEBUG >= level ) */printf( args , __VA_ARGS__ )
 #else
-#define DEBUGPRINT( args... )
+#define DEBUGPRINT( args , ... )
 #endif
 
 #define FREE_CLUSTER	0x7FFFFFFF
