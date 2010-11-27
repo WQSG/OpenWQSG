@@ -21,7 +21,7 @@
 #include "stdafx.h"
 #include "WQSG 导出(导入).h"
 #include "WQSG_MAIN.h"
-
+#include <WQSG导出导入.h>
 
 #include <stdio.h>
 #include <tchar.h>
@@ -214,11 +214,11 @@ static int WQSG_Main( int nArgs , TCHAR* szArglist[] )
 	{
 		printf( "导入模式\n" );
 
-		static WQSG_TXT_I WQSG;
+		static CWQSG_TxtImport WQSG;
 		if( !WQSG.LoadTbl( pTbl , pTbl2 , bCheckTbl ) )
 			return -1;
 
-		if( !WQSG.导入文本( pRom , pTxt , pSP1 , pSP2 ) )
+		if( !WQSG.ImportText( pRom , pTxt , pSP1 , pSP2 ) )
 		{
 			return -1;
 		}
@@ -227,11 +227,11 @@ static int WQSG_Main( int nArgs , TCHAR* szArglist[] )
 	{
 		printf( "导出模式\n" );
 
-		static CWQSG_TXT_O WQSG;
+		static CWQSG_TxtExport WQSG;
 		if( !WQSG.LoadTbl( pTbl , pTbl2 , bCheckTbl ) )
 			return -1;
 
-		if( !WQSG.导出文本( pRom , pTxt , nStartPos , nEndPos , uMin , uMax ) )
+		if( !WQSG.ExportText( pRom , pTxt , nStartPos , nEndPos , uMin , uMax ) )
 		{
 			return -1;
 		}

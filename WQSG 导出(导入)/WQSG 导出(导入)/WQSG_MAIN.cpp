@@ -18,29 +18,27 @@
 #include "stdafx.h"
 #include "WQSG 导出(导入).h"
 #include "WQSG_MAIN.h"
+
+
+#include "批量文本替换Dlg.h"
+#include "chazhiSearch.h"
+#include "WQSG_TXT_IO.h"
+
+#if DEF_ON_TBL
+#include "统计字频.h"
+#endif
+
+#include "CDlgAbout.h"
 // CWQSG_MAIN 对话框
-CWnd*				WQSG_MAIN_CWND = NULL;
-CWQSG_INI_XML		WQSG_ini;
-CString				WQSG_iniSavePathName;
+CWnd*			g_pMAIN_CWND = NULL;
+
 IMPLEMENT_DYNAMIC(CWQSG_MAIN, CDialog)
 CWQSG_MAIN::CWQSG_MAIN(CWnd* pParent /*=NULL*/)
 	: CDialog(CWQSG_MAIN::IDD, pParent)
-#if DEF_ON_TXTIO
-	, m_TXTIO( L"导出文本" , L"导入文本")
-#endif
-#if DEF_ON_PTXTIO
-	, m_PTXTIO( L"导出文本" , L"导入文本" )
-#endif
-#if	DEF_ON_WIPS
-	, m_WIPS( L"制作补丁" , L"使用补丁")
-#endif
-	, m_CurToolID( WT_ID_MAX )
+	, m_SelWnd( NULL )
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_WQSG);
-	WQSG_MAIN_CWND = this;
-
-	for( int i = 0; i < WT_ID_MAX ; ++i )
-		m_Tool_CWND[i] = NULL;
+	g_pMAIN_CWND = this;
 }
 
 CWQSG_MAIN::~CWQSG_MAIN()
@@ -58,13 +56,38 @@ void CWQSG_MAIN::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CWQSG_MAIN, CDialog)
 	ON_WM_CLOSE()
 	ON_NOTIFY(TCN_SELCHANGE, IDC_TAB1, &CWQSG_MAIN::OnTcnSelchangeTab1)
-	ON_MESSAGE( WM_WQSG_设置文本 , &CWQSG_MAIN::设置文本 )
-	ON_MESSAGE( WM_WQSG_设置LOG文本 , &CWQSG_MAIN::设置LOG文本 )
+	ON_MESSAGE( WM_WQSG_SetText , &CWQSG_MAIN::SetText )
+	ON_MESSAGE( WM_WQSG_SetLogText , &CWQSG_MAIN::SetLogText )
 	ON_WM_ERASEBKGND()
 	ON_WM_PAINT()
 END_MESSAGE_MAP()
-void CWQSG_MAIN::OnOK(){}
-void CWQSG_MAIN::OnCancel(){}//	
+
+template< typename BaseType >
+BOOL CWQSG_MAIN::AddDlg( BaseType* a_pDlg , const CString& a_strTabName , const CRect& a_rect )
+{
+	if( !a_pDlg )
+		return FALSE;
+
+	if( !a_pDlg->Create( (UINT)a_pDlg->IDD , &m_TAB ) )
+	{
+		delete a_pDlg;
+		return FALSE;
+	}
+
+	const LONG nIndex = m_TAB.GetItemCount();
+	if( nIndex != m_TAB.InsertItem( nIndex , a_strTabName ) )
+	{
+		delete a_pDlg;
+		return FALSE;
+	}
+
+	m_TabWnd.push_back( a_pDlg );
+	a_pDlg->MoveWindow( a_rect );
+	a_pDlg->ShowWindow( FALSE );
+
+	return TRUE;
+}
+
 BOOL CWQSG_MAIN::OnInitDialog()
 {
 	CDialog::OnInitDialog();
@@ -80,12 +103,10 @@ BOOL CWQSG_MAIN::OnInitDialog()
 	//--------------------------------------
 	WCHAR exePathName[ MAX_PATH * 2 ];
 	if( 0 == GetModuleFileNameW( NULL , exePathName , MAX_PATH * 2 ) )
-		goto __gt出错退出;
+		goto __gtErrExit;
 
-	WQSG_iniSavePathName = exePathName;
-	WQSG_iniSavePathName = WQSG_iniSavePathName.Left( WQSG_iniSavePathName.ReverseFind( L'\\' ) + 1 ) + L"WQSG汉化配置.XML";
-	if( !WQSG_ini.Load( WQSG_iniSavePathName , L"WQSG汉化配置" , FALSE ) )
-		goto __gt出错退出;
+	if( !InitConfig() )
+		goto __gtErrExit;
 
 	{
 		CRect rect , rectTAB;
@@ -96,50 +117,55 @@ BOOL CWQSG_MAIN::OnInitDialog()
 		rectTAB.left = 2;
 		rectTAB.right = rect.Width() - 4;
 		rectTAB.bottom = rect.Height() - 5;// - rectTAB.top;
-
-		int __nID = 0;
-#define DEF_ADD( __DEF_X , __DEF_Y , __DEF_TYPE ) \
-		if( !__DEF_X.Create( (UINT)__DEF_X.IDD , &m_TAB ) )\
-		goto __gt出错退出;\
-		m_TAB.InsertItem( __nID , __DEF_Y );\
-		m_Tool_CWND[ __nID++ ] = &__DEF_X;\
-		__DEF_X.MoveWindow( rectTAB );
+///////////////////////
+		m_SelWnd = NULL;
 
 #if DEF_ON_TXTIO
-		DEF_ADD( m_TXTIO , L"导文本(普通)" , WT_ID_TXTIO )
+	if( !AddDlg( new CWQSG_TXT_IO( L"导出文本" , L"导入文本" ) , L"导文本(普通)" , rectTAB ) )
+		goto __gtErrExit;
 #endif
+
 #if DEF_ON_PTXTIO
-			DEF_ADD( m_PTXTIO , L"导文本(指针)" , WT_ID_PTXTIO )
+	if( !AddDlg( new CWQSG_PTXT_IO( L"导出文本" , L"导入文本" ) , L"导文本(指针)" , rectTAB ) )
+		goto __gtErrExit;
 #endif
+
 #if DEF_ON_WIPS
-			DEF_ADD( m_WIPS , L"WIPS补丁" , WT_ID_WIPS )
+	if( !AddDlg( new CWQSG_IPS_IO( L"制作补丁" , L"使用补丁" ) , L"WIPS补丁" , rectTAB ) )
+		goto __gtErrExit;
 #endif
+
 #if DEF_ON_TBL
-			DEF_ADD( m_TBLtool , L"码表工具" , WT_ID_TBL )	
+	if( !AddDlg( new C统计字频 , L"码表工具" , rectTAB ) )
+		goto __gtErrExit;
 #endif
+
 #if DEF_ON_文本替换
-		DEF_ADD( m_批量文本替换 , L"文本替换" , WT_ID_文本替换 )
+	if( !AddDlg( new C批量文本替换Dlg , L"文本替换" , rectTAB ) )
+		goto __gtErrExit;
 #endif
+
 #if DEF_ON_差值搜索
-		DEF_ADD( m_chazhiSearch , L"差值搜索" , WT_ID_差值搜索 )
+	if( !AddDlg( new CchazhiSearch , L"差值搜索" , rectTAB ) )
+		goto __gtErrExit;
 #endif
 
-		DEF_ADD( m_dlgAbout , L"关于本软件" , WT_ID_ABOUT )
-
-#undef DEF_ADD
+	if( !AddDlg( new CCDlgAbout , L"关于本软件" , rectTAB ) )
+		goto __gtErrExit;
 	}
-	选择工具();
+
+	SelTab();
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 异常: OCX 属性页应返回 FALSE
-__gt出错退出:
+__gtErrExit:
 	CDialog::OnCancel();
 	return FALSE;
 }
 void CWQSG_MAIN::OnClose()
 {
 	
-	if( m_窗口消息.GetLength() > 0 )
+	if( m_strWindowMsg.GetLength() > 0 )
 	{
 		if( IDYES != MessageBox( L"任务还没结束,确定要关闭么?" , NULL , MB_YESNO ) )
 		{
@@ -150,42 +176,34 @@ void CWQSG_MAIN::OnClose()
 	CDialog::OnCancel();
 }
 
-void CWQSG_MAIN::选择工具(void)
+void CWQSG_MAIN::SelTab(void)
 {
-	int nID = m_TAB.GetCurSel();
-	if( m_CurToolID != nID )
+	const int nID = m_TAB.GetCurSel();
+	ASSERT( nID >= 0 && (size_t)nID < m_TabWnd.size() );
+
+	if( m_SelWnd != m_TabWnd[nID] )
 	{
-		if( (m_CurToolID >= 0) && (m_CurToolID < WT_ID_MAX) )
-		{
-			if( m_Tool_CWND[ m_CurToolID ] )
-			{
-				m_Tool_CWND[ m_CurToolID ]->ShowWindow( FALSE );
-			}
-		}
-		m_CurToolID = WT_ID_MAX;
-		if( (nID >= 0) && (nID < WT_ID_MAX) )
-		{
-			m_CurToolID = nID;
-			if( m_Tool_CWND[ m_CurToolID ] )
-			{
-				m_Tool_CWND[ m_CurToolID ]->ShowWindow( TRUE );
-			}
-		}
+		if( m_SelWnd )
+			m_SelWnd->ShowWindow( FALSE );
+
+		m_SelWnd = m_TabWnd[nID];
+		m_SelWnd->ShowWindow( TRUE );
 	}
 }
 
 void CWQSG_MAIN::OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	// TODO: 在此添加控件通知处理程序代码
-	选择工具();
 	*pResult = 0;
+
+	SelTab();
 }
 
-LRESULT CWQSG_MAIN::设置文本( WPARAM 保留 , LPARAM 文本 )
+LRESULT CWQSG_MAIN::SetText( WPARAM 保留 , LPARAM 文本 )
 {
 	if( 文本 )
 	{
-		m_窗口消息 = (WCHAR*)文本 ;
+		m_strWindowMsg = (const WCHAR*)文本 ;
 		m_TAB.EnableWindow( FALSE );
 		m_TAB.ShowWindow( SW_HIDE );
 		m_CEDIT_LOG.ShowWindow( SW_NORMAL );
@@ -193,7 +211,7 @@ LRESULT CWQSG_MAIN::设置文本( WPARAM 保留 , LPARAM 文本 )
 	}
 	else
 	{
-		m_窗口消息 = L"";
+		m_strWindowMsg = L"";
 		m_TAB.EnableWindow( TRUE );
 		m_TAB.ShowWindow( SW_NORMAL );
 		m_CEDIT_LOG.ShowWindow( SW_HIDE );
@@ -202,7 +220,7 @@ LRESULT CWQSG_MAIN::设置文本( WPARAM 保留 , LPARAM 文本 )
 	}
 	return 0;
 }
-LRESULT CWQSG_MAIN::设置LOG文本( WPARAM 保留 , LPARAM 文本 )
+LRESULT CWQSG_MAIN::SetLogText( WPARAM 保留 , LPARAM 文本 )
 {
 	m_CEDIT_LOG.SetWindowTextW( (WCHAR*)文本 );
 	return 0;
@@ -224,14 +242,14 @@ void CWQSG_MAIN::OnPaint()
 {
 	CPaintDC dc(this); // 不为绘图消息调用 CDialog::OnPaint()
 
-	if( m_窗口消息.GetLength() )
+	if( m_strWindowMsg.GetLength() )
 	{
 		CRect rect;
 		GetClientRect( rect );
 		rect.top = rect.bottom ;//>> 2;
 //		rect.bottom = rect.top;
-		COLORREF old = dc.SetTextColor( RGB(255,0,0) );
-		dc.DrawTextW( m_窗口消息 , rect , DT_CENTER );
+		const COLORREF old = dc.SetTextColor( RGB(255,0,0) );
+		dc.DrawTextW( m_strWindowMsg , rect , DT_CENTER );
 		dc.SetTextColor( old );
 	}
 }

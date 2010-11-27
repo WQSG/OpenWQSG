@@ -22,26 +22,27 @@
 #include "afxcmn.h"
 #include "WQSG_cfg.h"
 
-template <class 窗口_1 , class 窗口_2>
-class CWQSG_IO : public CDialog
+template <class TWindow1 , class TWindow2>
+class CWQSG_IO : public CBaseDialog
 {
 //	DECLARE_DYNAMIC(CWQSG_IO)
-	窗口_1			m_窗口_Out;
-	窗口_2			m_窗口_In;
+	TWindow1		m_Window_Out;
+	TWindow2		m_Window_In;
 	CWnd*			m_CulWD;
 	CTabCtrl		m_CTAB;
-	CString			m_标题1;
-	CString			m_标题2;
+	CString			m_strTitle1;
+	CString			m_strTitle2;
 
 public:
-	CWQSG_IO( CString 标题1 , CString 标题2 , CWnd* pParent = NULL)
-		: CDialog(CWQSG_IO::IDD, pParent)
-		, m_标题1(标题1)
-		, m_标题2(标题2)
+	CWQSG_IO( CString a_strTitle1 , CString a_strTitle2 , CWnd* pParent = NULL)
+		: CBaseDialog(CWQSG_IO::IDD, pParent)
+		, m_strTitle1(a_strTitle1)
+		, m_strTitle2(a_strTitle2)
 		, m_CulWD(NULL)
 	{
 	}
-	~CWQSG_IO()
+
+	virtual ~CWQSG_IO()
 	{
 	}
 
@@ -51,7 +52,7 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX)
 	{
-		CDialog::DoDataExchange(pDX);
+		CBaseDialog::DoDataExchange(pDX);
 		DDX_Control(pDX, IDC_TAB1, m_CTAB);
 	}
 
@@ -68,7 +69,7 @@ protected:
 			HWND hWndCtrl = pNMHDR->hwndFrom;
 			if( hWndCtrl == m_CTAB.m_hWnd && pNMHDR->code == TCN_SELCHANGE )
 			{
-				TAB选项改变();
+				TabChange();
 			}
 		}
 		else if( message == WM_SIZE )
@@ -87,17 +88,17 @@ protected:
 				rectTAB.right = rect.Width() - 4;
 				rectTAB.bottom = rect.Height() - 5;// - rectTAB.top;
 
-				m_窗口_Out.MoveWindow( rectTAB );
-				m_窗口_In.MoveWindow( rectTAB );
+				m_Window_Out.MoveWindow( rectTAB );
+				m_Window_In.MoveWindow( rectTAB );
 			}
 		}
 
-		return CDialog::WindowProc(message, wParam, lParam);
+		return CBaseDialog::WindowProc(message, wParam, lParam);
 	}
 public:
 	virtual BOOL OnInitDialog()
 	{
-		CDialog::OnInitDialog();
+		CBaseDialog::OnInitDialog();
 
 		// TODO:  在此添加额外的初始化
 		CRect rect , rectTAB;
@@ -113,24 +114,24 @@ public:
 
 	#define DEF_ADD( __DEF_X , __DEF_Y ) \
 		if( !__DEF_X.Create( (UINT)__DEF_X.IDD , &m_CTAB ) )\
-		goto __gt出错退出;\
+		goto __gtErrExit;\
 		m_CTAB.InsertItem( iID++ , __DEF_Y );\
 		__DEF_X.MoveWindow( rectTAB );
 
-		DEF_ADD( m_窗口_Out , m_标题1 )
-		DEF_ADD( m_窗口_In , m_标题2)
+		DEF_ADD( m_Window_Out , m_strTitle1 )
+		DEF_ADD( m_Window_In , m_strTitle2)
 
 	#undef DEF_ADD
 
-		TAB选项改变();
+		TabChange();
 
 		return TRUE;  	// 异常: OCX 属性页应返回 FALSE
-__gt出错退出:
-		CDialog::OnCancel();
+__gtErrExit:
+		CBaseDialog::OnCancel();
 		return FALSE;
 	}
 private:
-	void TAB选项改变(void)
+	void TabChange(void)
 	{
 		CWnd* newCW = NULL;
 
@@ -138,10 +139,10 @@ private:
 		switch( iID )
 		{
 		case 0:
-			newCW = &m_窗口_Out;
+			newCW = &m_Window_Out;
 			break;
 		case 1:
-			newCW = &m_窗口_In;
+			newCW = &m_Window_In;
 			break;
 		default:
 			break;
@@ -163,10 +164,12 @@ private:
 #include "TXT_INBOX.h"
 typedef CWQSG_IO< CTXT_OutBox , CTXT_INBOX > CWQSG_TXT_IO;
 #endif
+
 #if DEF_ON_WIPS
 #include "WIPS.h"
 typedef CWQSG_IO< CWIPS_O_Dlg , CWIPS_I_Dlg > CWQSG_IPS_IO;
 #endif
+
 #if DEF_ON_PTXTIO
 #include "PTXT_OutDlg.h"
 #include "PTXT_InDlg.h"

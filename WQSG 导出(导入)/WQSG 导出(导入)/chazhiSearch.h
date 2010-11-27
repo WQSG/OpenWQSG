@@ -22,7 +22,7 @@
 #include "WQSG_cfg.h"
 #if DEF_ON_差值搜索
 
-class CchazhiSearch : public CDialog
+class CchazhiSearch : public CBaseDialog
 {
 	DECLARE_DYNAMIC(CchazhiSearch)
 	CWQSG_TypeLinkList<s64> m_插值表;
@@ -46,8 +46,8 @@ protected:
 	virtual void OnOK();
 private:
 	CString m_input;
-	CString m_字节类型;
-	CString m_输入类型;
+	CString m_strValType;
+	CString m_strInputType;
 	CString m_log;
 	CButton m_C高低交换;
 	CString m_文件路径;

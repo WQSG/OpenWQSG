@@ -25,10 +25,10 @@
 
 // CPTXT_OutDlg 对话框
 
-IMPLEMENT_DYNAMIC(CPTXT_OutDlg, CDialog)
+IMPLEMENT_DYNAMIC(CPTXT_OutDlg, CBaseDialog)
 
 CPTXT_OutDlg::CPTXT_OutDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CPTXT_OutDlg::IDD, pParent)
+	: CBaseDialog(CPTXT_OutDlg::IDD, pParent)
 	, m_index0(_T(""))
 	, m_index1(_T(""))
 	, m_baseOffset(_T("0"))
@@ -49,7 +49,7 @@ CPTXT_OutDlg::~CPTXT_OutDlg()
 
 void CPTXT_OutDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CBaseDialog::DoDataExchange(pDX);
 	DDX_Text(pDX, IDC_EDIT1, m_index0);
 	DDV_MaxChars(pDX, m_index0, 8);
 	DDX_Text(pDX, IDC_EDIT2, m_index1);
@@ -69,7 +69,7 @@ void CPTXT_OutDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 
-BEGIN_MESSAGE_MAP(CPTXT_OutDlg, CDialog)
+BEGIN_MESSAGE_MAP(CPTXT_OutDlg, CBaseDialog)
 	ON_EN_CHANGE(IDC_EDIT1, &CPTXT_OutDlg::OnEnChangeEdit1)
 	ON_EN_CHANGE(IDC_EDIT2, &CPTXT_OutDlg::OnEnChangeEdit2)
 	ON_EN_CHANGE(IDC_EDIT3, &CPTXT_OutDlg::OnEnChangeEdit3)
@@ -93,7 +93,7 @@ void CPTXT_OutDlg::OnEnChangeEdit1()
 
 	// TODO:  在此添加控件通知处理程序代码
 	UpdateData();
-	::编辑框验证十六进制文本( m_index0 , (CEdit*)GetDlgItem( IDC_EDIT1 ) , this , TRUE);
+	::EditCheckHaxStr( m_index0 , (CEdit*)GetDlgItem( IDC_EDIT1 ) , this , TRUE);
 }
 
 void CPTXT_OutDlg::OnEnChangeEdit2()
@@ -105,7 +105,7 @@ void CPTXT_OutDlg::OnEnChangeEdit2()
 
 	// TODO:  在此添加控件通知处理程序代码
 	UpdateData();
-	::编辑框验证十六进制文本( m_index1 , (CEdit*)GetDlgItem( IDC_EDIT2 ) , this , TRUE);
+	::EditCheckHaxStr( m_index1 , (CEdit*)GetDlgItem( IDC_EDIT2 ) , this , TRUE);
 }
 
 void CPTXT_OutDlg::OnEnChangeEdit3()
@@ -117,7 +117,7 @@ void CPTXT_OutDlg::OnEnChangeEdit3()
 
 	// TODO:  在此添加控件通知处理程序代码
 	UpdateData();
-	::编辑框验证十六进制文本( m_baseOffset , (CEdit*)GetDlgItem( IDC_EDIT3 ) , this , TRUE);
+	::EditCheckHaxStr( m_baseOffset , (CEdit*)GetDlgItem( IDC_EDIT3 ) , this , TRUE);
 }
 
 void CPTXT_OutDlg::OnCbnSelendokCombo5()
@@ -150,7 +150,7 @@ void CPTXT_OutDlg::OnCbnSelendokCombo5()
 
 BOOL CPTXT_OutDlg::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+	CBaseDialog::OnInitDialog();
 
 	// TODO:  在此添加额外的初始化
 	OnCbnSelendokCombo5();
@@ -163,24 +163,20 @@ void CPTXT_OutDlg::OnCancel(){}
 void CPTXT_OutDlg::OnOK(){}
 void CPTXT_OutDlg::OnClose()
 {
-	CDialog::OnClose();
-	CDialog::OnCancel();
+	CBaseDialog::OnClose();
+	CBaseDialog::OnCancel();
 }
 
 void CPTXT_OutDlg::OnBnClickedButtonRom()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	UpdateData();
-	static CString strPath;
 
-	CWQSGFileDialog dlg( TRUE );
-	dlg.m_ofn.lpstrTitle = L"选择一个ROM...";
-	dlg.m_ofn.lpstrInitialDir = strPath;
+	static CWQSGFileDialog_Open dlg( L"*.*|*.*||" );
+	dlg.SetWindowTitle( L"选择一个ROM..." );
 
 	if( dlg.DoModal() != IDOK )
 		return;
-
-	strPath = dlg.GetFolderPath();
 
 	m_ROM = dlg.GetPathName();
 	UpdateData( FALSE );
@@ -190,17 +186,12 @@ void CPTXT_OutDlg::OnBnClickedButtonTbl()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	UpdateData();
-	static CString strPath;
 
-	CWQSGFileDialog dlg( TRUE );
-	dlg.m_ofn.lpstrTitle = L"选择一个码表...";
-	dlg.m_ofn.lpstrFilter = L"码表文件(*.TBL,*.TXT)\0*.TBL;*.TXT\0\0";
-	dlg.m_ofn.lpstrInitialDir = strPath;
+	static CWQSGFileDialog_Open dlg( L"码表文件(*.TBL,*.TXT)|*.TBL;*.TXT||" );
+	dlg.SetWindowTitle( L"选择一个码表..." );
 
 	if( dlg.DoModal() != IDOK )
 		return;
-
-	strPath = dlg.GetFolderPath();
 
 	m_TBL = dlg.GetPathName();
 	UpdateData( FALSE );
@@ -210,17 +201,12 @@ void CPTXT_OutDlg::OnBnClickedButtonTbl2()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	UpdateData();
-	static CString strPath;
 
-	CWQSGFileDialog dlg( TRUE );
-	dlg.m_ofn.lpstrTitle = L"选择一个控制码表...";
-	dlg.m_ofn.lpstrFilter = L"码表文件(*.TBL,*.TXT)\0*.TBL;*.TXT\0\0";
-	dlg.m_ofn.lpstrInitialDir = strPath;
+	static CWQSGFileDialog_Open dlg( L"码表文件(*.TBL,*.TXT)|*.TBL;*.TXT||" );
+	dlg.SetWindowTitle( L"选择一个控制码表..." );
 
 	if( dlg.DoModal() != IDOK )
 		return;
-
-	strPath = dlg.GetFolderPath();
 
 	m_TBL2 = dlg.GetPathName();
 	UpdateData( FALSE );

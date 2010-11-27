@@ -53,4 +53,9 @@ enum
 	WT_ID_MAX,
 };
 
+BOOL InitConfig();
+TiXmlElement& LockConfig();
+void UnLockConfig();
+BOOL SaveConfig();
+
 #endif

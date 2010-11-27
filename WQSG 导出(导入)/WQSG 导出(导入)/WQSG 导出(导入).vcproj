@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(WQSG)"
+				AdditionalIncludeDirectories="&quot;$(WQSG)&quot;;&quot;$(TINYXML)&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -69,8 +69,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="tinyxmld.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="$(WQSG)"
+				AdditionalLibraryDirectories="&quot;$(WQSG)&quot;;&quot;$(TINYXML)&quot;"
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
 				SubSystem="1"
@@ -134,7 +135,7 @@
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="$(WQSG)"
+				AdditionalIncludeDirectories="&quot;$(WQSG)&quot;;&quot;$(TINYXML)&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
 				MinimalRebuild="false"
 				RuntimeLibrary="0"
@@ -157,9 +158,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="tinyxml.lib"
 				LinkIncremental="1"
 				SuppressStartupBanner="false"
-				AdditionalLibraryDirectories="$(WQSG)"
+				AdditionalLibraryDirectories="&quot;$(WQSG)&quot;;&quot;$(TINYXML)&quot;"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				AssemblyDebug="2"
@@ -222,7 +224,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(WQSG)"
+				AdditionalIncludeDirectories="&quot;$(WQSG)&quot;;&quot;$(TINYXML)&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -247,7 +249,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="$(WQSG)"
+				AdditionalLibraryDirectories="&quot;$(WQSG)&quot;;&quot;$(TINYXML)&quot;"
 				GenerateDebugInformation="true"
 				AssemblyDebug="1"
 				SubSystem="1"
@@ -348,6 +350,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\WQSG_cfg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\WQSG_MAIN.cpp"
 				>
 			</File>
@@ -432,35 +438,11 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath="..\..\..\..\..\ICO\IconGood.ico"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\..\ICO\IconGood.ico"
-				>
-			</File>
-			<File
-				RelativePath="G:\ICO\IconGood.ico"
-				>
-			</File>
-			<File
 				RelativePath=".\WQSG 导出(导入).rc"
 				>
 			</File>
 			<File
 				RelativePath=".\res\WQSG.ico"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="WQSG"
-			>
-			<File
-				RelativePath="G:\WQSG_lib\2\WQSG_INI.cpp"
-				>
-			</File>
-			<File
-				RelativePath="G:\WQSG_lib\2\WQSG_XML.cpp"
 				>
 			</File>
 		</Filter>

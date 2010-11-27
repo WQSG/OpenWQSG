@@ -20,47 +20,46 @@
 #include "WQSG 导出(导入).h"
 #include "TXT_OutBox.h"
 #include "WQSG_MAIN.h"
+#include <WQSG导出导入.h>
 
-#include "WQSG_DirDlg.h"
-#define WM_WQSG_线程信息	( WM_USER + 1 )
-#define WM_WQSG_线程LOG		( WM_WQSG_线程信息 + 1 )
+#define WM_WQSG_THREAD_MSG	( WM_USER + 1 )
+#define WM_WQSG_THREAD_LOG		( WM_WQSG_THREAD_MSG + 1 )
 
-#define	DEF_V_export L"export"
-BOOL CTXT_OutBox::zzz普通导出( CString& 文件名 , CWQSG_TXT_O& WQSG , tg参数& 参数 )
+static BOOL zzz普通导出( const CString& a_strFileName , CWQSG_TxtExport& WQSG , SExportDataEx& a_Data )
 {
-	CString 文本pathName;
-	if( 参数.m_TXT_DIR.GetLength() <= 0 )
+	CString strTxtPathName;
+	if( a_Data.m_strTXTPath.GetLength() <= 0 )
 	{
-		文本pathName = 文件名.Left( 文件名.ReverseFind(L'\\') + 1 ) + 文件名.Mid( 文件名.ReverseFind(L'\\') + 1 ) + L".TXT";
+		strTxtPathName = a_strFileName.Left( a_strFileName.ReverseFind(L'\\') + 1 ) + a_strFileName.Mid( a_strFileName.ReverseFind(L'\\') + 1 ) + L".TXT";
 	}
 	else
 	{
-		WQSG_CreateDir( 参数.m_TXT_DIR.GetString() );
-		文本pathName = 参数.m_TXT_DIR + 文件名.Mid( 文件名.ReverseFind(L'\\') + 1 ) + L".TXT";
+		WQSG_CreateDir( a_Data.m_strTXTPath.GetString() );
+		strTxtPathName = a_Data.m_strTXTPath + a_strFileName.Mid( a_strFileName.ReverseFind(L'\\') + 1 ) + L".TXT";
 	}
-	return WQSG.导出文本( 文件名.GetString() , 文本pathName.GetString() , 参数.m_KS , 参数.m_JS , 参数.m_min , 参数.m_max );
+	return WQSG.ExportText( a_strFileName.GetString() , strTxtPathName.GetString() , a_Data.m_uBeginOffset , a_Data.m_uEndOffset , a_Data.m_uMinLen , a_Data.m_uMaxLen );
 }
 // CTXT_OutBox 对话框
-DWORD WINAPI CTXT_OutBox::普通导出_文件(LPVOID lpParameter)
+static DWORD WINAPI 普通导出_文件(LPVOID lpParameter)
 {
-	tg参数& 参数 = *(tg参数*)lpParameter;
+	SExportDataEx& data = *(SExportDataEx*)lpParameter;
 
-	::SendMessage( 参数.m_hWnd , WM_WQSG_线程LOG , 0 , (LPARAM)L"启动文件模式" );
+	::SendMessage( data.m_hWnd , WM_WQSG_THREAD_LOG , 0 , (LPARAM)L"启动文件模式" );
 ///--------------------------
-	CWQSG_TXT_O WQSG;
-	CString 文件;
+	static CWQSG_TxtExport WQSG;
+	CString strFile;
 ///-------------------------
-	HiResTimer RunTime;
-	if( !WQSG.LoadTbl( 参数.m_TBL.GetString() , (参数.m_TBL2.GetLength() < 4)?NULL:参数.m_TBL2.GetString() , 参数.m_验证 ) )
-		goto __gt退出;
+	CHiResTimer RunTime;
+	if( !WQSG.LoadTbl( data.m_strTBLPathName.GetString() , (data.m_strTBL2PathName.GetLength() < 4)?NULL:data.m_strTBL2PathName.GetString() , data.m_bCheckTblOverlap ) )
+		goto __gtExit;
 
 	RunTime.Start();
-	for( std::vector<CStringW>::iterator it = 参数.m_Files.begin() ; it != 参数.m_Files.end() ; ++it )
+	for( std::vector<CStringW>::iterator it = data.m_Files.begin() ; it != data.m_Files.end() ; ++it )
 	{
-		文件 = *it;
-		zzz普通导出( 文件 , WQSG , 参数 );
+		strFile = *it;
+		zzz普通导出( strFile , WQSG , data );
 		/*
-		if( !zzz普通导出( 文件 , WQSG , 参数 ) )
+		if( !zzz普通导出( 文件 , WQSG , data ) )
 			goto __gt退出;
 			*/
 	}
@@ -70,22 +69,22 @@ DWORD WINAPI CTXT_OutBox::普通导出_文件(LPVOID lpParameter)
 		WQSG_Milliseconds2struct( RunTime.getElapsedMilliseconds() , _tg );
 		CString str;
 		str.Format( L"共耗时:%d 天 %d 时 %d 分 %d 秒 %d 毫秒" , _tg.wDay ,_tg.wHour ,_tg.wMinute ,_tg.wSecond , _tg.wMilliseconds );
-		::SendMessage( 参数.m_hWnd , WM_WQSG_线程LOG , 0 , (LPARAM)str.GetString() );
+		::SendMessage( data.m_hWnd , WM_WQSG_THREAD_LOG , 0 , (LPARAM)str.GetString() );
 	}
-__gt退出:
-	::SendMessage( 参数.m_hWnd , WM_WQSG_线程LOG , 0 , (LPARAM)L"关闭文件模式" );
-	::SendMessage( 参数.m_hWnd , WM_WQSG_线程信息 , 0 , 0 );
+__gtExit:
+	::SendMessage( data.m_hWnd , WM_WQSG_THREAD_LOG , 0 , (LPARAM)L"关闭文件模式" );
+	::SendMessage( data.m_hWnd , WM_WQSG_THREAD_MSG , 0 , 0 );
 	return 0;
 }
-BOOL CTXT_OutBox::zzz_普通导出_文件夹( CStringW 路径 , tg参数& 参数 , CWQSG_TXT_O& WQSG , INT& countAll , std::vector<CStringW>& szExt )
+static BOOL zzz_普通导出_文件夹( CStringW a_strPath , SExportDataEx& a_Data , CWQSG_TxtExport& WQSG , INT& countAll , std::vector<CStringW>& szExt )
 {
-	if( 路径.Right(1) != L'\\')
-		路径 += L'\\';
+	if( a_strPath.Right(1) != L'\\')
+		a_strPath += L'\\';
 
-	::SendMessage( 参数.m_hWnd , WM_WQSG_线程LOG , 0 , (LPARAM)( L"进入 " + 路径 ).GetString() );
+	::SendMessage( a_Data.m_hWnd , WM_WQSG_THREAD_LOG , 0 , (LPARAM)( L"进入 " + a_strPath ).GetString() );
 
 	WIN32_FIND_DATAW FindFileData;
-	const HANDLE hFind = ::FindFirstFileW( 路径 + L"*", &FindFileData );
+	const HANDLE hFind = ::FindFirstFileW( a_strPath + L"*", &FindFileData );
 	if ( hFind != INVALID_HANDLE_VALUE )
 	{
 		INT count = 0;
@@ -94,13 +93,13 @@ BOOL CTXT_OutBox::zzz_普通导出_文件夹( CStringW 路径 , tg参数& 参数 , CWQSG_TXT_
 			CStringW fileName( FindFileData.cFileName );
 			if( FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
 			{
-				if( ( fileName != L"." ) && ( fileName != L".." ) && 参数.m_SubDir )
+				if( ( fileName != L"." ) && ( fileName != L".." ) && a_Data.m_bSubDir )
 				{
-					zzz_普通导出_文件夹( 路径 + FindFileData.cFileName , 参数 , WQSG , count , szExt );
-				/*	if( !zzz_普通导出_文件夹( 路径 + FindFileData.cFileName , 参数 , WQSG , count , szExt ) )
+					zzz_普通导出_文件夹( a_strPath + FindFileData.cFileName , a_Data , WQSG , count , szExt );
+				/*	if( !zzz_普通导出_文件夹( 路径 + FindFileData.cFileName , a_Data , WQSG , count , szExt ) )
 						return FALSE;*/
 
-					::SendMessage( 参数.m_hWnd , WM_WQSG_线程LOG , 0 , (LPARAM)( L"返回 " + 路径 ).GetString() );
+					::SendMessage( a_Data.m_hWnd , WM_WQSG_THREAD_LOG , 0 , (LPARAM)( L"返回 " + a_strPath ).GetString() );
 				}
 			}
 			else
@@ -109,12 +108,12 @@ BOOL CTXT_OutBox::zzz_普通导出_文件夹( CStringW 路径 , tg参数& 参数 , CWQSG_TXT_
 				{
 					if( fileName.Right( szExt[i].GetLength() ).MakeUpper() == szExt[i] )
 					{
-						if( zzz普通导出( 路径 + FindFileData.cFileName , WQSG , 参数 ) )
+						if( zzz普通导出( a_strPath + FindFileData.cFileName , WQSG , a_Data ) )
 						{
 							++count;
 							++countAll;
 						}
-						/*if( !zzz普通导出( 路径 + FindFileData.cFileName , WQSG , 参数 ) )
+						/*if( !zzz普通导出( 路径 + FindFileData.cFileName , WQSG , a_Data ) )
 							return FALSE;
 						++count;
 						++countAll;*/
@@ -126,8 +125,8 @@ BOOL CTXT_OutBox::zzz_普通导出_文件夹( CStringW 路径 , tg参数& 参数 , CWQSG_TXT_
 		while( ::FindNextFile( hFind , &FindFileData ) );
 
 		::FindClose( hFind );
-		路径.Format( L"导出 %u 个文件" , count );
-		::SendMessage( 参数.m_hWnd , WM_WQSG_线程LOG , 0 , (LPARAM)路径.GetString() );
+		a_strPath.Format( L"导出 %u 个文件" , count );
+		::SendMessage( a_Data.m_hWnd , WM_WQSG_THREAD_LOG , 0 , (LPARAM)a_strPath.GetString() );
 	}
 	else 
 	{
@@ -135,33 +134,33 @@ BOOL CTXT_OutBox::zzz_普通导出_文件夹( CStringW 路径 , tg参数& 参数 , CWQSG_TXT_
 	}
 	return TRUE;
 }
-DWORD WINAPI CTXT_OutBox::普通导出_文件夹(LPVOID lpParameter)
+static DWORD WINAPI 普通导出_文件夹(LPVOID lpParameter)
 {
-	tg参数& 参数 = *(tg参数*)lpParameter;
+	SExportDataEx& data = *(SExportDataEx*)lpParameter;
 ///-------------------------------------------------
-	::SendMessage( 参数.m_hWnd , WM_WQSG_线程LOG , 0 , (LPARAM)L"启动文件夹模式" );
+	::SendMessage( data.m_hWnd , WM_WQSG_THREAD_LOG , 0 , (LPARAM)L"启动文件夹模式" );
 
-	if( 参数.m_TXT_DIR.GetLength() > 0 )
+	if( data.m_strTXTPath.GetLength() > 0 )
 	{
-		if( 参数.m_TXT_DIR.Right(1) != L'\\')
-			参数.m_TXT_DIR += L'\\';
+		if( data.m_strTXTPath.Right(1) != L'\\')
+			data.m_strTXTPath += L'\\';
 	}
 
-	CWQSG_TXT_O WQSG;
+	static CWQSG_TxtExport WQSG;
 ///-------------------------------------------------
-	HiResTimer RunTime;
+	CHiResTimer RunTime;
 	std::vector<CStringW> szExt;
 	INT count = 0;
 
-	if( !WQSG.LoadTbl( 参数.m_TBL.GetString() , (参数.m_TBL2.GetLength() < 4)?NULL:参数.m_TBL2.GetString() , 参数.m_验证 ) )
-		goto __gt退出;
+	if( !WQSG.LoadTbl( data.m_strTBLPathName.GetString() , (data.m_strTBL2PathName.GetLength() < 4)?NULL:data.m_strTBL2PathName.GetString() , data.m_bCheckTblOverlap ) )
+		goto __gtExit;
 	//
-	分解Ext( 参数.m_Ext , szExt );
+	分解Ext( data.m_strExtName , szExt );
 	if( szExt.size() == 0 )
 		szExt.push_back( CStringW(L"") );
 	//
 	RunTime.Start();
-	zzz_普通导出_文件夹( 参数.m_ROM_DIR , 参数 , WQSG , count , szExt );
+	zzz_普通导出_文件夹( data.m_strROMPath , data , WQSG , count , szExt );
 	RunTime.Stop();
 	//
 	{
@@ -169,29 +168,29 @@ DWORD WINAPI CTXT_OutBox::普通导出_文件夹(LPVOID lpParameter)
 		WQSG_Milliseconds2struct( RunTime.getElapsedMilliseconds() , _tg );
 		CString str;
 		str.Format( L"共耗时:%d 天 %d 时 %d 分 %d 秒 %d 毫秒" , _tg.wDay ,_tg.wHour ,_tg.wMinute ,_tg.wSecond , _tg.wMilliseconds );
-		::SendMessage( 参数.m_hWnd , WM_WQSG_线程LOG , 0 , (LPARAM)str.GetString() );
+		::SendMessage( data.m_hWnd , WM_WQSG_THREAD_LOG , 0 , (LPARAM)str.GetString() );
 
 		str.Format( L"一共成功导出 %u 个文件" , count );
-		::SendMessage( 参数.m_hWnd , WM_WQSG_线程LOG , 0 , (LPARAM)str.GetString() );
+		::SendMessage( data.m_hWnd , WM_WQSG_THREAD_LOG , 0 , (LPARAM)str.GetString() );
 	}
-__gt退出:
-	::SendMessage( 参数.m_hWnd , WM_WQSG_线程LOG , 0 , (LPARAM)L"关闭文件夹模式" );
-	::SendMessage( 参数.m_hWnd , WM_WQSG_线程信息 , 0 , 0 );
+__gtExit:
+	::SendMessage( data.m_hWnd , WM_WQSG_THREAD_LOG , 0 , (LPARAM)L"关闭文件夹模式" );
+	::SendMessage( data.m_hWnd , WM_WQSG_THREAD_MSG , 0 , 0 );
 	return 0;
 }
-IMPLEMENT_DYNAMIC(CTXT_OutBox, CDialog)
+IMPLEMENT_DYNAMIC(CTXT_OutBox, CBaseDialog)
 CTXT_OutBox::CTXT_OutBox(CWnd* pParent /*=NULL*/)
-	: CDialog(CTXT_OutBox::IDD, pParent)
-	, m_EDIT_Rom(_T(""))
-	, m_EDIT_TXT_DIR(_T(""))
-	, m_EDIT_TBL(_T(""))
-	, m_EDIT_TBL2(_T(""))
+	: CBaseDialog(CTXT_OutBox::IDD, pParent)
+	, m_EDIT_ROMPath(_T(""))
+	, m_EDIT_TXTPath(_T(""))
+	, m_EDIT_TBLPathName(_T(""))
+	, m_EDIT_TBL2PathName(_T(""))
 	, m_EDIT_min(_T("2"))
 	, m_EDIT_max(_T("99999"))
-	, m_EDIT_段号(_T("0"))
-	, m_EDIT_开始偏移(_T("0"))
-	, m_EDIT_结束偏移(_T("FFFFFFFF"))
-	, m_EDIT_EXT(_T(""))
+	, m_EDIT_SegmentAddr(_T("0"))
+	, m_EDIT_BeginOffset(_T("0"))
+	, m_EDIT_EndOffset(_T("FFFFFFFF"))
+	, m_EDIT_ExtName(_T(""))
 	, m_LOG(_T(""))
 	, m_NodeName(_T(""))
 {
@@ -203,40 +202,40 @@ CTXT_OutBox::~CTXT_OutBox()
 
 void CTXT_OutBox::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_CHECK1, m_C从目录导出);
-	DDX_Text(pDX, IDC_EDIT_ROM, m_EDIT_Rom);
-	DDV_MaxChars(pDX, m_EDIT_Rom, MAX_PATH);
-	DDX_Text(pDX, IDC_EDIT_TXT_DIR, m_EDIT_TXT_DIR);
-	DDV_MaxChars(pDX, m_EDIT_TXT_DIR, MAX_PATH);
-	DDX_Text(pDX, IDC_EDIT_TBL, m_EDIT_TBL);
-	DDV_MaxChars(pDX, m_EDIT_TBL, MAX_PATH);
-	DDX_Text(pDX, IDC_EDIT_TBL2, m_EDIT_TBL2);
-	DDV_MaxChars(pDX, m_EDIT_TBL2, MAX_PATH);
-	DDX_Control(pDX, IDC_CHKTBL, m_C验证TBL);
+	CBaseDialog::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_CHECK1, m_cUseDirectory);
+	DDX_Text(pDX, IDC_EDIT_ROM, m_EDIT_ROMPath);
+	DDV_MaxChars(pDX, m_EDIT_ROMPath, MAX_PATH);
+	DDX_Text(pDX, IDC_EDIT_TXT_DIR, m_EDIT_TXTPath);
+	DDV_MaxChars(pDX, m_EDIT_TXTPath, MAX_PATH);
+	DDX_Text(pDX, IDC_EDIT_TBL, m_EDIT_TBLPathName);
+	DDV_MaxChars(pDX, m_EDIT_TBLPathName, MAX_PATH);
+	DDX_Text(pDX, IDC_EDIT_TBL2, m_EDIT_TBL2PathName);
+	DDV_MaxChars(pDX, m_EDIT_TBL2PathName, MAX_PATH);
+	DDX_Control(pDX, IDC_CHKTBL, m_cCheckTblOverlap);
 	DDX_Text(pDX, IDC_EDIT_MIN, m_EDIT_min);
 	DDV_MaxChars(pDX, m_EDIT_min, 5);
 	DDX_Text(pDX, IDC_EDIT_MAX, m_EDIT_max);
 	DDV_MaxChars(pDX, m_EDIT_max, 5);
-	DDX_Text(pDX, IDC_EDIT_ADDR_H, m_EDIT_段号);
-	DDV_MaxChars(pDX, m_EDIT_段号, 8);
-	DDX_Text(pDX, IDC_EDIT_ADDR_KS_L, m_EDIT_开始偏移);
-	DDV_MaxChars(pDX, m_EDIT_开始偏移, 8);
-	DDX_Text(pDX, IDC_EDIT_ADDR_JS_L, m_EDIT_结束偏移);
-	DDV_MaxChars(pDX, m_EDIT_结束偏移, 8);
-	DDX_Text(pDX, IDC_EDIT_EXT, m_EDIT_EXT);
-	DDV_MaxChars(pDX, m_EDIT_EXT, 100);
+	DDX_Text(pDX, IDC_EDIT_ADDR_H, m_EDIT_SegmentAddr);
+	DDV_MaxChars(pDX, m_EDIT_SegmentAddr, 8);
+	DDX_Text(pDX, IDC_EDIT_ADDR_KS_L, m_EDIT_BeginOffset);
+	DDV_MaxChars(pDX, m_EDIT_BeginOffset, 8);
+	DDX_Text(pDX, IDC_EDIT_ADDR_JS_L, m_EDIT_EndOffset);
+	DDV_MaxChars(pDX, m_EDIT_EndOffset, 8);
+	DDX_Text(pDX, IDC_EDIT_EXT, m_EDIT_ExtName);
+	DDV_MaxChars(pDX, m_EDIT_ExtName, 100);
 	DDX_Control(pDX, IDC_EDIT_LOG, m_CEDIT_LOG);
-	DDX_Control(pDX, IDC_CHECK4, m_C使用控制码表);
+	DDX_Control(pDX, IDC_CHECK4, m_cUseTBL2);
 	DDX_Control(pDX, IDC_LIST2, m_CList);
 	DDX_Text(pDX, IDC_EDIT_NAME, m_NodeName);
 	DDV_MaxChars(pDX, m_NodeName, 20);
 	DDX_Control(pDX, IDC_CHECK3, m_C文本在同目录);
-	DDX_Control(pDX, IDC_CHECK5, m_c包括子目录);
+	DDX_Control(pDX, IDC_CHECK5, m_cSubDir);
 }
 
 
-BEGIN_MESSAGE_MAP(CTXT_OutBox, CDialog)
+BEGIN_MESSAGE_MAP(CTXT_OutBox, CBaseDialog)
 	ON_WM_CLOSE()
 	ON_BN_CLICKED(IDC_BUTTON_START, &CTXT_OutBox::OnBnClickedButtonStart)
 	ON_BN_CLICKED(IDC_BUTTON_TXT_DIR, &CTXT_OutBox::OnBnClickedButtonTxtDir)
@@ -249,8 +248,8 @@ BEGIN_MESSAGE_MAP(CTXT_OutBox, CDialog)
 	ON_EN_KILLFOCUS(IDC_EDIT_ADDR_H, &CTXT_OutBox::OnEnKillfocusEditAddrH)
 	ON_EN_KILLFOCUS(IDC_EDIT_MIN, &CTXT_OutBox::OnEnKillfocusEditMin)
 	ON_EN_KILLFOCUS(IDC_EDIT_MAX, &CTXT_OutBox::OnEnKillfocusEditMax)
-	ON_MESSAGE( WM_WQSG_线程信息 , &CTXT_OutBox::线程信息 )
-	ON_MESSAGE( WM_WQSG_线程LOG , &CTXT_OutBox::线程LOG )
+	ON_MESSAGE( WM_WQSG_THREAD_MSG , &CTXT_OutBox::线程信息 )
+	ON_MESSAGE( WM_WQSG_THREAD_LOG , &CTXT_OutBox::线程LOG )
 	ON_BN_CLICKED(IDC_BUTTON_ROM, &CTXT_OutBox::OnBnClickedButtonRom)
 	ON_EN_CHANGE(IDC_EDIT_EXT, &CTXT_OutBox::OnEnChangeEditExt)
 	ON_BN_CLICKED(IDC_BUTTON1, &CTXT_OutBox::OnBnClickedButton1)
@@ -263,12 +262,10 @@ BEGIN_MESSAGE_MAP(CTXT_OutBox, CDialog)
 	ON_EN_CHANGE(IDC_EDIT_NAME, &CTXT_OutBox::OnEnChangeEditName)
 	ON_BN_CLICKED(IDC_CHECK3, &CTXT_OutBox::OnBnClickedCheck3)
 END_MESSAGE_MAP()
-void CTXT_OutBox::OnOK(){}
-void CTXT_OutBox::OnCancel(){}
 void CTXT_OutBox::OnClose()
 {
-	CDialog::OnClose();
-	CDialog::OnCancel();
+	CBaseDialog::OnClose();
+	CBaseDialog::OnCancel();
 }
 
 //--------------------------------------------------------
@@ -279,118 +276,112 @@ void CTXT_OutBox::OnBnClickedButtonStart()
 
 	if( m_C文本在同目录.GetCheck() != 0 )
 	{
-		m_参数.m_TXT_DIR = L"";
+		m_Data.m_strTXTPath = L"";
 	}
 	else
 	{
-		if( !::WQSG_IsDir( m_EDIT_TXT_DIR.GetString() ) )
+		if( !::WQSG_IsDir( m_EDIT_TXTPath.GetString() ) )
 		{
 			MessageBoxW( L"文本目录出错" );
 			return;
 		}
-		m_参数.m_TXT_DIR = m_EDIT_TXT_DIR;
-		if( m_参数.m_TXT_DIR.Right(1) != L'\\')
-			m_参数.m_TXT_DIR += L'\\';
+		m_Data.m_strTXTPath = m_EDIT_TXTPath;
+		if( m_Data.m_strTXTPath.Right(1) != L'\\')
+			m_Data.m_strTXTPath += L'\\';
 	}
-	if( !::WQSG_IsFile( m_EDIT_TBL.GetString() ) )
+	if( !::WQSG_IsFile( m_EDIT_TBLPathName.GetString() ) )
 	{
 		MessageBoxW( L"请检查码表路径" );
 		return;
 	}
-	if( (m_C使用控制码表.GetCheck() != 0 ) && !::WQSG_IsFile( m_EDIT_TBL2.GetString() ) )
+	if( (m_cUseTBL2.GetCheck() != 0 ) && !::WQSG_IsFile( m_EDIT_TBL2PathName.GetString() ) )
 	{
 		MessageBoxW( L"请检查控制码表路径" );
 		return;
 	}
-	m_参数.m_验证 = m_C验证TBL.GetCheck() != 0;
-	m_参数.m_SubDir = m_c包括子目录.GetCheck() != 0;
-	m_参数.m_TBL = m_EDIT_TBL;
-	m_参数.m_TBL2 = (m_C使用控制码表.GetCheck() != 0)?m_EDIT_TBL2:L"";
+	m_Data.m_bCheckTblOverlap = m_cCheckTblOverlap.GetCheck() != 0;
+	m_Data.m_bSubDir = m_cSubDir.GetCheck() != 0;
+	m_Data.m_strTBLPathName = m_EDIT_TBLPathName;
+	m_Data.m_strTBL2PathName = (m_cUseTBL2.GetCheck() != 0)?m_EDIT_TBL2PathName:L"";
 
-	m_参数.m_Files.clear();
+	m_Data.m_Files.clear();
 
 	u32 val;
-	if ( 1 != swscanf( m_EDIT_段号 , L"%X" , &val ) )
+	if ( 1 != swscanf( m_EDIT_SegmentAddr , L"%X" , &val ) )
 	{
 		MessageBoxW( L"请检查\"段号\"!!" );
 		GetDlgItem( IDC_EDIT_ADDR_KS_L )->SetFocus();
 		return;
 	}
-	m_参数.m_KS = val;
-	m_参数.m_KS <<= 32;
-	m_参数.m_JS = m_参数.m_KS;
+	m_Data.m_uBeginOffset = val;
+	m_Data.m_uBeginOffset <<= 32;
+	m_Data.m_uEndOffset = m_Data.m_uBeginOffset;
 
-	if ( 1 != swscanf( m_EDIT_开始偏移 , L"%X" , &val ) )
+	if ( 1 != swscanf( m_EDIT_BeginOffset , L"%X" , &val ) )
 	{
 		MessageBoxW( L"请检查\"开始偏移\"!!" );
 		GetDlgItem( IDC_EDIT_ADDR_KS_L )->SetFocus();
 		return;
 	}
-	m_参数.m_KS |= val;
+	m_Data.m_uBeginOffset |= val;
 
-	if ( 1 != swscanf( m_EDIT_结束偏移 , L"%X" , &val ) )
+	if ( 1 != swscanf( m_EDIT_EndOffset , L"%X" , &val ) )
 	{
 		MessageBoxW( L"请检查\"结束偏移\"!!" );
 		GetDlgItem( IDC_EDIT_ADDR_JS_L )->SetFocus();
 		return;
 	}
-	m_参数.m_JS |= val;
+	m_Data.m_uEndOffset |= val;
 
-	m_参数.m_min = _wtoi( m_EDIT_min.GetString() );
-	m_参数.m_max = _wtoi( m_EDIT_max.GetString() );
+	m_Data.m_uMinLen = _wtoi( m_EDIT_min.GetString() );
+	m_Data.m_uMaxLen = _wtoi( m_EDIT_max.GetString() );
 
 	HANDLE handle;
-	if( m_C从目录导出.GetCheck() != 0 )
+	if( m_cUseDirectory.GetCheck() != 0 )
 	{
-		if( !验证Ext( m_EDIT_EXT ) )
+		if( !CheckExt( m_EDIT_ExtName ) )
 		{
 			MessageBox( L"扩展名错误");
 			return;
 		}
-		m_参数.m_Ext = ( m_EDIT_EXT.GetLength() > 0 )?m_EDIT_EXT:L"*";
+		m_Data.m_strExtName = ( m_EDIT_ExtName.GetLength() > 0 )?m_EDIT_ExtName:L"*";
 
-		m_参数.m_ROM_DIR = m_EDIT_Rom;
-		if( m_参数.m_ROM_DIR.Right(1) != L'\\')
-			m_参数.m_ROM_DIR += L'\\';
+		m_Data.m_strROMPath = m_EDIT_ROMPath;
+		if( m_Data.m_strROMPath.Right(1) != L'\\')
+			m_Data.m_strROMPath += L'\\';
 
-		SendMessage( WM_WQSG_线程信息 , 0 , (LPARAM)L"正在导出..." );
+		SendMessage( WM_WQSG_THREAD_MSG , 0 , (LPARAM)L"正在导出..." );
 		handle = CreateThread( NULL , NULL
 		, 普通导出_文件夹
-		, &m_参数 , NULL , NULL );
+		, &m_Data , NULL , NULL );
 	}
 	else
 	{
-		
-
-		CWQSGFileDialog fileDlg ( TRUE , NULL , NULL , OFN_ALLOWMULTISELECT | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT , L"ROM文件(*.*)|*.*|" );
-		fileDlg.m_ofn.lpstrTitle = L"选择要导出文本的文件(多选)...";
-		fileDlg.m_ofn.lpstrFile = m_文件列表缓存.GetBuffer();
-		fileDlg.m_ofn.nMaxFile = 65535;
-		fileDlg.m_ofn.lpstrInitialDir = m_参数.m_LastDir;
+		static CWQSGFileDialog_OpenS fileDlg( L"ROM文件(*.*)|*.*||" );
+		fileDlg.SetWindowTitle( L"选择要导出文本的文件(多选)..." );
 
 		if( fileDlg.DoModal() != IDOK )
 			return;
 
-		m_参数.m_LastDir = fileDlg.GetFolderPath();
-
 		POSITION pos = fileDlg.GetStartPosition();
-		while( pos )
+		CString strFile;
+		while( fileDlg.GetNextPathName( strFile , pos ) )
 		{
-			m_参数.m_Files.push_back( fileDlg.GetNextPathName( pos ) );
+			m_Data.m_Files.push_back( strFile );
 		}
 
-		SendMessage( WM_WQSG_线程信息 , 0 , (LPARAM)L"正在导出..." );
+		SendMessage( WM_WQSG_THREAD_MSG , 0 , (LPARAM)L"正在导出..." );
 
 		handle = CreateThread( NULL , NULL
 			, 普通导出_文件
-			, &m_参数 , NULL , NULL );
+			, &m_Data , NULL , NULL );
 	}
 	if( handle != NULL )
 	{
 		CloseHandle( handle );
 	}
 	else
-		SendMessage( WM_WQSG_线程信息 , 0 , 0 );
+		SendMessage( WM_WQSG_THREAD_MSG , 0 , 0 );
 }
 //--------------------------------------------------------
 void CTXT_OutBox::OnBnClickedButtonTxtDir()
@@ -400,7 +391,7 @@ void CTXT_OutBox::OnBnClickedButtonTxtDir()
 	CWQSG_DirDlg DirDlg( m_hWnd );
 	WCHAR path[ MAX_PATH ];
 	if( !DirDlg.GetPath( path ) )return;
-	m_EDIT_TXT_DIR = path;
+	m_EDIT_TXTPath = path;
 
 	UpdateData( FALSE );
 }
@@ -409,18 +400,12 @@ void CTXT_OutBox::OnBnClickedButtonTbl()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	UpdateData();
-	static CString strPath;
-
-	CWQSGFileDialog dlg( TRUE );
-	dlg.m_ofn.lpstrFilter = L"码表文件(*.TBL,*.TXT)\0*.TBL;*.TXT\0\0";
-	dlg.m_ofn.lpstrInitialDir = strPath;
+	static CWQSGFileDialog_Open dlg( L"码表文件(*.TBL,*.TXT)|*.TBL;*.TXT||" );
 
 	if( IDOK != dlg.DoModal() )
 		return;
 
-	strPath = dlg.GetFolderPath();
-
-	m_EDIT_TBL = dlg.GetPathName();
+	m_EDIT_TBLPathName = dlg.GetPathName();
 	UpdateData( FALSE );
 }
 
@@ -428,18 +413,13 @@ void CTXT_OutBox::OnBnClickedButtonTbl2()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	UpdateData();
-	static CString strPath;
 
-	CWQSGFileDialog dlg( TRUE );
-	dlg.m_ofn.lpstrFilter = L"控制码表文件(*.TBL,*.TXT)\0*.TBL;*.TXT\0\0";
-	dlg.m_ofn.lpstrInitialDir = strPath;
+	static CWQSGFileDialog_Open dlg( L"控制码表文件(*.TBL,*.TXT)|*.TBL;*.TXT||" );
 
 	if( IDOK != dlg.DoModal() )
 		return;
 
-	strPath = dlg.GetFolderPath();
-
-	m_EDIT_TBL2 = dlg.GetPathName();
+	m_EDIT_TBL2PathName = dlg.GetPathName();
 	UpdateData( FALSE );
 }
 
@@ -448,7 +428,7 @@ void CTXT_OutBox::OnBnClickedCheck1()
 	// TODO: 在此添加控件通知处理程序代码
 	UpdateData();
 
-	const BOOL 选中 = m_C从目录导出.GetCheck() != 0;
+	const BOOL 选中 = m_cUseDirectory.GetCheck() != 0;
 	GetDlgItem( IDC_EDIT_ROM )->EnableWindow( 选中 );
 	GetDlgItem( IDC_EDIT_EXT )->EnableWindow( 选中 );
 	GetDlgItem( IDC_CHECK5 )->EnableWindow( 选中 );
@@ -456,22 +436,18 @@ void CTXT_OutBox::OnBnClickedCheck1()
 
 BOOL CTXT_OutBox::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+	CBaseDialog::OnInitDialog();
 
 	// TODO:  在此添加额外的初始化
-	m_参数.m_hWnd = m_hWnd;
-	if( NULL == m_文件列表缓存.GetBuffer(65536) )
-	{
-		CDialog::OnCancel();
-		return FALSE;
-	}
+	m_Data.m_hWnd = m_hWnd;
 
-	m_C验证TBL.SetCheck(TRUE);
+	m_cCheckTblOverlap.SetCheck(TRUE);
 
 	m_C文本在同目录.SetCheck( TRUE );
 	OnBnClickedCheck3();
 
-	载入配置();
+	LoadXml( LockConfig() );
+	UnLockConfig();
 
 	return TRUE;
 }
@@ -485,7 +461,7 @@ void CTXT_OutBox::OnEnChangeEditAddrH()
 
 	// TODO:  在此添加控件通知处理程序代码
 	UpdateData();
-	编辑框验证十六进制文本( m_EDIT_段号 , (CEdit*)GetDlgItem( IDC_EDIT_ADDR_H ) , this , TRUE );
+	EditCheckHaxStr( m_EDIT_SegmentAddr , (CEdit*)GetDlgItem( IDC_EDIT_ADDR_H ) , this , TRUE );
 }
 
 void CTXT_OutBox::OnEnChangeEditAddrKsL()
@@ -497,7 +473,7 @@ void CTXT_OutBox::OnEnChangeEditAddrKsL()
 
 	// TODO:  在此添加控件通知处理程序代码
 	UpdateData();
-	编辑框验证十六进制文本( m_EDIT_开始偏移 , (CEdit*)GetDlgItem( IDC_EDIT_ADDR_KS_L ) , this , TRUE );
+	EditCheckHaxStr( m_EDIT_BeginOffset , (CEdit*)GetDlgItem( IDC_EDIT_ADDR_KS_L ) , this , TRUE );
 }
 
 void CTXT_OutBox::OnEnChangeEditAddrJsL()
@@ -509,16 +485,16 @@ void CTXT_OutBox::OnEnChangeEditAddrJsL()
 
 	// TODO:  在此添加控件通知处理程序代码
 	UpdateData();
-	编辑框验证十六进制文本( m_EDIT_结束偏移 , (CEdit*)GetDlgItem( IDC_EDIT_ADDR_JS_L ) , this , TRUE );
+	EditCheckHaxStr( m_EDIT_EndOffset , (CEdit*)GetDlgItem( IDC_EDIT_ADDR_JS_L ) , this , TRUE );
 }
 
 void CTXT_OutBox::OnEnKillfocusEditAddrH()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	UpdateData();
-	if( m_EDIT_段号.GetLength() == 0)
+	if( m_EDIT_SegmentAddr.GetLength() == 0)
 	{
-		m_EDIT_段号 = L"0";
+		m_EDIT_SegmentAddr = L"0";
 		UpdateData( FALSE );
 	}
 }
@@ -552,14 +528,14 @@ LRESULT CTXT_OutBox::线程信息( WPARAM 保留 , LPARAM 文本 )
 //		MessageBox(L"导出完毕!!");
 	}
 
-	WQSG_MAIN_CWND->SendMessage( WM_WQSG_设置文本 , 0 , 文本 );
+	g_pMAIN_CWND->SendMessage( WM_WQSG_SetText , 0 , 文本 );
 	return 0;
 }
 
 LRESULT CTXT_OutBox::线程LOG( WPARAM 保留 , LPARAM 文本 )
 {
 	AppLog( (WCHAR*)文本 );
-	WQSG_MAIN_CWND->SendMessage( WM_WQSG_设置LOG文本 , 0 , (LPARAM)m_LOG.GetString() );
+	g_pMAIN_CWND->SendMessage( WM_WQSG_SetLogText , 0 , (LPARAM)m_LOG.GetString() );
 	return 0;
 }
 void CTXT_OutBox::OnBnClickedButtonRom()
@@ -569,7 +545,7 @@ void CTXT_OutBox::OnBnClickedButtonRom()
 	CWQSG_DirDlg DirDlg( m_hWnd );
 	WCHAR path[ MAX_PATH ];
 	if( !DirDlg.GetPath( path ) )return;
-	m_EDIT_Rom = path;
+	m_EDIT_ROMPath = path;
 
 	UpdateData( FALSE );
 }
@@ -583,7 +559,7 @@ void CTXT_OutBox::OnEnChangeEditExt()
 
 	// TODO:  在此添加控件通知处理程序代码
 	UpdateData();
-	删除首空( m_EDIT_EXT );
+	m_EDIT_ExtName.TrimLeft();
 	UpdateData( FALSE );
 }
 
@@ -597,30 +573,10 @@ void CTXT_OutBox::OnBnClickedButton1()
 void CTXT_OutBox::OnBnClickedCheck4()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	if( m_C使用控制码表.GetCheck() != 0 )
+	if( m_cUseTBL2.GetCheck() != 0 )
 		GetDlgItem( IDC_EDIT_TBL2 )->EnableWindow( TRUE );
 	else
 		GetDlgItem( IDC_EDIT_TBL2 )->EnableWindow( FALSE );
-}
-
-
-void CTXT_OutBox::载入配置(void)
-{
-	while( m_CList.GetCount() )
-	{
-		m_CList.DeleteString( 0 );
-	}
-
-	if( !WQSG_ini.SelConfigName( DEF_V_export ) )
-		return ;
-
-	CString str;
-	for( long count = WQSG_ini.GetItemCount() , i = 0;
-		i < count ; ++i )
-	{
-		if( WQSG_ini.GetAppName( i , str ) )
-			m_CList.AddString( str );
-	}
 }
 
 void CTXT_OutBox::OnBnClickedButtonAdd()
@@ -642,47 +598,33 @@ void CTXT_OutBox::OnBnClickedButtonAdd()
 			return;
 		}
 	}
-	if( 写配置() )
-	{
-		m_CList.SetCurSel( m_CList.AddString( m_NodeName ) );
-	}
+	m_ExportDatas.push_back(SExportData());
+	(*m_ExportDatas.rbegin()).m_strItemName = m_NodeName;
+	UpdateExportData(*m_ExportDatas.rbegin());
+	m_CList.SetCurSel( m_CList.AddString( m_NodeName ) );
+
+	SaveXml();
 }
 
-BOOL CTXT_OutBox::写配置( )
+void CTXT_OutBox::UpdateExportData( SExportData& a_data )
 {
 	UpdateData();
-	if( !WQSG_ini.SelConfigName( DEF_V_export ) )
-	{
-		MessageBox( L"选择节点失败" );
-		return FALSE;
-	}
-#define DEF_FN_XYZ( __DEF_x , __DEF_y ) \
-	if( !WQSG_ini.SetApp( m_NodeName , __DEF_x , __DEF_y )	){	MessageBox( L"添加失败" );	return FALSE;	}
 
-	DEF_FN_XYZ( L"ROMPath" , m_EDIT_Rom )
-	DEF_FN_XYZ( L"TXTPath" , m_EDIT_TXT_DIR )
-	DEF_FN_XYZ( L"TBLPathName" , m_EDIT_TBL )
-	DEF_FN_XYZ( L"TBL2PathName" , m_EDIT_TBL2 )
-	DEF_FN_XYZ( L"ExtName" , m_EDIT_EXT )
-	DEF_FN_XYZ( L"SegmentAddr" , m_EDIT_段号 )
-	DEF_FN_XYZ( L"BeginOffset" , m_EDIT_开始偏移 )
-	DEF_FN_XYZ( L"EndOffset" , m_EDIT_结束偏移 )
-	DEF_FN_XYZ( L"MinLen" , m_EDIT_min )
-	DEF_FN_XYZ( L"MaxLen" , m_EDIT_max )
-	DEF_FN_XYZ( L"UseDirectory" , (m_C从目录导出.GetCheck()!=0)?L"1":L"0" )
-	DEF_FN_XYZ( L"CheckTblOverlap" , (m_C验证TBL.GetCheck()!=0)?L"1":L"0" )
-	DEF_FN_XYZ( L"UseTBL2" , (m_C使用控制码表.GetCheck()!=0)?L"1":L"0" )
-	DEF_FN_XYZ( L"TxtDirDefault" , (m_C文本在同目录.GetCheck()!=0)?L"1":L"0" )
-	DEF_FN_XYZ( L"SubDir" , (m_c包括子目录.GetCheck()!=0)?L"1":L"0" )
-#undef DEF_FN_XYZ
-
-	if( !WQSG_ini.Save( WQSG_iniSavePathName ) )
-	{
-		MessageBox( L"保存文件失败" );
-		return FALSE;
-	}
-
-	return TRUE;
+	a_data.m_strROMPath = m_EDIT_ROMPath;
+	a_data.m_strTXTPath = m_EDIT_TXTPath;
+	a_data.m_strTBLPathName = m_EDIT_TBLPathName;
+	a_data.m_strTBL2PathName = m_EDIT_TBL2PathName;
+	a_data.m_strExtName = m_EDIT_ExtName;
+	a_data.m_uSegmentAddr = _wtoi( m_EDIT_SegmentAddr );
+	a_data.m_uBeginOffset = _wtoi( m_EDIT_BeginOffset );
+	a_data.m_uEndOffset = _wtoi( m_EDIT_EndOffset );
+	a_data.m_uMinLen = _wtoi( m_EDIT_min );
+	a_data.m_uMaxLen = _wtoi( m_EDIT_max );
+	a_data.m_bUseDirectory = m_cUseDirectory.GetCheck() != 0;
+	a_data.m_bCheckTblOverlap = m_cCheckTblOverlap.GetCheck() != 0;
+	a_data.m_bUseTBL2 = m_cUseTBL2.GetCheck() != 0;
+	a_data.m_bTxtDirDefault = m_C文本在同目录.GetCheck() != 0;
+	a_data.m_bSubDir = m_cSubDir.GetCheck() != 0;
 }
 
 void CTXT_OutBox::OnLbnSelchangeList2()
@@ -692,50 +634,41 @@ void CTXT_OutBox::OnLbnSelchangeList2()
 	int sel = m_CList.GetCurSel();
 	if( sel < 0 )return;
 
-	if( !WQSG_ini.SelConfigName( DEF_V_export ) )
+	const SExportData& data = m_ExportDatas[sel];
 	{
-		MessageBox( L"选择节点失败" );
-		return ;
+		CString NodeName;
+		m_CList.GetText( sel , NodeName );
+
+		CString strNodeName = data.m_strItemName;
+		ASSERT( strNodeName.MakeLower() == NodeName.MakeLower() );
 	}
-	CString NodeName;
-	m_CList.GetText( sel , NodeName );
 
-#define DEF_FN_XYZ( __DEF_x , __DEF_y , __DEF_z ) WQSG_ini.GetApp( NodeName , __DEF_x , __DEF_y , __DEF_z )
-
-	DEF_FN_XYZ( L"ROMPath" , m_EDIT_Rom , L"" );
-	DEF_FN_XYZ( L"TXTPath" , m_EDIT_TXT_DIR , L"" );
-	DEF_FN_XYZ( L"TBLPathName" , m_EDIT_TBL , L"" );
-	DEF_FN_XYZ( L"TBL2PathName" , m_EDIT_TBL2 , L"" );
-	DEF_FN_XYZ( L"ExtName" , m_EDIT_EXT , L"" );
-	DEF_FN_XYZ( L"SegmentAddr" , m_EDIT_段号 , L"0" );
-	DEF_FN_XYZ( L"BeginOffset" , m_EDIT_开始偏移 , L"" );
-	DEF_FN_XYZ( L"EndOffset" , m_EDIT_结束偏移 , L"" );
-	DEF_FN_XYZ( L"MinLen" , m_EDIT_min , L"2" );
-	DEF_FN_XYZ( L"MaxLen" , m_EDIT_max , L"9999" );
-	CString str;
-
-	DEF_FN_XYZ( L"UseDirectory" , str , L"0" );
-	m_C从目录导出.SetCheck( 0 != ::_wtoi( str.GetString() ) );
+	m_EDIT_ROMPath = data.m_strROMPath;
+	m_EDIT_TXTPath = data.m_strTXTPath;
+	m_EDIT_TBLPathName = data.m_strTBLPathName;
+	m_EDIT_TBL2PathName = data.m_strTBL2PathName;
+	m_EDIT_ExtName = data.m_strExtName;
+	m_EDIT_SegmentAddr.Format( L"%u" , data.m_uSegmentAddr );
+	m_EDIT_BeginOffset.Format( L"%u" , data.m_uBeginOffset );
+	m_EDIT_EndOffset.Format( L"%u" , data.m_uEndOffset );
+	m_EDIT_min.Format( L"%u" , data.m_uMinLen );
+	m_EDIT_max.Format( L"%u" , data.m_uMaxLen );
+	m_cUseDirectory.SetCheck( data.m_bUseDirectory );
 	UpdateData( FALSE );
 	OnBnClickedCheck1();
 
-	DEF_FN_XYZ( L"CheckTblOverlap" , str , L"1" );
-	m_C验证TBL.SetCheck( 0 != ::_wtoi( str.GetString() ) );
-
-	DEF_FN_XYZ( L"UseTBL2" , str , L"0" );
-	m_C使用控制码表.SetCheck( 0 != ::_wtoi( str.GetString() ) );
+	m_cCheckTblOverlap.SetCheck( data.m_bCheckTblOverlap );
+	m_cUseTBL2.SetCheck( data.m_bUseTBL2 );
 	UpdateData( FALSE );
 	OnBnClickedCheck4();
 
-	DEF_FN_XYZ( L"TxtDirDefault" , str , L"0" );
-	m_C文本在同目录.SetCheck( 0 != ::_wtoi( str.GetString() ) );
+	m_C文本在同目录.SetCheck( data.m_bTxtDirDefault );
 	UpdateData( FALSE );
 	OnBnClickedCheck3();
 
-	DEF_FN_XYZ( L"SubDir" , str , L"0" );
-	m_c包括子目录.SetCheck( 0 != ::_wtoi( str.GetString() ) );
+	m_cSubDir.SetCheck( data.m_bSubDir );
 #undef DEF_FN_XYZ
-	m_NodeName = NodeName;
+	m_NodeName = data.m_strItemName;
 
 	UpdateData( FALSE );
 }
@@ -751,24 +684,19 @@ void CTXT_OutBox::OnBnClickedButtonDel()
 		return;
 	}
 
-	if( !WQSG_ini.SelConfigName( DEF_V_export ) )
 	{
-		MessageBox( L"选择节点失败" );
-		return ;
-	}
+		CString NodeName;
+		m_CList.GetText( sel , NodeName );
 
-	CString NodeName;
-	m_CList.GetText( sel , NodeName );
+		CString strNodeName = m_ExportDatas[sel].m_strItemName;
+		ASSERT( strNodeName.MakeLower() == NodeName.MakeLower() );
+	}
+	m_ExportDatas.erase( m_ExportDatas.begin() + sel );
 
 	m_CList.DeleteString( sel );
 	m_CList.SetCurSel( -1 );
 
-	WQSG_ini.DelApp( NodeName );
-
-	if( !WQSG_ini.Save( WQSG_iniSavePathName ) )
-	{
-		MessageBox( L"保存文件失败" );
-	}
+	SaveXml();
 }
 
 void CTXT_OutBox::OnBnClickedButtonEdit()
@@ -782,11 +710,14 @@ void CTXT_OutBox::OnBnClickedButtonEdit()
 		return;
 	}
 
-	if( !WQSG_ini.SelConfigName( DEF_V_export ) )
 	{
-		MessageBox( L"选择节点失败" );
-		return ;
+		CString NodeName;
+		m_CList.GetText( sel , NodeName );
+
+		CString strNodeName = m_ExportDatas[sel].m_strItemName;
+		ASSERT( strNodeName.MakeLower() == NodeName.MakeLower() );
 	}
+
 
 	CString NodeName;
 	m_CList.GetText( sel , NodeName );
@@ -803,21 +734,15 @@ void CTXT_OutBox::OnBnClickedButtonEdit()
 				return;
 			}
 		}
-		if( !WQSG_ini.修改AppName( NodeName , m_NodeName ) )
-		{
-			MessageBox( L"修改失败" );
-			return ;
-		}
+
+		m_ExportDatas[sel].m_strItemName = m_NodeName;
+
 		m_CList.DeleteString( sel );
 		m_CList.InsertString( sel , m_NodeName );
-		if( !WQSG_ini.Save( WQSG_iniSavePathName ) )
-		{
-			MessageBox( L"保存文件失败" );
-		}
 	}
-	else if( !写配置() )
-	{
-	}
+
+	UpdateExportData( m_ExportDatas[sel] );
+	SaveXml();
 }
 
 void CTXT_OutBox::OnEnKillfocusEditName()
@@ -880,4 +805,93 @@ void CTXT_OutBox::OnBnClickedCheck3()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	GetDlgItem( IDC_EDIT_TXT_DIR )->EnableWindow( m_C文本在同目录.GetCheck() == 0 );
+}
+
+void CTXT_OutBox::LoadXml( TiXmlElement& a_Root )
+{
+	while( m_CList.GetCount() )
+	{
+		m_CList.DeleteString( 0 );
+	}
+
+	m_ExportDatas.clear();
+
+	const TiXmlElement* pNode;
+
+	pNode = a_Root.FirstChildElement( "Export" );
+	if( !pNode )
+		return;
+
+	for( pNode = pNode->FirstChildElement( "ExportItem" ) ; pNode ; pNode = pNode->NextSiblingElement( "ExportItem" ) )
+	{
+		const char* pNameUtf8 = pNode->Attribute( "Name" );
+		if( !pNameUtf8 )
+			continue;
+
+		SExportData data;
+		data.m_strItemName = Utf82Utf16le( pNameUtf8 );
+#define DEF_FN_XYZ( b , c ) (pNode->Attribute( Utf16le2Utf8( b ) )?Utf82Utf16le(pNode->Attribute( Utf16le2Utf8( b ) )):c)
+
+		data.m_strROMPath = DEF_FN_XYZ( L"ROMPath" , L"" );
+		data.m_strTXTPath = DEF_FN_XYZ( L"TXTPath" , L"" );
+		data.m_strTBLPathName = DEF_FN_XYZ( L"TBLPathName" , L"" );
+		data.m_strTBL2PathName = DEF_FN_XYZ( L"TBL2PathName" , L"" );
+		data.m_strExtName = DEF_FN_XYZ( L"ExtName" , L"" );
+		data.m_uSegmentAddr = _wtoi(DEF_FN_XYZ( L"SegmentAddr" , L"0" ));
+		data.m_uBeginOffset = _wtoi(DEF_FN_XYZ( L"BeginOffset" , L"" ));
+		data.m_uEndOffset = _wtoi(DEF_FN_XYZ( L"EndOffset" , L"" ));
+		data.m_uMinLen = _wtoi(DEF_FN_XYZ( L"MinLen" , L"2" ));
+		data.m_uMaxLen = _wtoi(DEF_FN_XYZ( L"MaxLen" , L"9999" ));
+		data.m_bUseDirectory = 0 != _wtoi(DEF_FN_XYZ( L"UseDirectory" , L"0" ));
+		data.m_bCheckTblOverlap = 0 != _wtoi(DEF_FN_XYZ( L"CheckTblOverlap" , L"1" ));
+		data.m_bUseTBL2 = 0 != _wtoi(DEF_FN_XYZ( L"UseTBL2" , L"0" ));
+		data.m_bTxtDirDefault = 0 != _wtoi(DEF_FN_XYZ( L"TxtDirDefault" , L"0" ));
+		data.m_bSubDir = 0 != _wtoi(DEF_FN_XYZ( L"SubDir" , L"0" ));
+#undef DEF_FN_XYZ
+		m_ExportDatas.push_back( data );
+
+		m_CList.AddString( data.m_strItemName );
+	}
+}
+
+void CTXT_OutBox::SaveXml()
+{
+	TiXmlElement& a_Root = LockConfig();
+
+	TiXmlNode*const pOldNode = a_Root.FirstChildElement( "Export" );
+	TiXmlElement*const pNewNode = a_Root.LinkEndChild( new TiXmlElement( "Export" ) )->ToElement();
+
+	std::vector<SExportData>::iterator it = m_ExportDatas.begin();
+
+	for ( ; it != m_ExportDatas.end() ; ++it )
+	{
+		const SExportData& data = *it;
+		TiXmlElement*const pNode = pNewNode->LinkEndChild( new TiXmlElement( "ExportItem" ) )->ToElement();
+
+		pNode->SetAttribute( "Name" , Utf16le2Utf8( data.m_strItemName ) );
+		pNode->SetAttribute( "ROMPath" , Utf16le2Utf8( data.m_strROMPath ) );
+		pNode->SetAttribute( "TXTPath" , Utf16le2Utf8( data.m_strTXTPath ) );
+		pNode->SetAttribute( "TBLPathName" , Utf16le2Utf8( data.m_strTBLPathName ) );
+		pNode->SetAttribute( "TBL2PathName" , Utf16le2Utf8( data.m_strTBL2PathName ) );
+		pNode->SetAttribute( "ExtName" , Utf16le2Utf8( data.m_strExtName ) );
+		pNode->SetAttribute( "SegmentAddr" , X2Utf8( data.m_uSegmentAddr ) );
+		pNode->SetAttribute( "BeginOffset" , X2Utf8( data.m_uBeginOffset ) );
+		pNode->SetAttribute( "EndOffset" , X2Utf8( data.m_uEndOffset ) );
+		pNode->SetAttribute( "MinLen" , X2Utf8( data.m_uMinLen ) );
+		pNode->SetAttribute( "MaxLen" , X2Utf8( data.m_uMaxLen ) );
+		pNode->SetAttribute( "UseDirectory" , X2Utf8( data.m_bUseDirectory ) );
+		pNode->SetAttribute( "CheckTblOverlap" , X2Utf8( data.m_bCheckTblOverlap ) );
+		pNode->SetAttribute( "UseTBL2" , X2Utf8( data.m_bUseTBL2 ) );
+		pNode->SetAttribute( "TxtDirDefault" , X2Utf8( data.m_bTxtDirDefault ) );
+		pNode->SetAttribute( "SubDir" , X2Utf8( data.m_bSubDir ) );
+	}
+
+	if( pOldNode )
+	{
+		a_Root.RemoveChild( pOldNode );
+		delete pOldNode;
+	}
+
+	UnLockConfig();
+	SaveConfig();
 }

@@ -25,10 +25,10 @@
 
 // CCDlgAbout 对话框
 
-IMPLEMENT_DYNAMIC(CCDlgAbout, CDialog)
+IMPLEMENT_DYNAMIC(CCDlgAbout, CBaseDialog)
 
 CCDlgAbout::CCDlgAbout(CWnd* pParent /*=NULL*/)
-	: CDialog(CCDlgAbout::IDD, pParent)
+	: CBaseDialog(CCDlgAbout::IDD, pParent)
 	, m_bInUrl(FALSE)
 {
 
@@ -40,11 +40,11 @@ CCDlgAbout::~CCDlgAbout()
 
 void CCDlgAbout::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CBaseDialog::DoDataExchange(pDX);
 }
 
 
-BEGIN_MESSAGE_MAP(CCDlgAbout, CDialog)
+BEGIN_MESSAGE_MAP(CCDlgAbout, CBaseDialog)
 	ON_WM_CLOSE()
 	ON_WM_CTLCOLOR()
 	ON_WM_MOUSEMOVE()
@@ -61,13 +61,13 @@ void CCDlgAbout::OnClose()
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 
-	CDialog::OnClose();
+	CBaseDialog::OnClose();
 	EndDialog(IDCANCEL);
 }
 
 HBRUSH CCDlgAbout::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
-	HBRUSH hbr = CDialog::OnCtlColor(pDC, pWnd, nCtlColor);
+	HBRUSH hbr = CBaseDialog::OnCtlColor(pDC, pWnd, nCtlColor);
 
 	// TODO:  在此更改 DC 的任何属性
 	switch(pWnd->GetDlgCtrlID())
@@ -99,12 +99,12 @@ void CCDlgAbout::OnMouseMove(UINT nFlags, CPoint point)
 		m_bInUrl = bIn;
 	}
 
-	CDialog::OnMouseMove(nFlags, point);
+	CBaseDialog::OnMouseMove(nFlags, point);
 }
 
 BOOL CCDlgAbout::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+	CBaseDialog::OnInitDialog();
 
 	// TODO:  在此添加额外的初始化
 	CString strName;strName.LoadString( IDS_APP_NAME );
@@ -124,5 +124,6 @@ void CCDlgAbout::OnLButtonDown(UINT nFlags, CPoint point)
 	if( m_bInUrl )
 		ShellExecute( NULL , L"open" , L"http://wqsg.ys168.com" , NULL , NULL , SW_NORMAL );
 
-	CDialog::OnLButtonDown(nFlags, point);
+	CBaseDialog::OnLButtonDown(nFlags, point);
 }
+

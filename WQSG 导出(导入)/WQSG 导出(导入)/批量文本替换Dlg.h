@@ -26,7 +26,7 @@
 
 // C批量文本替换Dlg 对话框
 
-class C批量文本替换Dlg : public CDialog
+class C批量文本替换Dlg : public CBaseDialog
 {
 	DECLARE_DYNAMIC(C批量文本替换Dlg)
 	CWQSG_TypeLinkList< CStringW >	m_替换链表[2];

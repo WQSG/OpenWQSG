@@ -20,7 +20,7 @@
 
 // CCDlgAbout ¶Ô»°¿ò
 
-class CCDlgAbout : public CDialog
+class CCDlgAbout : public CBaseDialog
 {
 	DECLARE_DYNAMIC(CCDlgAbout)
 

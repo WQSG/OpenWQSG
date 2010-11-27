@@ -362,8 +362,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,1,2009,11050
- PRODUCTVERSION 1,1,2009,11050
+ FILEVERSION 1,1,2010,11250
+ PRODUCTVERSION 1,1,2010,11250
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -381,12 +381,12 @@ BEGIN
             VALUE "Comments", "wqsg.ys168.com"
             VALUE "CompanyName", "D.W.(梦境)"
             VALUE "FileDescription", "文本导出(导入)工具"
-            VALUE "FileVersion", "1, 1, 2009, 11050"
+            VALUE "FileVersion", "1, 1, 2010, 11250"
             VALUE "InternalName", "WQSG 导出(导入).exe"
             VALUE "LegalCopyright", "WQSG(恶梦的死神)"
             VALUE "OriginalFilename", "WQSG 导出(导入).exe"
             VALUE "ProductName", "WQSG 导出(导入).exe"
-            VALUE "ProductVersion", "1, 1, 2009, 11050"
+            VALUE "ProductVersion", "1, 1, 2010, 11250"
         END
     END
     BLOCK "VarFileInfo"
@@ -678,7 +678,7 @@ IDR_EXE1                EXE                     "res\\[BIN]IPS自解压GUI.exe"
 STRINGTABLE 
 BEGIN
     IDS_APP_NAME            "WQSG导出(导入)"
-    IDS_APP_VER             "1.1.2009.11050"
+    IDS_APP_VER             "1.1.2010.11250"
     IDS_APP_WQSG            "恶梦的死神"
 END
 

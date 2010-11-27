@@ -25,6 +25,8 @@
 #define _SECURE_ATL 1
 #endif
 
+#define WIN32_LEAD_AND_MEAN
+
 #ifndef VC_EXTRALEAN
 #define VC_EXTRALEAN		// 从 Windows 头中排除极少使用的资料
 #endif
@@ -68,10 +70,8 @@
 #endif // _AFX_NO_AFXCMN_SUPPORT
 
 #include <WQSG_LIB.h>
-#include <WQSG_DirDlg.h>
 #include <2/WQSG_afx.h>
-#include <WQSG导出导入.h>
-
+#include <tinyxml.h>
 #include "WQSG_cfg.h"
 
 #ifdef _UNICODE
@@ -87,7 +87,7 @@
 #endif
 
 
-static BOOL WQSG_Is合法FileName( const WCHAR* FileName )
+inline BOOL WQSG_Is合法FileName( const WCHAR* FileName )
 {
 	if( NULL == FileName )		return FALSE;
 
@@ -124,39 +124,30 @@ static BOOL WQSG_Is合法FileName( const WCHAR* FileName )
 
 	return TRUE;
 }
-inline void 删除首空( CString& str )
+
+inline BOOL CheckExt( CString test )
 {
-	const WCHAR* tmp = str.GetString();
+	if( test.GetLength() == 0 )
+		return FALSE;
 
-	while( ( L' ' == *tmp ) || ( L'　' == *tmp ) )
-		++tmp;
-
-	str = tmp;
-}
-static BOOL 验证Ext( CString test )
-{
-	CString ext;
-
-	WCHAR* tmp = test.GetBuffer();
-
-	if( L'\0' == *tmp )return FALSE;
-
-	INT pos;
-	INT count = 0;
-	while( *tmp )
+	BOOL bFind = FALSE;
+	while( test.GetLength() > 0 )
 	{
-		pos = WQSG_strchr( tmp , L';' );
-		if( pos >= 0 )
+		CString ext;
+		int pos = test.Find( L';' );
+
+		if( pos != -1 )
 		{
-			tmp[ pos++ ] = '\0';
-			ext = tmp;
-			tmp += pos;
+			ext = test;
+			test = L"";
 		}
 		else
 		{
-			ext = tmp;
-			*tmp = L'\0';
+			ext = test.Left( pos );
+			test.Delete( 0 , pos + 1 );
 		}
+
+		ext.TrimLeft();
 
 		if( ext.GetLength() )
 		{
@@ -164,129 +155,117 @@ static BOOL 验证Ext( CString test )
 			{
 				return FALSE;
 			}
-			++count;
+			bFind = TRUE;
 		}
 	}
-	return ( count > 0 );
+
+	return bFind;
 }
-static void 分解Ext( CString test , std::vector<CStringW>& szExt )
+inline void 分解Ext( CString test , std::vector<CStringW>& szExt )
 {
-	WCHAR* tmp = test.GetBuffer();
-	while( *tmp )
+	while( test.GetLength() > 0 )
 	{
 		CString ext;
-		INT pos = WQSG_strchr( tmp , L';' );
-		if( pos >= 0 )
+		int pos = test.Find( L';' );
+
+		if( pos != -1 )
 		{
-			tmp[ pos++ ] = '\0';
-			ext = tmp;
-			tmp += pos;
+			ext = test;
+			test = L"";
 		}
 		else
 		{
-			ext = tmp;
-			*tmp = L'\0';
+			ext = test.Left( pos );
+			test.Delete( 0 , pos + 1 );
 		}
 
-		删除首空( ext );
+		ext.TrimLeft();
 
 		if( ext.GetLength() )
 			szExt.push_back( L'.' + ext.MakeUpper() );
 	}
 }
-/*
-struct tgWM_消息
-{
-	HWND m_hWnd;
-	UINT m_message;
-	void SendMSG( WPARAM wParam, LPARAM lParam )
-	{
-		::SendMessage( m_hWnd , m_message , wParam , lParam );
-	}
-}*/
+
 #pragma warning( disable : 4482 )
 #pragma warning( disable : 4996 )
 //------------------------------------------------------------------------
 #pragma once
-#define WIN32_LEAD_AND_MEAN
 #include <windows.h>
 
-#undef  ___i___
-#define ___i___
-class HiResTimer
+class CHiResTimer
 {
 private:
     static  inline  bool&       s_bTimerInstalled       ( void ) { static bool bTimerInstalled; return bTimerInstalled; }
     static  inline  __int64&    s_i64Freq               ( void ) { static __int64 i64Freq; return i64Freq; }
 private:
-    ___i___         bool        m_bRunning;
-    ___i___         __int64     m_i64Start;
-    ___i___         __int64     m_i64Stop;
+    bool        m_bRunning;
+    __int64     m_i64Start;
+    __int64     m_i64Stop;
 private:
     static  inline  void        Initialize              ( void );
     static  inline  bool        IsInitialized           ( void );
 public:
     static  inline  bool        IsAvailable             ( void );
 public:
-    ___i___ inline              HiResTimer              ( void );
-    ___i___ inline  void        Reset                   ( void );
-    ___i___ inline  void        Start                   ( void );
-    ___i___ inline  void        Stop                    ( void );
+    inline              CHiResTimer              ( void );
+    inline  void        Reset                   ( void );
+    inline  void        Start                   ( void );
+    inline  void        Stop                    ( void );
 public:
-    ___i___ inline  bool        getIsRunning            ( void );
+    inline  bool        getIsRunning            ( void );
 public:
-    ___i___ inline  float       getElapsedTicks         ( void );
-    ___i___ inline  float       getElapsedMilliseconds  ( void );
-    ___i___ inline  float       getElapsedSeconds       ( void );
-    ___i___ inline  float       getElapsedMinutes       ( void );
-    ___i___ inline  float       getElapsedHours         ( void );
-    ___i___ inline  float       getElapsedDays          ( void );
+    inline  float       getElapsedTicks         ( void );
+    inline  float       getElapsedMilliseconds  ( void );
+    inline  float       getElapsedSeconds       ( void );
+    inline  float       getElapsedMinutes       ( void );
+    inline  float       getElapsedHours         ( void );
+    inline  float       getElapsedDays          ( void );
 };
-inline  void    HiResTimer::Initialize              ( void )
+inline  void    CHiResTimer::Initialize              ( void )
 {
     s_bTimerInstalled() = ( 0 != QueryPerformanceFrequency( (LARGE_INTEGER*) &s_i64Freq() ) );
 }
 
-inline  bool    HiResTimer::IsInitialized           ( void )
+inline  bool    CHiResTimer::IsInitialized           ( void )
 {
     return ( s_bTimerInstalled() && s_i64Freq() != 0 );
 }
 
-inline  bool    HiResTimer::IsAvailable             ( void )
+inline  bool    CHiResTimer::IsAvailable             ( void )
 {
     if ( !IsInitialized() ) Initialize();
     return IsInitialized();
 }
 
-inline          HiResTimer::HiResTimer              ( void ) : m_i64Start(0), m_i64Stop(0), m_bRunning(false)
+inline          CHiResTimer::CHiResTimer             ( void ) : m_i64Start(0), m_i64Stop(0), m_bRunning(false)
 {
     if ( !IsInitialized() ) Initialize();
 }
 
-inline  void    HiResTimer::Reset                   ( void )
+inline  void    CHiResTimer::Reset                   ( void )
 {
     m_i64Start = m_i64Stop = 0;
     m_bRunning = false;
 }
 
-inline  void    HiResTimer::Start                   ( void )
+inline  void    CHiResTimer::Start                   ( void )
 {
     QueryPerformanceCounter( (LARGE_INTEGER*) &m_i64Start );
     m_bRunning = true;
 }
 
-inline  void    HiResTimer::Stop                    ( void )
+inline  void    CHiResTimer::Stop                    ( void )
 {
     QueryPerformanceCounter( (LARGE_INTEGER*) &m_i64Stop );
     m_bRunning = false;
 }
 
-inline  bool    HiResTimer::getIsRunning            ( void )
+inline  bool    CHiResTimer::getIsRunning            ( void )
 {
     return m_bRunning;
 }
 
-inline  float   HiResTimer::getElapsedTicks         ( void )
+inline  float   CHiResTimer::getElapsedTicks         ( void )
 {
     __int64 i64elapsed = 0;
     float elapsed = 0.0f;
@@ -306,7 +285,7 @@ inline  float   HiResTimer::getElapsedTicks         ( void )
     return elapsed;
 }
 
-inline  float   HiResTimer::getElapsedMilliseconds  ( void )
+inline  float   CHiResTimer::getElapsedMilliseconds  ( void )
 {
     __int64 i64elapsed = 0;
     float elapsed = 0.0f;
@@ -326,7 +305,7 @@ inline  float   HiResTimer::getElapsedMilliseconds  ( void )
     return elapsed;
 }
 
-inline  float   HiResTimer::getElapsedSeconds       ( void )
+inline  float   CHiResTimer::getElapsedSeconds       ( void )
 {
     __int64 i64elapsed = 0;
     float elapsed = 0.0f;
@@ -346,7 +325,7 @@ inline  float   HiResTimer::getElapsedSeconds       ( void )
     return elapsed;
 }
 
-inline  float   HiResTimer::getElapsedMinutes       ( void )
+inline  float   CHiResTimer::getElapsedMinutes       ( void )
 {
     __int64 i64elapsed = 0;
     float elapsed = 0.0f;
@@ -366,7 +345,7 @@ inline  float   HiResTimer::getElapsedMinutes       ( void )
     return elapsed;
 }
 
-inline  float   HiResTimer::getElapsedHours         ( void )
+inline  float   CHiResTimer::getElapsedHours         ( void )
 {
     __int64 i64elapsed = 0;
     float elapsed = 0.0f;
@@ -386,7 +365,7 @@ inline  float   HiResTimer::getElapsedHours         ( void )
     return elapsed;
 }
 
-inline  float   HiResTimer::getElapsedDays          ( void )
+inline  float   CHiResTimer::getElapsedDays          ( void )
 {
     __int64 i64elapsed = 0;
     float elapsed = 0.0f;
@@ -432,3 +411,58 @@ inline	void	WQSG_Milliseconds2struct( const float _Milliseconds , WQSG_tgElapsed
 }
 
 #include "atlstr.h"
+
+inline const CStringA Utf16le2Utf8( const WCHAR* a_pUtf16le )
+{
+	CStringA str;
+	char* pUtf8 = WQSG_W_UTF8( a_pUtf16le );
+	str = pUtf8;
+	delete[]pUtf8;
+
+	return str;
+}
+
+inline const CStringW Utf82Utf16le( const char* a_pUtf8 )
+{
+	CStringW str;
+	WCHAR* pUtf16le = WQSG_UTF8_W( a_pUtf8 );
+	str = pUtf16le;
+	delete[]pUtf16le;
+
+	return str;
+}
+
+inline const CStringA X2Utf8( u32 a_u32 )
+{
+	CStringA str;
+	str.Format( "%u" , a_u32 );
+	return str;
+}
+
+inline const CStringA X2Utf8( u64 a_u64 )
+{
+	CStringA str;
+	str.Format( "%llu" , a_u64 );
+	return str;
+}
+
+inline const CStringA X2Utf8( BOOL a_bool )
+{
+	CStringA str;
+	str.Format( "%d" , a_bool );
+	return str;
+}
+
+class CBaseDialog : public CDialog
+{
+	DECLARE_DYNAMIC(CBaseDialog)
+public:
+	explicit CBaseDialog(UINT nIDTemplate, CWnd* pParentWnd = NULL)
+		: CDialog(nIDTemplate,pParentWnd)
+	{
+	}
+	virtual ~CBaseDialog(){}
+protected:
+	virtual void OnOK(){}
+	virtual void OnCancel(){}
+};

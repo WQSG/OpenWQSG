@@ -103,7 +103,7 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_APP_TITLE           "WIPS补丁程序 3.0.2007.02090"
+    IDS_APP_TITLE           "WIPS补丁程序 3.0.2010.11250"
 END
 
 #endif    // 中文(中华人民共和国) resources

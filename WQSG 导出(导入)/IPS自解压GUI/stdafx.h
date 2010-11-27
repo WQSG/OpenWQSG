@@ -64,6 +64,7 @@
 #endif
 #endif
 
-#include <WQSG_lib.h>
-
+#include <wchar.h>
+#include <atlstr.h> 
+#include <WQSG_Lib.h>
 

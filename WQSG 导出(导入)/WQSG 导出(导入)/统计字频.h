@@ -22,7 +22,7 @@
 #if DEF_ON_TBL
 // C统计字频 对话框
 
-class C统计字频 : public CDialog
+class C统计字频 : public CBaseDialog
 {
 	DECLARE_DYNAMIC(C统计字频)
 	WCHAR W_KZF_L;
@@ -71,8 +71,8 @@ public:
 
 	SCharTblInfo m_Info[0x10000];
 
-	void 统计一句字频_过滤控制符(WCHAR* TXT);
-	void 统计一句字频_纯文本(WCHAR* TXT);
+	void 统计一句字频_过滤控制符(const WCHAR* TXT);
+	void 统计一句字频_纯文本(const WCHAR* TXT);
 	CString W_显示框;
 	int W_控制符类型;
 	BOOL W_对照码表;

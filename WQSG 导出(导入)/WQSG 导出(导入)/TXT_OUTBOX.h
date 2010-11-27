@@ -19,34 +19,92 @@
 #include "afxwin.h"
 #include <vector>
 // CTXT_OutBox 对话框
+struct SExportData
+{
+	CString     m_strItemName;
 
-class CTXT_OutBox : public CDialog
+	CString		m_strROMPath;
+	CString		m_strTXTPath;
+	CString		m_strTBLPathName;
+	CString		m_strTBL2PathName;
+	CString		m_strExtName;
+	u32			m_uSegmentAddr;
+	u32			m_uBeginOffset;
+	u32			m_uEndOffset;
+	u32			m_uMinLen;
+	u32			m_uMaxLen;
+	BOOL		m_bUseDirectory;
+	BOOL		m_bCheckTblOverlap;
+	BOOL		m_bUseTBL2;
+	BOOL		m_bTxtDirDefault;
+	BOOL		m_bSubDir;
+
+	SExportData()
+		: m_strItemName()
+		, m_strROMPath() , m_strTXTPath()
+		, m_strTBLPathName() , m_strTBL2PathName()
+		, m_strExtName() , m_uSegmentAddr(0)
+		, m_uBeginOffset(0) , m_uEndOffset(0)
+		, m_uMinLen(0) , m_uMaxLen(0)
+		, m_bUseDirectory(FALSE)
+		, m_bCheckTblOverlap(TRUE)
+		, m_bUseTBL2(FALSE)
+		, m_bTxtDirDefault(FALSE)
+		, m_bSubDir(FALSE)
+	{
+	}
+};
+
+struct SExportDataEx
+{
+	HWND		m_hWnd;
+	std::vector<CStringW> m_Files;
+
+	//----------------
+	CString		m_strROMPath;
+	CString		m_strTXTPath;
+	CString		m_strTBLPathName;
+	CString		m_strTBL2PathName;
+	CString		m_strExtName;
+	u64			m_uBeginOffset;
+	u64			m_uEndOffset;
+	u32			m_uMinLen;
+	u32			m_uMaxLen;
+	BOOL		m_bCheckTblOverlap;
+	BOOL		m_bSubDir;
+
+	SExportDataEx()
+	{
+	}
+};
+
+class CTXT_OutBox : public CBaseDialog
 {
 	DECLARE_DYNAMIC(CTXT_OutBox)
-	struct tg参数
-	{
-		HWND		m_hWnd;
-		CString		m_TBL;
-		CString		m_TBL2;
-		CString		m_TXT_DIR;
-		CString		m_ROM_DIR;
-		BOOL		m_验证;
-		u64			m_KS;
-		u64			m_JS;
-		UINT		m_min;
-		UINT		m_max;
-		CString		m_Ext;
-		BOOL		m_SubDir;
 
-		std::vector<CStringW> m_Files;
-		CStringW m_LastDir;
-		tg参数()
-		{
-		}
-	};
-	tg参数 m_参数;
+	SExportDataEx m_Data;
 
-	CString m_文件列表缓存;
+	std::vector<SExportData> m_ExportDatas;
+
+	CButton m_cUseDirectory;
+	CString m_EDIT_ROMPath;
+	CString m_EDIT_TXTPath;
+	CString m_EDIT_TBLPathName;
+	CString m_EDIT_TBL2PathName;
+	CButton m_cCheckTblOverlap;
+	CString m_EDIT_min;
+	CString m_EDIT_max;
+	CString m_EDIT_SegmentAddr;
+	CString m_EDIT_BeginOffset;
+	CString m_EDIT_EndOffset;
+	CString m_EDIT_ExtName;
+	CString m_LOG;
+	CEdit m_CEDIT_LOG;
+	CButton m_cUseTBL2;
+	CListBox m_CList;
+	CString m_NodeName;
+	CButton m_C文本在同目录;
+	CButton m_cSubDir;
 public:
 	CTXT_OutBox(CWnd* pParent = NULL);   // 标准构造函数
 	virtual ~CTXT_OutBox();
@@ -57,41 +115,21 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
 
 	DECLARE_MESSAGE_MAP()
-	virtual void OnOK();
-	virtual void OnCancel();
-public:
-	afx_msg void OnClose();
+
 private:
-	CButton m_C从目录导出;
-	CString m_EDIT_Rom;
-	CString m_EDIT_TXT_DIR;
-	CString m_EDIT_TBL;
-	CString m_EDIT_TBL2;
-	static DWORD WINAPI 普通导出_文件(LPVOID lpParameter);
-	static DWORD WINAPI 普通导出_文件夹(LPVOID lpParameter);
-	static BOOL WINAPI zzz_普通导出_文件夹( CStringW 路径 , tg参数& 参数 , CWQSG_TXT_O& WQSG , INT& countAll , std::vector<CStringW>& szExt );
-	static BOOL zzz普通导出( CString& 文件名 , CWQSG_TXT_O& WQSG , tg参数& 参数 );
-	CButton m_C验证TBL;
-	CString m_EDIT_min;
-	CString m_EDIT_max;
-	CString m_EDIT_段号;
-	CString m_EDIT_开始偏移;
-	CString m_EDIT_结束偏移;
-	CString m_EDIT_EXT;
-	CString m_LOG;
-	CEdit m_CEDIT_LOG;
-	CButton m_C使用控制码表;
-	void 载入配置(void);
-	CListBox m_CList;
-	CString m_NodeName;
-	BOOL 写配置( );
+	void AppLog(CString str);
+	void UpdateExportData( SExportData& a_data );
+
+	void LoadXml( TiXmlElement& a_Root );
+	void SaveXml();
 public:
+	virtual BOOL OnInitDialog();
+	afx_msg void OnClose();
 	afx_msg void OnBnClickedButtonStart();
 	afx_msg void OnBnClickedButtonTxtDir();
 	afx_msg void OnBnClickedButtonTbl();
 	afx_msg void OnBnClickedButtonTbl2();
 	afx_msg void OnBnClickedCheck1();
-	virtual BOOL OnInitDialog();
 	afx_msg void OnEnChangeEditAddrH();
 	afx_msg void OnEnChangeEditAddrKsL();
 	afx_msg void OnEnChangeEditAddrJsL();
@@ -110,11 +148,5 @@ public:
 	afx_msg void OnBnClickedButtonEdit();
 	afx_msg void OnEnKillfocusEditName();
 	afx_msg void OnEnChangeEditName();
-private:
-	void AppLog(CString str);
-	CButton m_C文本在同目录;
-public:
 	afx_msg void OnBnClickedCheck3();
-private:
-	CButton m_c包括子目录;
 };

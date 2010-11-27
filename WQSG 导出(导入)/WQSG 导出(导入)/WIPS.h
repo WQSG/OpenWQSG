@@ -21,7 +21,7 @@
 // WIPS 对话框
 
 
-class CWIPS_O_Dlg : public CDialog
+class CWIPS_O_Dlg : public CBaseDialog
 {
 	DECLARE_DYNAMIC(CWIPS_O_Dlg)
 	::CWD_BIN m_自解头30;
@@ -40,20 +40,21 @@ protected:
 	virtual void OnOK();
 	virtual void OnCancel();
 public:
-	CString W_补丁说明_OUT;
+	CString m_strWipsDesc;
+	CString m_strOldFile;
+	CString m_strNewFle;
+	CString m_strBeginOffset;
+	CString m_strEndOffset;
+
 	afx_msg void OnBnClickedButton2();
 	afx_msg void OnBnClickedButton3();
 	afx_msg void OnBnClickedButton4();
-	CString W_原文件;
-	CString W_新文件;
-	CString W_开始地址;
-	CString W_结束地址;
 	afx_msg void OnEnChangeEdit4();
 	afx_msg void OnEnChangeEdit5();
 	afx_msg void OnClose();
 };
 
-class CWIPS_I_Dlg : public CDialog
+class CWIPS_I_Dlg : public CBaseDialog
 {
 	DECLARE_DYNAMIC(CWIPS_I_Dlg)
 public:
@@ -68,12 +69,12 @@ protected:
 	virtual void OnOK();
 	virtual void OnCancel();
 public:
-	CString W_补丁说明_OUT;
+	CString m_strWipsDesc_Out;
+	CString m_strWipsFile;
+	CString m_strWipsDesc_In;
 	afx_msg void OnBnClickedButton5();
-	CString W_补丁文件;
 	afx_msg void OnBnClickedButton6();
-	CString W_补丁说明_IN;
-	void 显示补丁信息(CString 文件);
+	void ShowWipsInfo(const CString& a_strFile);
 	afx_msg void OnBnClickedButton1();
 	afx_msg void OnClose();
 };

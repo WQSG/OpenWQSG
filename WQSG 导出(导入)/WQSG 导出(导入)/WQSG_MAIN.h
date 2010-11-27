@@ -17,67 +17,30 @@
 */
 #pragma once
 #include "afxcmn.h"
-
-
-#include "批量文本替换Dlg.h"
 #include "afxwin.h"
-#include "chazhiSearch.h"
 
 
-
-#include<2/WQSG_INI.h>
+//#include<2/WQSG_INI.h>
 // CWQSG_MAIN 对话框
-#define WM_WQSG_设置文本	( WM_USER + 4444 )
-#define WM_WQSG_设置LOG文本	( WM_WQSG_设置文本 + 1 )
+#define WM_WQSG_SetText	( WM_USER + 4444 )
+#define WM_WQSG_SetLogText	( WM_WQSG_SetText + 1 )
 
 
-extern	CWnd*				WQSG_MAIN_CWND;
-extern	CWQSG_INI_XML		WQSG_ini;
-extern	CString				WQSG_iniSavePathName;
+extern CWnd*			g_pMAIN_CWND;
 
 #include "WQSG_cfg.h"
-#include "WQSG_TXT_IO.h"
-
-#if DEF_ON_TBL
-#include "统计字频.h"
-#endif
-
-#include "CDlgAbout.h"
 
 class CWQSG_MAIN : public CDialog
 {
 	DECLARE_DYNAMIC(CWQSG_MAIN)
 
-	CWnd*					m_Tool_CWND[ WT_ID_MAX ];
+	std::vector<CBaseDialog*> m_TabWnd;
+	CBaseDialog* m_SelWnd;
 
-#if DEF_ON_TXTIO//普通文本
-	CWQSG_TXT_IO			m_TXTIO;
-#endif
-
-#if DEF_ON_PTXTIO//指针文本
-	CWQSG_PTXT_IO			m_PTXTIO;
-#endif
-
-#if DEF_ON_WIPS//WIPS
-	CWQSG_IPS_IO			m_WIPS;
-#endif
-
-#if DEF_ON_TBL//码表工具
-	C统计字频				m_TBLtool;
-#endif
-
-#if DEF_ON_文本替换//文本替换
-	C批量文本替换Dlg		m_批量文本替换;
-#endif
-
-#if DEF_ON_差值搜索//差值搜索
-	CchazhiSearch			m_chazhiSearch;
-#endif
-
-	CCDlgAbout m_dlgAbout;
-
-	int						m_CurToolID;
-	CString					m_窗口消息;
+	CString m_strWindowMsg;
+	CString m_LOG;
+	CEdit m_CEDIT_LOG;
+	CTabCtrl m_TAB;
 public:
 	CWQSG_MAIN(CWnd* pParent = NULL);   // 标准构造函数
 	virtual ~CWQSG_MAIN();
@@ -89,25 +52,25 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
 
 	DECLARE_MESSAGE_MAP()
-	virtual void OnOK();
-	virtual void OnCancel();
+	virtual void OnOK(){}
+	virtual void OnCancel(){}
 public:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnClose();
 	afx_msg void OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult);
-private:
-	CTabCtrl m_TAB;
-	void 选择工具(void);
-	afx_msg LRESULT 设置文本( WPARAM 保留 , LPARAM 文本 );
-	afx_msg LRESULT 设置LOG文本( WPARAM 保留 , LPARAM 文本 );
-public:
+
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg void OnPaint();
 private:
-	CString m_LOG;
-	CEdit m_CEDIT_LOG;
-};
+	afx_msg LRESULT SetText( WPARAM 保留 , LPARAM 文本 );
+	afx_msg LRESULT SetLogText( WPARAM 保留 , LPARAM 文本 );
 
+	template< typename BaseType >
+	BOOL AddDlg( BaseType* a_pDlg , const CString& a_strTabName , const CRect& a_rect );
+
+	void SelTab(void);
+};
+#if 0
 class CWQSG_TXT_Check : private CWQSG_MapTbl_IN
 {
 public:
@@ -198,7 +161,9 @@ public:
 				break;
 			default:
 				if( m_MB[ wCh ] )
+				{
 					TotalLen += m_MB[ wCh ]->LEN ;
+				}
 				else
 				{//错误提示
 					TotalLen += ( (wCh <= 0xFF)?1:2 );
@@ -209,3 +174,4 @@ public:
 		return TotalLen;
 	}
 };
+#endif

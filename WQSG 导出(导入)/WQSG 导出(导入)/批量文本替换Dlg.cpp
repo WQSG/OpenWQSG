@@ -25,7 +25,7 @@
 
 // C批量文本替换Dlg 对话框
 
-IMPLEMENT_DYNAMIC(C批量文本替换Dlg, CDialog)
+IMPLEMENT_DYNAMIC(C批量文本替换Dlg, CBaseDialog)
 
 
 #ifdef _DEBUG
@@ -37,7 +37,7 @@ IMPLEMENT_DYNAMIC(C批量文本替换Dlg, CDialog)
 
 
 C批量文本替换Dlg::C批量文本替换Dlg(CWnd* pParent /*=NULL*/)
-	: CDialog(C批量文本替换Dlg::IDD, pParent)
+	: CBaseDialog(C批量文本替换Dlg::IDD, pParent)
 	, m_查找内容(_T(""))
 	, m_替换为(_T(""))
 	, m_替换表(_T(""))
@@ -46,7 +46,7 @@ C批量文本替换Dlg::C批量文本替换Dlg(CWnd* pParent /*=NULL*/)
 
 void C批量文本替换Dlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CBaseDialog::DoDataExchange(pDX);
 	DDX_Text(pDX, IDC_EDIT1, m_查找内容);
 	DDV_MaxChars(pDX, m_查找内容, 255);
 	DDX_Text(pDX, IDC_EDIT2, m_替换为);
@@ -57,7 +57,7 @@ void C批量文本替换Dlg::DoDataExchange(CDataExchange* pDX)
 	DDV_MaxChars(pDX, m_替换表, 260);
 }
 
-BEGIN_MESSAGE_MAP(C批量文本替换Dlg, CDialog)
+BEGIN_MESSAGE_MAP(C批量文本替换Dlg, CBaseDialog)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	//}}AFX_MSG_MAP
@@ -74,7 +74,7 @@ END_MESSAGE_MAP()
 
 BOOL C批量文本替换Dlg::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+	CBaseDialog::OnInitDialog();
 
 	// TODO: 在此添加额外的初始化代码
 	OnBnClickedCheck1();
@@ -103,30 +103,20 @@ void C批量文本替换Dlg::OnBnClickedButton1()
 	m_替换链表[0].AddItem( m_查找内容 );
 	m_替换链表[1].AddItem( m_替换为 );
 
-	static CString strPath;
-
-	CWQSGFileDialog fopendlg( TRUE , NULL , NULL , OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_ALLOWMULTISELECT,_T("文本文件(*.TXT)|*.TXT||"));
-	CString fileName(_T(""));
-	fopendlg.m_ofn.lpstrFile = fileName.GetBuffer(65536);
-	fopendlg.m_ofn.nMaxFile = 65535;
-	fopendlg.m_ofn.lpstrTitle = _T("选择要替换的文本...");
-	fopendlg.m_ofn.lpstrInitialDir = strPath;
+	static CWQSGFileDialog_OpenS fopendlg( _T("文本文件(*.TXT)|*.TXT||") );
+	fopendlg.SetWindowTitle( _T("选择要替换的文本...") );
 
 	if( IDOK != fopendlg.DoModal() )
 		return;
 
-	strPath = fopendlg.GetFolderPath();
-
 	POSITION pos = fopendlg.GetStartPosition();
 	UINT 数量 = 0;
-	while(pos)
+	CString str;
+	while( fopendlg.GetNextPathName( str , pos) )
 	{
-		CString 文件( fopendlg.GetNextPathName(pos) );
-
-		if( !替换文本( 文件 ) )
+		if( !替换文本( str ) )
 			break;
 	}
-	CString str;
 	str.Format( L"成功替换 %d 个" , m_完成数量 );
 	MessageBox( str );
 }
@@ -137,8 +127,8 @@ void C批量文本替换Dlg::OnClose()
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 
-	CDialog::OnClose();
-	CDialog::OnCancel();
+	CBaseDialog::OnClose();
+	CBaseDialog::OnCancel();
 }
 void C批量文本替换Dlg::OnCancel(){}
 void C批量文本替换Dlg::OnOK(){}
@@ -177,17 +167,11 @@ void C批量文本替换Dlg::OnBnClickedButton2()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	UpdateData();
-	static CString strPath;
-
-	CWQSGFileDialog dlg( TRUE );
-	dlg.m_ofn.lpstrTitle =	L"选择一个\"替换表\"";
-	dlg.m_ofn.lpstrFilter = L"*.TXT,*.TBL\0*.TXT;*.TBL\0\0";
-	dlg.m_ofn.lpstrInitialDir = strPath;
+	static CWQSGFileDialog_Open dlg( L"*.TXT,*.TBL|*.TXT;*.TBL||" );
+	dlg.SetWindowTitle( L"选择一个\"替换表\"" );
 
 	if( dlg.DoModal() != IDOK )
 		return;
-
-	strPath = dlg.GetFolderPath();
 
 	m_替换表 = dlg.GetPathName();
 	UpdateData( FALSE );
@@ -200,39 +184,31 @@ void C批量文本替换Dlg::OnBnClickedButton3()
 	if( !载入替换表() )
 		return;
 
-	static CString strPath;
-
-	CWQSGFileDialog WQSG(TRUE,NULL,NULL,OFN_ALLOWMULTISELECT | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,_T("*.文本|*.TXT|"));
-	CString 文件名缓存;
-	WQSG.m_ofn.lpstrFile = 文件名缓存.GetBuffer(65536);
-	WQSG.m_ofn.nMaxFile = 65535;
-	WQSG.m_ofn.lpstrTitle = _T("请选择要参加替换的文本...");
-	WQSG.m_ofn.lpstrInitialDir = strPath;
+	static CWQSGFileDialog_OpenS WQSG( _T("*.文本|*.TXT|") );
+	WQSG.SetWindowTitle( _T("请选择要参加替换的文本...") );
 
 	if(WQSG.DoModal() != IDOK)
 	{
 		return;
 	}
 
-	strPath = WQSG.GetFolderPath();
-
 	POSITION pos = WQSG.GetStartPosition();
 
-	while(pos)
+	CString str;
+
+	while(WQSG.GetNextPathName(str,pos))
 	{
-		CString 文件 = WQSG.GetNextPathName(pos);
-		if( !替换文本( 文件 ) )
+		if( !替换文本( str ) )
 			break;
 	}
 
 	if( m_完成数量 > 0 )
 	{
-		CString str;
 		str.Format( L"已经替换 %u 个文件" , m_完成数量 );
 		MessageBox( str );
 	}
 }
-#include "WQSG_DirDlg.h"
+
 void C批量文本替换Dlg::OnBnClickedButton4()
 {
 	// TODO: 在此添加控件通知处理程序代码
@@ -269,7 +245,7 @@ bool C批量文本替换Dlg::载入替换表(void)
 			MessageBox( L"替换表\r\n" + m_替换表 + L"\r\n" + tfp.GetErrTXT() );
 			return false;
 		}
-		WCHAR* pStr;
+		const WCHAR* pStr;
 		while( pStr = tfp.GetLine() )
 		{
 			CString str( pStr );

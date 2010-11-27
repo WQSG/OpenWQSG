@@ -20,7 +20,7 @@
 
 // CPTXT_OutDlg ¶Ô»°¿ò
 
-class CPTXT_OutDlg : public CDialog
+class CPTXT_OutDlg : public CBaseDialog
 {
 	DECLARE_DYNAMIC(CPTXT_OutDlg)
 

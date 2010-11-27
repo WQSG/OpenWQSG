@@ -20,41 +20,95 @@
 
 
 // CTXT_INBOX 对话框
+struct SImportData
+{
+	CString     m_strItemName;
 
-class CTXT_INBOX : public CDialog
+	CString		m_strROMPath;
+	CString		m_strTXTPath;
+	CString		m_strTBLPathName;
+	CString		m_strTBL2PathName;
+	CString		m_strExtName;
+
+	BOOL		m_bUseDirectory;
+	BOOL		m_bCheckTblOverlap;
+	BOOL		m_bUseTBL2;
+	BOOL		m_bTxtDirDefault;
+	BOOL		m_bSubDir;
+	BOOL		m_bLenOverStop;
+	u32			m_uFill;
+	CString		m_strFillByte;
+	CString		m_strFillWord;
+
+	SImportData()
+		: m_strItemName()
+		, m_strROMPath() , m_strTXTPath()
+		, m_strTBLPathName() , m_strTBL2PathName()
+		, m_strExtName()
+		, m_bUseDirectory(FALSE)
+		, m_bCheckTblOverlap(TRUE)
+		, m_bUseTBL2(FALSE)
+		, m_bTxtDirDefault(FALSE)
+		, m_bSubDir(FALSE)
+		, m_bLenOverStop(FALSE)
+		, m_uFill(0)
+		, m_strFillByte(L"20")
+		, m_strFillWord(L"8140")
+	{
+	}
+};
+
+struct SImportDataEx
+{
+	HWND		m_hWnd;
+	std::vector<CStringW> m_Files;
+
+	BOOL		m_单字节;
+	u8			m_SP1;
+	BOOL		m_双字节;
+	u16			m_SP2;
+
+	//----------------------------
+	CString		m_strROMPath;
+	CString		m_strTXTPath;
+	CString		m_strTBLPathName;
+	CString		m_strTBL2PathName;
+	CString		m_strExtName;
+	BOOL		m_bCheckTblOverlap;
+	BOOL		m_bSubDir;
+	BOOL		m_bLenOverStop;
+
+	SImportDataEx()
+	{
+	}
+};
+
+class CTXT_INBOX : public CBaseDialog
 {
 	DECLARE_DYNAMIC(CTXT_INBOX)
-	struct tg参数
-	{
-		HWND		m_hWnd;
-		CString		m_TBL;
-		CString		m_TBL2;
-		CString		m_TXT_DIR;
-		CString		m_ROM_DIR;
-		BOOL		m_单字节;
-		u8			m_SP1;
-		BOOL		m_双字节;
-		u16			m_SP2;
-		BOOL		m_验证;
-		BOOL		m_长度不足提示;
-		std::vector<CStringW> m_Files;
-		CString		m_Ext;
-		BOOL		m_SubDir;
 
-		CStringW m_LastDir;
-		tg参数()
-		{
-		}
-	};
-	tg参数 m_参数;
+	SImportDataEx m_Data;
 
-	CString m_文件列表缓存;
+	CString m_EDIT_ROMPath;
+	CString m_EDIT_TXTPath;
+	CString m_EDIT_TBLPathName;
+	CString m_EDIT_TBL2PathName;
+	CButton m_cCheckTblOverlap;
+	CButton m_cUseDirectory;
+	CButton m_cLenOverStop;
+	CComboBox m_cFill;
+	CString m_EDIT_SP1;
+	CString m_EDIT_SP2;
+	CButton m_cUseTBL2;
+	CString m_EDIT_ExtName;
+	CString m_LOG;
+	CEdit m_CEDIT_LOG;
+	CString m_NodeName;
+	CListBox m_CList;
+	CButton m_C文本在同目录;
+	CButton m_cSubDir;
 
-	CString m_EDIT_Rom;
-	CString m_EDIT_TXT_DIR;
-	CString m_EDIT_TBL;
-	CString m_EDIT_TBL2;
-
+	std::vector<SImportData> m_ImportDatas;
 public:
 	CTXT_INBOX(CWnd* pParent = NULL);   // 标准构造函数
 	virtual ~CTXT_INBOX();
@@ -67,68 +121,40 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 private:
-	static DWORD WINAPI 普通导入_文件(LPVOID lpParameter);
-	static BOOL zzz_普通导入_文件夹( CStringW 路径 , tg参数& 参数 , WQSG_TXT_I& WQSG , INT& countAll , std::vector<CStringW>& szExt );
-	static DWORD WINAPI 普通导入_文件夹(LPVOID lpParameter);
-	static BOOL zzz普通导入( CString& 文件名 , WQSG_TXT_I& WQSG , tg参数& 参数 );
 	afx_msg LRESULT 线程信息( WPARAM 保留 , LPARAM 文本 );
 	afx_msg LRESULT 线程LOG( WPARAM 保留 , LPARAM 文本 );
-	CButton m_C验证TBL;
-	CButton m_C从目录导出;
-	CButton m_C长度不足中止;
-	CComboBox m_C选择填充;
-	CString m_EDIT_SP1;
-	CString m_EDIT_SP2;
+
+	void AppLog(CString str);
+	void UpdateImportData(SImportData& a_data);
+
+	void LoadXml( TiXmlElement& a_Root );
+	void SaveXml();
 protected:
 	virtual void OnOK();
 	virtual void OnCancel();
 public:
+	virtual BOOL OnInitDialog();
+	afx_msg void OnClose();
 	afx_msg void OnBnClickedCheck2();
 	afx_msg void OnBnClickedButtonRom();
 	afx_msg void OnBnClickedButtonTxtDir();
 	afx_msg void OnBnClickedButtonTbl();
 	afx_msg void OnBnClickedButtonTbl2();
 	afx_msg void OnBnClickedButtonStart();
-	virtual BOOL OnInitDialog();
-	afx_msg void OnClose();
 	afx_msg void OnCbnSelendokCombo1();
 	afx_msg void OnEnChangeEditSp1();
 	afx_msg void OnEnChangeEditSp2();
 	afx_msg void OnEnKillfocusEditSp1();
 	afx_msg void OnEnKillfocusEditSp2();
-private:
-	CButton m_C使用控制码表;
-public:
 	afx_msg void OnBnClickedCheck4();
 	afx_msg void OnBnClickedCheck1();
-private:
-	CString m_EDIT_EXT;
-public:
 	afx_msg void OnEnChangeEditExt();
 	afx_msg void OnBnClickedButton1();
-private:
-	CString m_LOG;
-	CEdit m_CEDIT_LOG;
-	void 载入配置(void);
-	BOOL 写配置(void);
-public:
 	afx_msg void OnEnChangeEditName();
-private:
-	CString m_NodeName;
-public:
 	afx_msg void OnBnClickedButtonAdd();
-private:
-	void AppLog(CString str);
-public:
 	afx_msg void OnLbnSelchangeList2();
 	afx_msg void OnBnClickedButtonDel();
 	afx_msg void OnBnClickedButtonEdit();
 	afx_msg void OnEnKillfocusEditName();
-private:
-	CListBox m_CList;
-public:
 	afx_msg void OnBnClickedCheck3();
-private:
-	CButton m_C文本在同目录;
-	CButton m_c包括子目录;
 };

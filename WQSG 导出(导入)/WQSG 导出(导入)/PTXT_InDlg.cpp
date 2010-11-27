@@ -25,10 +25,10 @@
 
 // CPTXT_InDlg 对话框
 
-IMPLEMENT_DYNAMIC(CPTXT_InDlg, CDialog)
+IMPLEMENT_DYNAMIC(CPTXT_InDlg, CBaseDialog)
 
 CPTXT_InDlg::CPTXT_InDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CPTXT_InDlg::IDD, pParent)
+	: CBaseDialog(CPTXT_InDlg::IDD, pParent)
 {
 
 }
@@ -39,11 +39,11 @@ CPTXT_InDlg::~CPTXT_InDlg()
 
 void CPTXT_InDlg::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CBaseDialog::DoDataExchange(pDX);
 }
 
 
-BEGIN_MESSAGE_MAP(CPTXT_InDlg, CDialog)
+BEGIN_MESSAGE_MAP(CPTXT_InDlg, CBaseDialog)
 	ON_BN_CLICKED(IDC_BUTTON1, &CPTXT_InDlg::OnBnClickedButton1)
 	ON_WM_CLOSE()
 END_MESSAGE_MAP()
@@ -58,7 +58,7 @@ void CPTXT_InDlg::OnCancel(){}
 void CPTXT_InDlg::OnOK(){}
 BOOL CPTXT_InDlg::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+	CBaseDialog::OnInitDialog();
 
 	// TODO:  在此添加额外的初始化
 
@@ -68,6 +68,6 @@ BOOL CPTXT_InDlg::OnInitDialog()
 
 void CPTXT_InDlg::OnClose()
 {
-	CDialog::OnClose();
-	CDialog::OnCancel();
+	CBaseDialog::OnClose();
+	CBaseDialog::OnCancel();
 }

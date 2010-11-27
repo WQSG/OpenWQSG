@@ -173,14 +173,14 @@ void ¿ªÊ¼±àÂë(::CWQSG_File * TBL_File,const WCHAR*ÎÄ±¾,int ¸ßÎ»,int µÍÎ»,void(*È
 		TBL_File->Write(Âë±í.GetString(),(Âë±í.GetLength()<<1));
 	}
 }
-IMPLEMENT_DYNAMIC(CÍ³¼Æ×ÖÆµ, CDialog)
+IMPLEMENT_DYNAMIC(CÍ³¼Æ×ÖÆµ, CBaseDialog)
 
 void CÍ³¼Æ×ÖÆµ::ÇåÁã()
 {
 	for( int i = 0 ; i < (sizeof(m_Info)/sizeof(*m_Info)) ; i++ )
 		m_Info[i].Clean();
 }
-void CÍ³¼Æ×ÖÆµ::Í³¼ÆÒ»¾ä×ÖÆµ_¹ıÂË¿ØÖÆ·û(WCHAR* TXT)
+void CÍ³¼Æ×ÖÆµ::Í³¼ÆÒ»¾ä×ÖÆµ_¹ıÂË¿ØÖÆ·û(const WCHAR* TXT)
 {
 	while(*TXT)
 	{
@@ -218,7 +218,7 @@ void CÍ³¼Æ×ÖÆµ::Í³¼ÆÒ»¾ä×ÖÆµ_¹ıÂË¿ØÖÆ·û(WCHAR* TXT)
 		}
 	}
 }
-void CÍ³¼Æ×ÖÆµ::Í³¼ÆÒ»¾ä×ÖÆµ_´¿ÎÄ±¾(WCHAR* TXT)
+void CÍ³¼Æ×ÖÆµ::Í³¼ÆÒ»¾ä×ÖÆµ_´¿ÎÄ±¾(const WCHAR* TXT)
 {
 	while(*TXT)
 	{
@@ -243,10 +243,10 @@ BOOL CÍ³¼Æ×ÖÆµ::ÔØÈëÂë±í()
 		return FALSE;
 	}
 
-	while(WCHAR* Ò»ĞĞ = WQSG.GetLine() )
+	while(const WCHAR* _line = WQSG.GetLine() )
 	{
-		WCHAR* tmp = ::WQSG_DelSP_L(Ò»ĞĞ);
-		delete[]Ò»ĞĞ;
+		WCHAR* tmp = ::WQSG_DelSP_L(_line);
+		delete[]_line;
 		if(0 == *tmp)
 		{
 			delete[]tmp;
@@ -263,8 +263,8 @@ BOOL CÍ³¼Æ×ÖÆµ::ÔØÈëÂë±í()
 			return FALSE;
 		}
 		//////////////////////////////////
-		Ò»ĞĞ = ::WQSG_getstrL(tmp + I + 1,-1);
-		if(0 == ::WQSG_strlen(Ò»ĞĞ))
+		_line = ::WQSG_getstrL(tmp + I + 1,-1);
+		if(0 == ::WQSG_strlen(_line))
 		{
 			CStringW message(L"´íÎó,Âë±íÓÒ±ßÖ»ÄÜÓĞÒ»¸ö×Ö\n\n");
 			message += tmp;
@@ -274,8 +274,8 @@ BOOL CÍ³¼Æ×ÖÆµ::ÔØÈëÂë±í()
 		}
 		delete[]tmp;
 		////////////////////////////////
-		m_Info[*Ò»ĞĞ].m_bUnTbl = FALSE;
-		delete[]Ò»ĞĞ;
+		m_Info[*_line].m_bUnTbl = FALSE;
+		delete[]_line;
 	}
 	return TRUE;
 }
@@ -293,7 +293,7 @@ INT_PTR CÍ³¼Æ×ÖÆµ::DoModal()
 	if(0 == W_´°¿ÚÀàĞÍ)
 	{
 		W_´°¿ÚÀàĞÍ = 1;
-		return CDialog::DoModal();
+		return CBaseDialog::DoModal();
 	}
 	return IDCANCEL;
 }
@@ -302,12 +302,12 @@ BOOL CÍ³¼Æ×ÖÆµ::Create(UINT nIDTemplate, CWnd* pParentWnd)
 	if(0 == W_´°¿ÚÀàĞÍ)
 	{
 		W_´°¿ÚÀàĞÍ = 2;
-		return CDialog::Create(nIDTemplate,pParentWnd);
+		return CBaseDialog::Create(nIDTemplate,pParentWnd);
 	}
 	return FALSE;
 }
 CÍ³¼Æ×ÖÆµ::CÍ³¼Æ×ÖÆµ(CWnd* pParent /*=NULL*/)
-	: CDialog(CÍ³¼Æ×ÖÆµ::IDD, pParent)
+	: CBaseDialog(CÍ³¼Æ×ÖÆµ::IDD, pParent)
 	, W_Âë±íµØÖ·(_T(""))
 	, W_ÏÔÊ¾¿ò(_T(""))
 	, W_¿ØÖÆ·ûÀàĞÍ(0)
@@ -329,7 +329,7 @@ CÍ³¼Æ×ÖÆµ::~CÍ³¼Æ×ÖÆµ()
 	{
 	case 1://Ä£Ì¬
 		W_´°¿ÚÀàĞÍ = 0;
-		CDialog::OnCancel();
+		CBaseDialog::OnCancel();
 		break;
 	case 2://·ÇÄ£Ì¬
 		W_´°¿ÚÀàĞÍ = 0;
@@ -342,7 +342,7 @@ CÍ³¼Æ×ÖÆµ::~CÍ³¼Æ×ÖÆµ()
 
 void CÍ³¼Æ×ÖÆµ::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CBaseDialog::DoDataExchange(pDX);
 	DDX_Text(pDX, IDC_EDIT_TBL_TBL, W_Âë±íµØÖ·);
 	DDV_MaxChars(pDX, W_Âë±íµØÖ·, MAX_PATH);
 	DDX_Text(pDX, IDC_EDIT_TBL_1, W_ÏÔÊ¾¿ò);
@@ -359,7 +359,7 @@ void CÍ³¼Æ×ÖÆµ::DoDataExchange(CDataExchange* pDX)
 }
 
 
-BEGIN_MESSAGE_MAP(CÍ³¼Æ×ÖÆµ, CDialog)
+BEGIN_MESSAGE_MAP(CÍ³¼Æ×ÖÆµ, CBaseDialog)
 	ON_BN_CLICKED(IDC_BUTTON_TBL_TBL, &CÍ³¼Æ×ÖÆµ::OnBnClickedButtonTbl)
 	ON_BN_CLICKED(IDC_BUTTON_TBL_2, &CÍ³¼Æ×ÖÆµ::OnBnClickedButton2)
 	ON_BN_CLICKED(IDC_CHECK_TBL_TBL, &CÍ³¼Æ×ÖÆµ::OnBnClickedCheckTbl)
@@ -373,7 +373,7 @@ BEGIN_MESSAGE_MAP(CÍ³¼Æ×ÖÆµ, CDialog)
 END_MESSAGE_MAP()// CÍ³¼Æ×ÖÆµ ÏûÏ¢´¦Àí³ÌĞò
 BOOL CÍ³¼Æ×ÖÆµ::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+	CBaseDialog::OnInitDialog();
 
 	// ÉèÖÃ´Ë¶Ô»°¿òµÄÍ¼±ê¡£µ±Ó¦ÓÃ³ÌĞòÖ÷´°¿Ú²»ÊÇ¶Ô»°¿òÊ±£¬¿ò¼Ü½«×Ô¶¯Ö´ĞĞ´Ë²Ù×÷
 	SetIcon(m_hIcon, TRUE);			// ÉèÖÃ´óÍ¼±ê
@@ -414,7 +414,7 @@ void CÍ³¼Æ×ÖÆµ::OnPaint()
 	}
 	else
 	{
-		CDialog::OnPaint();
+		CBaseDialog::OnPaint();
 	}
 }
 
@@ -431,15 +431,11 @@ void CÍ³¼Æ×ÖÆµ::OnBnClickedButtonTbl()
 	// TODO: ÔÚ´ËÌí¼Ó¿Ø¼şÍ¨Öª´¦Àí³ÌĞò´úÂë
 	UpdateData();
 
-	static CString strPath;
-
-	CWQSGFileDialog fopendlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,_T("Âë±íÎÄ¼ş(*.TBL,*.TXT)|*.TBL;*.TXT||"));
-	fopendlg.m_ofn.lpstrTitle = _T("Ñ¡ÔñÒ»¸öÂë±í...");
-	fopendlg.m_ofn.lpstrInitialDir = strPath;
+	static CWQSGFileDialog_Save fopendlg( _T("Âë±íÎÄ¼ş(*.TBL,*.TXT)|*.TBL;*.TXT||") );
+	fopendlg.SetWindowTitle( _T("Ñ¡ÔñÒ»¸öÂë±í...") );
 
 	if(IDOK == fopendlg.DoModal())
 	{
-		strPath = fopendlg.GetFolderPath();
 		W_Âë±íµØÖ· = fopendlg.GetPathName();
 	}
 	UpdateData(FALSE);
@@ -464,24 +460,16 @@ void CÍ³¼Æ×ÖÆµ::OnBnClickedButton2()
 			return;
 	}
 
-	static CString strPath;
-
-	CWQSGFileDialog fopendlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_ALLOWMULTISELECT,_T("ÎÄ±¾ÎÄ¼ş(*.TXT)|*.TXT||"));
-	CString fileName(_T(""));
-	fopendlg.m_ofn.lpstrFile = fileName.GetBuffer(65536);
-	fopendlg.m_ofn.nMaxFile = 65535;
-	fopendlg.m_ofn.lpstrTitle = _T("Ñ¡ÔñÒªÍ³¼ÆµÄÎÄ±¾...");
-	fopendlg.m_ofn.lpstrInitialDir = strPath;
+	static CWQSGFileDialog_OpenS fopendlg( _T("ÎÄ±¾ÎÄ¼ş(*.TXT)|*.TXT||") );
+	fopendlg.SetWindowTitle( _T("Ñ¡ÔñÒªÍ³¼ÆµÄÎÄ±¾...") );
 
 	if(IDOK == fopendlg.DoModal())
 	{
-		strPath = fopendlg.GetFolderPath();
 		POSITION pos = fopendlg.GetStartPosition();
 		UINT ÊıÁ¿ = 0;
-		while(pos)
+		CString ÎÄ¼ş;
+		while(fopendlg.GetNextPathName(ÎÄ¼ş,pos))
 		{
-			CString ÎÄ¼ş = fopendlg.GetNextPathName(pos);
-
 			::CMemTextW WQSG;
 			if(FALSE == WQSG.Load(ÎÄ¼ş.GetString(),(DWORD)10485760))
 			{
@@ -500,24 +488,24 @@ void CÍ³¼Æ×ÖÆµ::OnBnClickedButton2()
 			switch(W_Í³¼ÆÄ£Ê½)
 			{
 			case 0:
-				while(WCHAR * Ò»ĞĞ = WQSG.GetLine())
+				while(const WCHAR * _line = WQSG.GetLine())
 				{
 					///////////////////////////////////
-					WCHAR* tmp = ::WQSG_DelSP_L(Ò»ĞĞ);
-					delete[]Ò»ĞĞ;
+					WCHAR* tmp = ::WQSG_DelSP_L(_line);
+					delete[]_line;
 					if(0 == *tmp)
 					{
 						delete[]tmp;
 						continue;
 					}
-					Ò»ĞĞ = tmp;
+					_line = tmp;
 					////////////////////////////////
 					UINT k = ::WQSG_strchr(tmp,L',');
 					if(-1 == k)
 					{
 						ÎÄ¼ş += L"\n´íÎó,ÕÒ²»µ½µÚÒ»¸ö¶ººÅ,\n\n";
-						ÎÄ¼ş += Ò»ĞĞ;
-						delete[]Ò»ĞĞ;
+						ÎÄ¼ş += _line;
+						delete[]_line;
 						MessageBoxW(ÎÄ¼ş);
 						return;
 					}
@@ -527,24 +515,24 @@ void CÍ³¼Æ×ÖÆµ::OnBnClickedButton2()
 					if(-1 == k)
 					{
 						ÎÄ¼ş += L"\n´íÎó,ÕÒ²»µ½µÚ¶ş¸ö¶ººÅ,\n\n";
-						ÎÄ¼ş += Ò»ĞĞ;
-						delete[]Ò»ĞĞ;
+						ÎÄ¼ş += _line;
+						delete[]_line;
 						MessageBoxW(ÎÄ¼ş);
 						return;
 					}
 					tmp += (k + 1);
 					///////////////////////////////////
 					tmp = ::WQSG_getstrL(tmp,-1);
-					delete[]Ò»ĞĞ;
+					delete[]_line;
 					Í³¼ÆÒ»¾ä×ÖÆµ_¹ıÂË¿ØÖÆ·û(tmp);
 					delete[]tmp;
 				}
 				break;
 			case 1:
-				while(WCHAR* Ò»ĞĞ = WQSG.GetLine())
+				while(const WCHAR* _line = WQSG.GetLine())
 				{
-					Í³¼ÆÒ»¾ä×ÖÆµ_´¿ÎÄ±¾(Ò»ĞĞ);
-					delete[]Ò»ĞĞ;
+					Í³¼ÆÒ»¾ä×ÖÆµ_´¿ÎÄ±¾(_line);
+					delete[]_line;
 				}
 				break;
 			case 2:
@@ -637,7 +625,7 @@ void CÍ³¼Æ×ÖÆµ::OnEnChangeEdit3()
 
 	// TODO:  ÔÚ´ËÌí¼Ó¿Ø¼şÍ¨Öª´¦Àí³ÌĞò´úÂë
 	UpdateData();
-	±à¼­¿òÑéÖ¤Ê®Áù½øÖÆÎÄ±¾(W_µÚÒ»¸ö±àÂë,(CEdit*)GetDlgItem(IDC_EDIT_TBL_3),(CWnd*)this,0);
+	EditCheckHaxStr(W_µÚÒ»¸ö±àÂë,(CEdit*)GetDlgItem(IDC_EDIT_TBL_3),(CWnd*)this,0);
 }
 
 void CÍ³¼Æ×ÖÆµ::OnEnKillfocusEdit3()
@@ -687,15 +675,11 @@ void CÍ³¼Æ×ÖÆµ::OnBnClickedButtonTbl3()
 		}
 	}
 	///////////////////////////
-	static CString strPath;
-
-	CWQSGFileDialog fopendlg(FALSE,_T("TBL"),NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,_T("Âë±íÎÄ¼ş(*.TBL)|*.TBL||"));
-	fopendlg.m_ofn.lpstrTitle = _T("Âë±í±£´æµ½...");
-	fopendlg.m_ofn.lpstrInitialDir = strPath;
-
+	static CWQSGFileDialog_Save fopendlg( _T("Âë±íÎÄ¼ş(*.TBL)|*.TBL||") , _T("TBL") );
+	fopendlg.SetWindowTitle( _T("Âë±í±£´æµ½...") );
+ 
 	if(IDOK == fopendlg.DoModal())
 	{
-		strPath = fopendlg.GetFolderPath();
 		::CWQSG_File TBL_File;
 		if(! TBL_File.OpenFile(fopendlg.GetPathName().GetString() , 4 , 3 ))
 		{
@@ -743,16 +727,11 @@ void CÍ³¼Æ×ÖÆµ::OnBnClickedButton3()
 	// TODO: ÔÚ´ËÌí¼Ó¿Ø¼şÍ¨Öª´¦Àí³ÌĞò´úÂë
 	UpdateData();
 
-	static CString strPath;
-
-	CWQSGFileDialog fopendlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,_T("±àÂë±í(*.TBL,*.TXT)|*.TBL;*.TXT||"));
-	fopendlg.m_ofn.lpstrTitle = _T("Ñ¡ÔñÒ»¸ö±àÂë±í±í...");
-	fopendlg.m_ofn.lpstrInitialDir = strPath;
-
+	static CWQSGFileDialog_Open fopendlg( _T("±àÂë±í(*.TBL,*.TXT)|*.TBL;*.TXT||") );
+	fopendlg.SetWindowTitle( _T("Ñ¡ÔñÒ»¸ö±àÂë±í±í...") );
 
 	if(IDOK == fopendlg.DoModal())
 	{
-		strPath = fopendlg.GetFolderPath();
 		W_±àÂë±í = fopendlg.GetPathName();
 	}
 	UpdateData(FALSE);
@@ -775,7 +754,8 @@ BOOL CÍ³¼Æ×ÖÆµ::±àÂë±í±àÂë(::CWQSG_File * TXT_File)
 	::CWQSG_MSG_W ¶Ô»°¿ò(m_hWnd,L"±àÂë±í±àÂë");
 	const WCHAR * ×Ö·û´® = W_µÈ´ı±àÂëµÄ×Ö.GetString();
 
-	WCHAR * Ò»ĞĞ, * tmp, * tmp2;
+	const WCHAR* pLine;
+	WCHAR * tmp, * tmp2;
 	CString ÎÄ±¾;
 	TXT_File->Write("\377\376",2);
 	while(*×Ö·û´®)
@@ -785,18 +765,18 @@ BOOL CÍ³¼Æ×ÖÆµ::±àÂë±í±àÂë(::CWQSG_File * TXT_File)
 			×Ö·û´®++;
 			continue;
 		}
-		Ò»ĞĞ = WQSG.GetLine();
-		if(NULL == Ò»ĞĞ)
+		pLine = WQSG.GetLine();
+		if(NULL == pLine)
 		{
 			ÎÄ±¾ = *×Ö·û´®;
 			¶Ô»°¿ò.show( ÎÄ±¾.GetString() , L"±àÂëÊı²»¹»ÓÃ" );
 			return FALSE;
 		}
 
-		tmp = ::WQSG_DelSP_L(Ò»ĞĞ);
+		tmp = ::WQSG_DelSP_L(pLine);
 		if(0 == *tmp)
 		{
-			delete[]Ò»ĞĞ;
+			delete[]pLine;
 			delete[]tmp;
 			continue;
 		}
@@ -804,12 +784,12 @@ BOOL CÍ³¼Æ×ÖÆµ::±àÂë±í±àÂë(::CWQSG_File * TXT_File)
 		if(-1 == Î»ÖÃ)
 		{
 			delete[]tmp;
-			if(IDOK != ¶Ô»°¿ò.show(Ò»ĞĞ,L"ÕÒ²»µ½µÈºÅ,´ËĞĞ×÷·Ï,Òª¼ÌĞøÂğ?",MB_YESNO))
+			if(IDOK != ¶Ô»°¿ò.show(pLine,L"ÕÒ²»µ½µÈºÅ,´ËĞĞ×÷·Ï,Òª¼ÌĞøÂğ?",MB_YESNO))
 			{
-				delete[]Ò»ĞĞ;
+				delete[]pLine;
 				return FALSE;
 			}
-			delete[]Ò»ĞĞ;
+			delete[]pLine;
 			continue;
 		}
 		tmp2 = ::WQSG_getstrL(tmp,Î»ÖÃ);
@@ -817,16 +797,16 @@ BOOL CÍ³¼Æ×ÖÆµ::±àÂë±í±àÂë(::CWQSG_File * TXT_File)
 		Î»ÖÃ = ::WQSG_strlen(tmp2);
 		if( Î»ÖÃ & 1//Îªµ¥Êı
 			|| 0 == Î»ÖÃ
-			|| !::WQSG_ÊÇÊ®Áù½øÖÆÎÄ±¾(tmp2)
+			|| !::WQSG_IsHexText(tmp2)
 		)
 		{
 			delete[]tmp2;
-			if(IDOK != ¶Ô»°¿ò.show( Ò»ĞĞ , L"µÈºÅ×ó±ß²»ÊÇÓĞĞ§µÄÊ®Áù½øÖÆÎÄ±¾,´ËĞĞ×÷·Ï,Òª¼ÌĞøÂğ?" , MB_YESNO) )
+			if(IDOK != ¶Ô»°¿ò.show( pLine , L"µÈºÅ×ó±ß²»ÊÇÓĞĞ§µÄÊ®Áù½øÖÆÎÄ±¾,´ËĞĞ×÷·Ï,Òª¼ÌĞøÂğ?" , MB_YESNO) )
 			{
-				delete[]Ò»ĞĞ;
+				delete[]pLine;
 				return FALSE;
 			}
-			delete[]Ò»ĞĞ;
+			delete[]pLine;
 			continue;
 		}
 		ÎÄ±¾ = tmp2;
@@ -834,7 +814,7 @@ BOOL CÍ³¼Æ×ÖÆµ::±àÂë±í±àÂë(::CWQSG_File * TXT_File)
 		ÎÄ±¾ += *(×Ö·û´®++);
 		ÎÄ±¾ += L"\r\n";
 		TXT_File->Write( ÎÄ±¾.GetString() , ÎÄ±¾.GetLength()*sizeof(*ÎÄ±¾.GetString()) );
-		delete[]Ò»ĞĞ;
+		delete[]pLine;
 		delete[]tmp2;
 	}
 	return FALSE;
@@ -844,7 +824,7 @@ void CÍ³¼Æ×ÖÆµ::OnLButtonDown(UINT nFlags, CPoint point)
 	// TODO: ÔÚ´ËÌí¼ÓÏûÏ¢´¦Àí³ÌĞò´úÂëºÍ/»òµ÷ÓÃÄ¬ÈÏÖµ
 //	PostMessage(WM_NCLBUTTONDOWN, HTCAPTION, MAKELPARAM(point.x, point.y));
 
-	CDialog::OnLButtonDown(nFlags, point);
+	CBaseDialog::OnLButtonDown(nFlags, point);
 }
 
 void CÍ³¼Æ×ÖÆµ::OnEnKillfocusEditTbl3()
@@ -861,7 +841,7 @@ void CÍ³¼Æ×ÖÆµ::OnClose()
 {
 	// TODO: ÔÚ´ËÌí¼ÓÏûÏ¢´¦Àí³ÌĞò´úÂëºÍ/»òµ÷ÓÃÄ¬ÈÏÖµ
 
-	CDialog::OnClose();
+	CBaseDialog::OnClose();
 //	if( IDOK == MessageBox(_T("ÊÇ·ñÒªÍË³ö?"),NULL,MB_OKCANCEL) )
 //	{
 		//ReleaseMutex(WQSG_Mutex);
@@ -869,7 +849,7 @@ void CÍ³¼Æ×ÖÆµ::OnClose()
 		{
 		case 1://Ä£Ì¬
 			W_´°¿ÚÀàĞÍ = 0;
-			CDialog::OnCancel();
+			CBaseDialog::OnCancel();
 			break;
 		case 2://·ÇÄ£Ì¬
 			W_´°¿ÚÀàĞÍ = 0;

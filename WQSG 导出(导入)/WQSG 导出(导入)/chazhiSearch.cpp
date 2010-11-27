@@ -228,12 +228,12 @@ DEF_XXX(u16)
 DEF_XXX(u32)
 #undef DEF_XXX
 // C相对搜索Dlg 对话框
-IMPLEMENT_DYNAMIC(CchazhiSearch, CDialog)
+IMPLEMENT_DYNAMIC(CchazhiSearch, CBaseDialog)
 CchazhiSearch::CchazhiSearch(CWnd* pParent /*=NULL*/)
-	: CDialog(CchazhiSearch::IDD, pParent)
+	: CBaseDialog(CchazhiSearch::IDD, pParent)
 	, m_input(_T(""))
-	, m_字节类型(_T("单字节"))
-	, m_输入类型(_T("十六进制"))
+	, m_strValType(_T("单字节"))
+	, m_strInputType(_T("十六进制"))
 	, m_log(_T(""))
 	, m_文件路径(_T(""))
 {
@@ -241,11 +241,11 @@ CchazhiSearch::CchazhiSearch(CWnd* pParent /*=NULL*/)
 
 void CchazhiSearch::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CBaseDialog::DoDataExchange(pDX);
 	DDX_Text(pDX, IDC_EDIT2, m_input);
 	DDV_MaxChars(pDX, m_input, 10);
-	DDX_CBString(pDX, IDC_COMBO2, m_字节类型);
-	DDX_CBString(pDX, IDC_COMBO1, m_输入类型);
+	DDX_CBString(pDX, IDC_COMBO2, m_strValType);
+	DDX_CBString(pDX, IDC_COMBO1, m_strInputType);
 	DDX_Text(pDX, IDC_EDIT1, m_log);
 	DDX_Control(pDX, IDC_CHECK1, m_C高低交换);
 	DDX_Text(pDX, IDC_EDIT3, m_文件路径);
@@ -253,7 +253,7 @@ void CchazhiSearch::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LIST99, m_CList);
 }
 
-BEGIN_MESSAGE_MAP(CchazhiSearch, CDialog)
+BEGIN_MESSAGE_MAP(CchazhiSearch, CBaseDialog)
 	ON_WM_CLOSE()
 	ON_BN_CLICKED(IDC_BUTTON1, &CchazhiSearch::OnBnClickedButton1)
 	ON_CBN_SELENDOK(IDC_COMBO1, &CchazhiSearch::OnCbnSelendokCombo1)
@@ -266,7 +266,7 @@ BEGIN_MESSAGE_MAP(CchazhiSearch, CDialog)
 END_MESSAGE_MAP()
 BOOL CchazhiSearch::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+	CBaseDialog::OnInitDialog();
 
 	// TODO: 在此添加额外的初始化代码
 	m_CList.InsertColumn( 0 , L"输入值" , 0 , 60 );
@@ -279,8 +279,8 @@ void CchazhiSearch::OnClose()
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 
-	CDialog::OnClose();
-	CDialog::OnCancel();
+	CBaseDialog::OnClose();
+	CBaseDialog::OnCancel();
 }
 void CchazhiSearch::OnCancel(){}
 void CchazhiSearch::OnOK(){}
@@ -295,7 +295,7 @@ void CchazhiSearch::OnBnClickedButton1()
 	}
 	UINT val = 0;
 
-	if( m_输入类型 == L"十六进制" )
+	if( m_strInputType == L"十六进制" )
 	{
 		swscanf( m_input.GetString() , L"%x" , &val );
 	}
@@ -304,7 +304,7 @@ void CchazhiSearch::OnBnClickedButton1()
 		val = _wtoi( m_input.GetString() );
 	}
 	WCHAR* 格式 = L"??";
-	if( m_字节类型 == L"单字节" )
+	if( m_strValType == L"单字节" )
 	{
 		if( val > 0xFF )
 		{
@@ -313,7 +313,7 @@ void CchazhiSearch::OnBnClickedButton1()
 		}
 		格式 = L"%02X";
 	}
-	else if( m_字节类型 == L"双字节" )
+	else if( m_strValType == L"双字节" )
 	{
 		if( val > 0xFFFF )
 		{
@@ -329,7 +329,7 @@ void CchazhiSearch::OnBnClickedButton1()
 			ptr[1] = tmp;
 		}
 	}
-	else if( m_字节类型 == L"四字节" )
+	else if( m_strValType == L"四字节" )
 	{
 		if( val > 0xFFFFFFFF )
 		{
@@ -379,10 +379,10 @@ void CchazhiSearch::OnEnChangeEdit2()
 
 	// TODO:  在此添加控件通知处理程序代码
 	UpdateData();
-	if( m_输入类型 == L"十六进制" )
-		编辑框验证十六进制文本( m_input , (CEdit*)GetDlgItem( IDC_EDIT2 ) , this , FALSE );
+	if( m_strInputType == L"十六进制" )
+		EditCheckHaxStr( m_input , (CEdit*)GetDlgItem( IDC_EDIT2 ) , this , FALSE );
 	else
-		编辑框验证十进制文本( m_input , (CEdit*)GetDlgItem( IDC_EDIT2 ) , this );
+		EditCheckDecStr( m_input , (CEdit*)GetDlgItem( IDC_EDIT2 ) , this );
 }
 
 void CchazhiSearch::OnBnClickedButton4()
@@ -418,22 +418,22 @@ void CchazhiSearch::OnBnClickedButton4()
 			return;
 		}
 	}
-	CString 标题;
-	GetWindowTextW( 标题 );
+	CString strTitle;
+	GetWindowTextW( strTitle );
 	m_log = L"";
-	if( m_字节类型 == L"单字节"	)
+	if( m_strValType == L"单字节"	)
 	{
-		C相对搜索<u8> xxx( m_hWnd , 标题 );
+		C相对搜索<u8> xxx( m_hWnd , strTitle );
 		xxx.开始搜索1(m_log , m_文件路径 , m_插值表 );
 	}
-	else if( m_字节类型 == L"双字节" )
+	else if( m_strValType == L"双字节" )
 	{
-		C相对搜索<u16> xxx( m_hWnd , 标题 );
+		C相对搜索<u16> xxx( m_hWnd , strTitle );
 		xxx.开始搜索1(m_log , m_文件路径 , m_插值表 );
 	}
-	else if( m_字节类型 == L"四字节" )
+	else if( m_strValType == L"四字节" )
 	{
-		C相对搜索<u32> xxx( m_hWnd , 标题 );
+		C相对搜索<u32> xxx( m_hWnd , strTitle );
 		xxx.开始搜索1(m_log , m_文件路径 , m_插值表 );
 	}
 	else
@@ -511,12 +511,12 @@ void CchazhiSearch::OnBnClickedCheck1()
 		UINT val1 ;
 		swscanf( str1.GetString() , L"%X" , &val1 );
 
-		if( m_字节类型 == L"单字节" )
+		if( m_strValType == L"单字节" )
 		{
 			m_CList.SetRedraw( TRUE );
 			return;
 		}
-		else if( m_字节类型 == L"双字节" )
+		else if( m_strValType == L"双字节" )
 		{
 			u8* ptr = (u8*)&val1;
 			u8 tmp = ptr[0];
@@ -524,7 +524,7 @@ void CchazhiSearch::OnBnClickedCheck1()
 			ptr[1] = tmp;
 			str1.Format( L"%04X" , val1 );
 		}
-		else if( m_字节类型 == L"四字节" )
+		else if( m_strValType == L"四字节" )
 		{
 			u8* ptr = (u8*)&val1;
 			u8 tmp = ptr[0];
