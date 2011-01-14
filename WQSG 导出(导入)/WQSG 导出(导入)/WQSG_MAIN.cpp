@@ -43,6 +43,12 @@ CWQSG_MAIN::CWQSG_MAIN(CWnd* pParent /*=NULL*/)
 
 CWQSG_MAIN::~CWQSG_MAIN()
 {
+	for( std::vector<CBaseDialog*>::iterator it = m_TabWnd.begin() ; 
+		it != m_TabWnd.end() ; ++it )
+	{
+		delete *it;
+	}
+	m_TabWnd.clear();
 }
 
 void CWQSG_MAIN::DoDataExchange(CDataExchange* pDX)

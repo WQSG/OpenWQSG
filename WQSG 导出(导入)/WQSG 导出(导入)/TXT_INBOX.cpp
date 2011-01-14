@@ -436,7 +436,7 @@ LRESULT CTXT_INBOX::线程信息( WPARAM 保留 , LPARAM 文本 )
 {
 	if( 0 == 文本 )
 	{
-		AppLog( m_LOG );
+		AppLog( (WCHAR*)文本 );
 //		MessageBox(L"导入完毕!!");
 	}
 	g_pMAIN_CWND->SendMessage( WM_WQSG_SetText , 0 , 文本 );
