@@ -21,6 +21,7 @@
 // stdafx.obj 将包含预编译类型信息
 
 #include "stdafx.h"
+#include <Imm.h>
 
 IMPLEMENT_DYNAMIC(CWQSGList,CWnd)
 
@@ -55,7 +56,9 @@ BOOL CWQSGList::Init( HWND a_hParentWnd , CRect& a_Rect , UINT a_nID )
 	if( NULL == pParentWnd )
 		return FALSE;
 
-	const DWORD dwDefaultStyle = DS_SETFONT | DS_FIXEDSYS | WS_CHILD;
+	//HIMC f = ImmAssociateContext( m_hWnd , 0 );
+
+	const DWORD dwDefaultStyle = DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_TABSTOP;
 
 	if( !Create( NULL , L"" , dwDefaultStyle , a_Rect , pParentWnd , a_nID ) )
 		return FALSE;
@@ -256,9 +259,9 @@ int CWQSGList::HitTest( CPoint a_pt ) const
 	if( a_pt.y < m_iTitleHeight )
 		return -1;
 
-	a_pt.y -= m_iTitleHeight;
+	a_pt.y -= (m_iTitleHeight+1);
 
-	const int nItem = a_pt.y / m_iLineHeight + m_iFirstLine;
+	const int nItem = a_pt.y / (m_iLineHeight+1) + m_iFirstLine;
 	if( nItem >= m_iCount )
 		return -1;
 
@@ -714,6 +717,11 @@ void CWQSGList::OnPaint()
 
 void CWQSGList::OnLButtonDown(UINT nFlags, CPoint point)
 {
+	CWnd::OnLButtonDown(nFlags, point);
+
+	SetFocus();
+	SetActiveWindow();
+
 	if( !m_Rect.PtInRect( point ) )
 		return;
 
@@ -726,12 +734,12 @@ void CWQSGList::OnLButtonDown(UINT nFlags, CPoint point)
 		m_iHotLine = nItem;
 		Invalidate();
 	}
-
-	CWnd::OnLButtonDown(nFlags, point);
 }
 
 void CWQSGList::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
+	CWnd::OnLButtonDblClk(nFlags, point);
+
 	if( !m_Rect.PtInRect( point ) )
 		return;
 
@@ -747,6 +755,4 @@ void CWQSGList::OnLButtonDblClk(UINT nFlags, CPoint point)
 	item.iItem = nItem;
 
 	::SendNotifyMessage( m_hParentWnd , WM_NOTIFY , (WPARAM)m_hWnd , (LPARAM)&item );
-
-	CWnd::OnLButtonDblClk(nFlags, point);
 }

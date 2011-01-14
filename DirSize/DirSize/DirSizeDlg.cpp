@@ -192,7 +192,7 @@ BOOL CDirSizeDlg::Find( CString a_strPath , const size_t a_DirIndex )
 	{
 		if( FILE_ATTRIBUTE_REPARSE_POINT & data.dwFileAttributes )
 		{
-			ASSERT(0);
+			//ASSERT(0);
 			continue;
 		}
 
@@ -469,3 +469,4 @@ void CDirSizeDlg::OnAboutAbout()
 		L"œÓƒøsvn : <A HREF=\"http://code.google.com/p/openwqsg\">http://code.google.com/p/openwqsg</A>\r\n“¿¿µø‚svn : <A HREF=\"http://code.google.com/p/wqsglib\">http://code.google.com/p/wqsglib</A>\r\n                 <A HREF=\"http://wqsg.ys168.com\">http://wqsg.ys168.com</A>\r\n" ,
 		strAuthor2 + L"(" + strAuthor1 + L")" );
 }
+
