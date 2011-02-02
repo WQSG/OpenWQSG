@@ -205,17 +205,17 @@ BOOL 转换文件( HWND hWnd , CStringW src , __TgCPCP_IN& cp_in , __TgCPCP_OUT& cp_
 	//-----------------------------------------------------------------
 	if( cp_out.ANSI_type )//目标是ANSI 性质
 	{
-		if( ((cp_out.codePage == CP_UTF8) && (tfp.GetCP() == WQSG_enCP::en_CP_UTF8)) ||
-			(( cp_in.codePage == cp_out.codePage ) && (tfp.GetCP() == WQSG_enCP::en_CP_ANSI) )
+		if( ((cp_out.codePage == CP_UTF8) && (tfp.GetCP() == EWQSG_CodePage::E_CP_UTF8)) ||
+			(( cp_in.codePage == cp_out.codePage ) && (tfp.GetCP() == EWQSG_CodePage::E_CP_ANSI) )
 			)
 			return TRUE;
 
 		switch( tfp.GetCP() )
 		{
-		case WQSG_enCP::en_CP_UNICODE:
-		case WQSG_enCP::en_CP_ANSI:
+		case EWQSG_CodePage::E_CP_UNICODE:
+		case EWQSG_CodePage::E_CP_ANSI:
 			break;
-		case WQSG_enCP::en_CP_UNICODE_BIG:
+		case EWQSG_CodePage::E_CP_UNICODE_BIG:
 		default:
 			MessageBox( hWnd , L"不支持的转换模式" , src , MB_OK );
 			return FALSE;
@@ -269,12 +269,12 @@ BOOL 转换文件( HWND hWnd , CStringW src , __TgCPCP_IN& cp_in , __TgCPCP_OUT& cp_
 	{
 		switch( tfp.GetCP() )
 		{
-		case WQSG_enCP::en_CP_UNICODE:
+		case EWQSG_CodePage::E_CP_UNICODE:
 			return TRUE;
-		case WQSG_enCP::en_CP_UTF8:
-		case WQSG_enCP::en_CP_ANSI:
+		case EWQSG_CodePage::E_CP_UTF8:
+		case EWQSG_CodePage::E_CP_ANSI:
 			break;
-		case WQSG_enCP::en_CP_UNICODE_BIG:
+		case EWQSG_CodePage::E_CP_UNICODE_BIG:
 		default:
 			MessageBox( hWnd , L"不支持的转换模式" , src , MB_OK );
 			return FALSE;
