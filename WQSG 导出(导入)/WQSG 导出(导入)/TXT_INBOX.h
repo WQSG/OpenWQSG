@@ -126,9 +126,10 @@ private:
 
 	void AppLog(CString str);
 	void UpdateImportData(SImportData& a_data);
-
+#if USE_XML
 	void LoadXml( TiXmlElement& a_Root );
 	void SaveXml();
+#endif
 protected:
 	virtual void OnOK();
 	virtual void OnCancel();

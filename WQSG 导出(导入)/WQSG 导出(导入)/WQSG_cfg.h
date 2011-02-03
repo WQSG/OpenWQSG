@@ -53,9 +53,11 @@ enum
 	WT_ID_MAX,
 };
 
+#if USE_XML
 BOOL InitConfig();
 TiXmlElement& LockConfig();
 void UnLockConfig();
 BOOL SaveConfig();
+#endif
 
 #endif

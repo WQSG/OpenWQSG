@@ -18,7 +18,7 @@
 
 #include "stdafx.h"
 #include "WQSG_cfg.h"
-
+#if USE_XML
 static TiXmlDocument	g_xmlConfig;
 static CString			g_strConfigSavePathName;
 
@@ -203,3 +203,4 @@ static inline void Xml1_0_to_2_0( TiXmlDocument& a_XmlDoc )
 	a_XmlDoc.InsertEndChild( TiXmlDeclaration("1.0","utf-8","0") );
 	a_XmlDoc.LinkEndChild( pNewRoot );
 }
+#endif

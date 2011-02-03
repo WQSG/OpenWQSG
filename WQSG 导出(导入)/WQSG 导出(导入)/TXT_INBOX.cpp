@@ -22,7 +22,7 @@
 #include "WQSG 导出(导入).h"
 #include "TXT_INBOX.h"
 #include "WQSG_MAIN.h"
-#include <WQSG导出导入.h>
+#include <Common/WQSG导出导入.h>
 
 #define WM_WQSG_THREAD_MSG	( WM_USER + 1 )
 #define WM_WQSG_THREAD_LOG		( WM_WQSG_THREAD_MSG + 1 )
@@ -464,10 +464,10 @@ BOOL CTXT_INBOX::OnInitDialog()
 	// TODO: 在此添加控件通知处理程序代码
 	m_C文本在同目录.SetCheck( TRUE );
 	OnBnClickedCheck3();
-
+#if USE_XML
 	LoadXml( LockConfig() );
 	UnLockConfig();
-
+#endif
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 异常: OCX 属性页应返回 FALSE
 }
@@ -686,8 +686,9 @@ void CTXT_INBOX::OnBnClickedButtonAdd()
 	(*m_ImportDatas.rbegin()).m_strItemName = m_NodeName;
 	UpdateImportData(*m_ImportDatas.rbegin());
 	m_CList.SetCurSel( m_CList.AddString( m_NodeName ) );
-
+#if USE_XML
 	SaveXml();
+#endif
 }
 
 void CTXT_INBOX::AppLog(CString str)
@@ -769,8 +770,9 @@ void CTXT_INBOX::OnBnClickedButtonDel()
 	m_CList.SetCurSel( -1 );
 
 	m_ImportDatas.erase( m_ImportDatas.begin() + sel );
-
+#if USE_XML
 	SaveXml();
+#endif
 }
 
 void CTXT_INBOX::OnBnClickedButtonEdit()
@@ -815,7 +817,9 @@ void CTXT_INBOX::OnBnClickedButtonEdit()
 	}
 
 	UpdateImportData(m_ImportDatas[sel]);
+#if USE_XML
 	SaveXml();
+#endif
 }
 
 void CTXT_INBOX::OnEnKillfocusEditName()
@@ -829,7 +833,7 @@ void CTXT_INBOX::OnBnClickedCheck3()
 	// TODO: 在此添加控件通知处理程序代码
 	GetDlgItem( IDC_EDIT_TXT_DIR )->EnableWindow( m_C文本在同目录.GetCheck() == 0 );
 }
-
+#if USE_XML
 void CTXT_INBOX::LoadXml( TiXmlElement& a_Root )
 {
 	while( m_CList.GetCount() )
@@ -919,3 +923,4 @@ void CTXT_INBOX::SaveXml()
 	UnLockConfig();
 	SaveConfig();
 }
+#endif

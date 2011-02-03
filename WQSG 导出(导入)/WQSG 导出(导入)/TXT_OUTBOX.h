@@ -119,9 +119,10 @@ protected:
 private:
 	void AppLog(CString str);
 	void UpdateExportData( SExportData& a_data );
-
+#if USE_XML
 	void LoadXml( TiXmlElement& a_Root );
 	void SaveXml();
+#endif
 public:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnClose();

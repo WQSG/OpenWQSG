@@ -21,7 +21,7 @@
 #include "stdafx.h"
 #include "WQSG 导出(导入).h"
 #include "WIPS.h"
-#include"WQSG_IPS.h"
+#include <Common/WQSG_IPS.h>
 
 
 // WIPS 对话框
@@ -139,11 +139,13 @@ void CWIPS_O_Dlg::OnBnClickedButton4()
 	if(IDOK == fopendlg.DoModal())
 	{
 		CString strFile = fopendlg.GetPathName();
-		::CWQSG_IPS_OUT WQSG(m_hWnd,_T("WQSG IPS补丁程序"));
+		CWQSG_Ips_Maker ipsMaker;
 
-		WQSG.MakeWips30( m_strOldFile.GetString() , m_strNewFle.GetString() , strFile.GetString() ,
+		const BOOL bRt = ipsMaker.MakeWips30( m_strOldFile.GetString() , m_strNewFle.GetString() , strFile.GetString() ,
 			nBeginOffset , nEndOffset , 0 , (((CButton*)GetDlgItem(IDC_CHECK2))->GetCheck() == 1)?1:0 ,
 			m_strWipsDesc.GetString() , ::WQSG_strlen(m_strWipsDesc.GetString()) , (bMakeExe)?&m_自解头30:NULL );
+
+		MessageBox( bRt?L"制作补丁成功":ipsMaker.GetMsg() );
 	}
 }
 void CWIPS_O_Dlg::OnEnChangeEdit4()
@@ -244,20 +246,42 @@ void CWIPS_I_Dlg::OnBnClickedButton6()
 		return;
 	}
 
-
 	static CWQSGFileDialog_Save fopendlg( _T("目标文件文件(*.*)|*.*||") );
 	fopendlg.SetWindowTitle( _T("对选择的文件打补丁...") );
 
 	if(IDOK == fopendlg.DoModal())
 	{
+		CWD_WipsInfo info;
+		if( !info.LoadWipsDesc( m_strWipsFile.GetString() ) )
+		{
+			MessageBox( L"获取补丁文件信息失败." );
+			return;
+		}
+
+		if( info.m_uCrc32 )
+		{
+			CWQSG_File fp;
+			if( fp.OpenFile( m_strWipsFile.GetString() , 1 , 3 ) )
+			{
+				MessageBox( L"打开目标文件失败." );
+				return;
+			}
+			if( fp.GetCRC32() != info.m_uCrc32 )
+			{
+				if( IDYES != MessageBox( L"目标文件没有通过CRC32的校验,要继续打补丁吗?" , NULL , MB_YESNO ) )
+					return;
+			}
+		}
+
 		CString strFile = fopendlg.GetPathName();
-		::CWQSG_IPS_IN WQSG(m_hWnd,_T("WQSG IPS补丁程序"));
-		WQSG.打补丁(m_strWipsFile.GetString(),strFile.GetString());
+		CWQSG_Ips_In ipsIn;
+		const BOOL bRt = ipsIn.打补丁( m_strWipsFile.GetString() , strFile.GetString() );
+		MessageBox( bRt?L"":ipsIn.GetMsg() );
 	}
 }
 void CWIPS_I_Dlg::ShowWipsInfo(const CString& a_strFile)
 {
-	::CWD_WipsInfo info;
+	CWD_WipsInfo info;
 	m_strWipsDesc_In = _T("非法或者不支持的补丁文件");
 
 	if(info.LoadWipsDesc( a_strFile.GetString() ) )
@@ -270,12 +294,12 @@ void CWIPS_I_Dlg::ShowWipsInfo(const CString& a_strFile)
 		if(info.m_uCrc32)
 		{
 			m_strWipsDesc_In.Format( L"补丁版本: %s\r\n目标文件的CRC32验证: %X\r\n打补丁后的文件大小: %u\r\n\r\n补丁说明:\r\n",
-				info.补丁标识 , info.m_uCrc32 , info.目标大小 );
+				info.m_szMagic , info.m_uCrc32 , info.m_nTargetSize );
 		}
 		else
 		{
 			m_strWipsDesc_In.Format( L"补丁版本: %s\r\n目标文件的CRC32验证: 无\r\n打补丁后的文件大小: %u\r\n\r\n补丁说明:\r\n"
-				, info.补丁标识 , info.目标大小 );
+				, info.m_szMagic , info.m_nTargetSize );
 		}
 		m_strWipsDesc_In += info.m_szDesc;
 	}

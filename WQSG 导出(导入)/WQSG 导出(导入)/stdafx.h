@@ -68,11 +68,22 @@
 #ifndef _AFX_NO_AFXCMN_SUPPORT
 #include <afxcmn.h>			// MFC 对 Windows 公共控件的支持
 #endif // _AFX_NO_AFXCMN_SUPPORT
+#include <vector>
+
+#define USE_XML 1
 
 #include <WQSG_LIB.h>
 #include <2/WQSG_afx.h>
+#if USE_XML
 #include <tinyxml.h>
+#if _DEBUG
+#pragma comment(lib, "tinyxmld.lib" )
+#else //_DEBUG
+#pragma comment(lib, "tinyxml.lib" )
+#endif //_DEBUG
+#endif //USE_XML
 #include "WQSG_cfg.h"
+
 
 #ifdef _UNICODE
 #if defined _M_IX86

@@ -21,7 +21,7 @@
 #include "stdafx.h"
 #include "WQSG 导出(导入).h"
 #include "WQSG_MAIN.h"
-#include <WQSG导出导入.h>
+#include <Common/WQSG导出导入.h>
 
 #include <stdio.h>
 #include <tchar.h>

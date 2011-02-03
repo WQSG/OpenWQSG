@@ -20,7 +20,7 @@
 #include "WQSG 导出(导入).h"
 #include "TXT_OutBox.h"
 #include "WQSG_MAIN.h"
-#include <WQSG导出导入.h>
+#include <Common/WQSG导出导入.h>
 
 #define WM_WQSG_THREAD_MSG	( WM_USER + 1 )
 #define WM_WQSG_THREAD_LOG		( WM_WQSG_THREAD_MSG + 1 )
@@ -445,10 +445,10 @@ BOOL CTXT_OutBox::OnInitDialog()
 
 	m_C文本在同目录.SetCheck( TRUE );
 	OnBnClickedCheck3();
-
+#if USE_XML
 	LoadXml( LockConfig() );
 	UnLockConfig();
-
+#endif
 	return TRUE;
 }
 
@@ -602,8 +602,9 @@ void CTXT_OutBox::OnBnClickedButtonAdd()
 	(*m_ExportDatas.rbegin()).m_strItemName = m_NodeName;
 	UpdateExportData(*m_ExportDatas.rbegin());
 	m_CList.SetCurSel( m_CList.AddString( m_NodeName ) );
-
+#if USE_XML
 	SaveXml();
+#endif
 }
 
 void CTXT_OutBox::UpdateExportData( SExportData& a_data )
@@ -695,8 +696,9 @@ void CTXT_OutBox::OnBnClickedButtonDel()
 
 	m_CList.DeleteString( sel );
 	m_CList.SetCurSel( -1 );
-
+#if USE_XML
 	SaveXml();
+#endif
 }
 
 void CTXT_OutBox::OnBnClickedButtonEdit()
@@ -742,7 +744,9 @@ void CTXT_OutBox::OnBnClickedButtonEdit()
 	}
 
 	UpdateExportData( m_ExportDatas[sel] );
+#if USE_XML
 	SaveXml();
+#endif
 }
 
 void CTXT_OutBox::OnEnKillfocusEditName()
@@ -806,7 +810,7 @@ void CTXT_OutBox::OnBnClickedCheck3()
 	// TODO: 在此添加控件通知处理程序代码
 	GetDlgItem( IDC_EDIT_TXT_DIR )->EnableWindow( m_C文本在同目录.GetCheck() == 0 );
 }
-
+#if USE_XML
 void CTXT_OutBox::LoadXml( TiXmlElement& a_Root )
 {
 	while( m_CList.GetCount() )
@@ -895,3 +899,4 @@ void CTXT_OutBox::SaveXml()
 	UnLockConfig();
 	SaveConfig();
 }
+#endif

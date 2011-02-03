@@ -110,10 +110,10 @@ BOOL CWQSG_MAIN::OnInitDialog()
 	WCHAR exePathName[ MAX_PATH * 2 ];
 	if( 0 == GetModuleFileNameW( NULL , exePathName , MAX_PATH * 2 ) )
 		goto __gtErrExit;
-
+#if USE_XML
 	if( !InitConfig() )
 		goto __gtErrExit;
-
+#endif
 	{
 		CRect rect , rectTAB;
 		m_TAB.GetClientRect( rect );
