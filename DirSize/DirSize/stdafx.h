@@ -199,6 +199,8 @@ private:
 	void Format( CDC& a_Dc );
 
 	BOOL GetItemRect( _In_ int a_nItem , CRect& a_rect );
+
+	void UpdateScroll();
 protected:
 	// 生成的消息映射函数
 	afx_msg void OnPaint();
@@ -249,4 +251,6 @@ private:
 
 	CAlone<TVTexts> m_Texts;
 	CAlone<TV1s> m_1s;
+public:
+	afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 };

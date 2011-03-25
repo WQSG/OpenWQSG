@@ -46,6 +46,7 @@ BEGIN_MESSAGE_MAP(CWQSGList, CWnd)
 	//}}AFX_MSG_MAP
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONDBLCLK()
+	ON_WM_VSCROLL()
 END_MESSAGE_MAP()
 
 BOOL CWQSGList::Init( HWND a_hParentWnd , CRect& a_Rect , UINT a_nID )
@@ -55,7 +56,6 @@ BOOL CWQSGList::Init( HWND a_hParentWnd , CRect& a_Rect , UINT a_nID )
 	CWnd*const pParentWnd = CWnd::FromHandle( a_hParentWnd );
 	if( NULL == pParentWnd )
 		return FALSE;
-
 	//HIMC f = ImmAssociateContext( m_hWnd , 0 );
 
 	const DWORD dwDefaultStyle = DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_TABSTOP;
@@ -86,6 +86,8 @@ BOOL CWQSGList::Init( HWND a_hParentWnd , CRect& a_Rect , UINT a_nID )
 
 	GetClientRect( &m_Rect );
 	m_hParentWnd = a_hParentWnd;
+
+	//ShowScrollBar( SB_VERT );
 	return TRUE;
 __gtInitErr:
 	if( m_hWnd )
@@ -103,7 +105,7 @@ CImageList* CWQSGList::SetImageList(_In_ CImageList* a_pImageList, _In_ int a_nI
 	m_hImageList = a_pImageList?a_pImageList->GetSafeHandle():NULL;
 	m_nImageList = a_nImageList;
 
-	Invalidate();
+	Invalidate( FALSE );
 
 	return CImageList::FromHandlePermanent( hOld );
 }
@@ -130,7 +132,7 @@ int CWQSGList::InsertColumn(_In_ int a_nCol, _In_z_ LPCTSTR a_lpszColumnHeading,
 	if( m_iFirstLine == -1 )
 		m_iFirstLine = 0;
 
-	Invalidate();
+	Invalidate( FALSE );
 
 	return iIndex;
 }
@@ -161,7 +163,7 @@ BOOL CWQSGList::SetItemText(_In_ int a_nItem, _In_ int a_nSubItem, _In_z_ LPCTST
 
 	ItemGetText( a_nItem , a_nSubItem ) = a_lpszText;
 
-	Invalidate();
+	Invalidate( FALSE );
 
 	return TRUE;
 }
@@ -175,7 +177,7 @@ BOOL CWQSGList::SetItem100(_In_ int a_nItem, _In_ int a_nSubItem, _In_z_ float a
 
 	ItemGet100( a_nItem , a_nSubItem ) = a_1;
 
-	Invalidate();
+	Invalidate( FALSE );
 
 	return TRUE;
 }
@@ -187,7 +189,7 @@ BOOL CWQSGList::SetImage(_In_ int a_nItem, _In_ int a_nImage )
 		return FALSE;
 
 	m_ItemInfos[a_nItem].m_nImage = a_nImage;
-	Invalidate();
+	Invalidate( FALSE );
 	return TRUE;
 }
 
@@ -227,7 +229,7 @@ BOOL CWQSGList::DeleteItem( _In_ int a_nItem )
 
 	ItemDelete( a_nItem );
 
-	Invalidate();
+	Invalidate( FALSE );
 
 	if( m_iFirstLine >= m_iCount )
 		m_iFirstLine = m_iCount - 1;
@@ -237,6 +239,7 @@ BOOL CWQSGList::DeleteItem( _In_ int a_nItem )
 	else if( m_iHotLine > a_nItem )
 		m_iHotLine--;
 
+	UpdateScroll();
 	return TRUE;
 }
 
@@ -245,6 +248,7 @@ BOOL CWQSGList::DeleteAllItems()
 	for( int count = m_iCount ; count ; count-- )
 		ItemDelete( 0 );
 
+	UpdateScroll();
 	return TRUE;
 }
 
@@ -323,6 +327,8 @@ void CWQSGList::ItemInsert(_In_ int a_nItem)
 	m_ItemInfos.insert( m_ItemInfos.begin() + a_nItem , itenInfo );
 
 	m_iCount++;
+
+	UpdateScroll();
 }
 
 void CWQSGList::ItemDelete(_In_ int a_nItem)
@@ -650,7 +656,7 @@ BOOL CWQSGList::GetItemRect( _In_ int a_nItem , CRect& a_rect )
 	a_rect.left = m_Rect.left + 1;
 	a_rect.right = m_Rect.right - 1;
 
-	a_rect.top = m_Rect.top + 2 + m_iTitleHeight + (m_iLineHeight + 1) * a_nItem;
+	a_rect.top = m_Rect.top + 2 + m_iTitleHeight + (m_iLineHeight + 1) * (a_nItem - m_iFirstLine);
 	a_rect.bottom = a_rect.top + m_iLineHeight;
 
 	if( a_rect.top > m_Rect.bottom )
@@ -660,6 +666,22 @@ BOOL CWQSGList::GetItemRect( _In_ int a_nItem , CRect& a_rect )
 		a_rect.bottom = m_Rect.bottom;
 
 	return TRUE;
+}
+
+void CWQSGList::UpdateScroll()
+{
+	CRect WinRect( m_Rect );
+
+	SCROLLINFO info = {};
+	info.cbSize = sizeof(SCROLLINFO);
+	info.fMask = SIF_ALL;
+	info.nMin = 0;
+	info.nMax = (m_iCount > 0)?m_iCount - 1:0; 
+	info.nPage = (WinRect.Height() - (2 + m_iTitleHeight)) / (m_iLineHeight + 1);
+	info.nPos = m_iFirstLine;
+	info.nTrackPos = 0;
+
+	SetScrollInfo( SB_VERT , &info );
 }
 
 void CWQSGList::OnPaint()
@@ -732,7 +754,7 @@ void CWQSGList::OnLButtonDown(UINT nFlags, CPoint point)
 	if( m_iHotLine != nItem )
 	{
 		m_iHotLine = nItem;
-		Invalidate();
+		Invalidate( FALSE );
 	}
 }
 
@@ -755,4 +777,57 @@ void CWQSGList::OnLButtonDblClk(UINT nFlags, CPoint point)
 	item.iItem = nItem;
 
 	::SendNotifyMessage( m_hParentWnd , WM_NOTIFY , (WPARAM)m_hWnd , (LPARAM)&item );
+}
+
+void CWQSGList::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	SCROLLINFO info = {};
+	info.cbSize = sizeof(SCROLLINFO);
+	info.fMask = SIF_ALL;
+
+	GetScrollInfo( SB_VERT , &info );
+
+	const int nOld = m_iFirstLine;
+	switch(nSBCode)
+	{
+	case SB_BOTTOM:
+		m_iFirstLine = info.nMax + 1 - info.nPage;
+		break;
+	case SB_TOP:
+		m_iFirstLine = 0;
+		break;
+	case SB_ENDSCROLL://   End scroll.
+		break;
+	case SB_LINEDOWN://   Scroll one line down.
+		m_iFirstLine++;
+		break;
+	case SB_LINEUP://   Scroll one line up.
+		m_iFirstLine--;
+		break;
+	case SB_PAGEDOWN://   Scroll one page down.
+		m_iFirstLine += info.nPage;
+		break;
+	case SB_PAGEUP://   Scroll one page up.
+		m_iFirstLine -= info.nPage;
+		break;
+	case SB_THUMBPOSITION://   Scroll to the absolute position. The current position is provided in nPos.
+		break;
+	case SB_THUMBTRACK://   Drag scroll box to specified position. The current position is provided in nPos.
+		m_iFirstLine = nPos;
+		break;
+	}
+
+	if( m_iFirstLine > int(info.nMax + 1 - info.nPage) )
+		m_iFirstLine = info.nMax + 1 - info.nPage;
+	if( m_iFirstLine < 0 )
+		m_iFirstLine = 0;
+
+	if( m_iFirstLine != nOld )
+	{
+		UpdateScroll();
+		Invalidate( FALSE );
+	}
+
+	CWnd::OnVScroll(nSBCode, nPos, pScrollBar);
 }

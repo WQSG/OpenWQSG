@@ -116,7 +116,7 @@ BOOL CDirSizeDlg::OnInitDialog()
 	m_WList.InsertColumn( 3 , L"Size2" , m_WList.E_CT_Text , 100 , m_WList.E_TA_RIGHT );
 
 #if _DEBUG
-	Open( L"D:\\VM" );
+	Open( L"H:\\VM" );
 #endif
 	m_WList.Invalidate( FALSE );
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
