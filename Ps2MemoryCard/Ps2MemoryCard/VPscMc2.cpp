@@ -87,8 +87,6 @@ inline static void calculateECC ( char* ECC_Chunk, const unsigned char* Data_Chu
 	ECC_Chunk[ 2 ] = ~ECC_Chunk[ 2 ];
 	ECC_Chunk[ 2 ] &= 0x7f;
 }
-
-
 //----------------------------------------------------------------------------
 // Build ECC from a complet page of data
 //----------------------------------------------------------------------------
@@ -144,6 +142,11 @@ inline static void getPs2Time( SPs2DateTime* a_pModified )
 }
 
 //----------------------------------------------------------------------------
+void CVPscMc::UpdateEcc( char* Page_Data, char* ECC_Data )
+{
+	buildECC( Page_Data , ECC_Data );
+}
+
 bool CVPscMc::ReadPage( void* a_OutBuf , n32 a_nPageIndex )
 {
 	size_t position = a_nPageIndex * (m_pHead->page_size + 0x10);

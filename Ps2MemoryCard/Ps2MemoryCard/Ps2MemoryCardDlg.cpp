@@ -58,6 +58,7 @@ BEGIN_MESSAGE_MAP(CPs2MemoryCardDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_EXPORT_PSU, &CPs2MemoryCardDlg::OnBnClickedButtonExportPsu)
 	ON_BN_CLICKED(IDC_BUTTON_ABOUT, &CPs2MemoryCardDlg::OnBnClickedButtonAbout)
 	ON_BN_CLICKED(IDC_BUTTON1, &CPs2MemoryCardDlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_BUTTON_SAVE_BIN, &CPs2MemoryCardDlg::OnBnClickedButtonSaveBin)
 END_MESSAGE_MAP()
 
 
@@ -445,4 +446,20 @@ void CPs2MemoryCardDlg::OnBnClickedButton1()
 	}
 
 	MessageBox( L"相等" );
+}
+
+void CPs2MemoryCardDlg::OnBnClickedButtonSaveBin()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	if( !m_Mc.isOpen() )
+		return ;
+
+	static CWQSGFileDialog_Save dlg( L"*.bin|*.bin||" , L"bin" );
+	if( IDOK != dlg.DoModal() )
+		return;
+
+	if( !m_Mc.SaveMcNoEcc( dlg.GetPathName() ) )
+	{
+		MessageBox( L"保存记忆卡失败" );
+	}
 }

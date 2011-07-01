@@ -38,11 +38,25 @@ bool CVPscMc::LoadMc( const CStringW& a_strPathName )
 
 	n64 nSize = fp.GetFileSize();
 
-	m_Bufs.resize( nSize , 0 );
+	if( nSize != 0x00800000 && nSize != 0x00840000 )
+		return false;
+
+	m_Bufs.resize( 0x00840000 , 0 );
 	m_pBuf = &m_Bufs[0];
 	m_pHead = (SPs2MemoryCardHead*)m_pBuf;
 
-	if( nSize != fp.Read( m_pBuf , nSize ) )
+	if( nSize != 0x00840000 )
+	{
+		u8*const pEnd = m_pBuf + 0x00840000;
+		for ( u8* pBuf = m_pBuf ; pBuf < pEnd ; pBuf += 0x210 )
+		{
+			if( 0x200 != fp.Read( pBuf , 0x200 ) )
+				return false;
+
+			UpdateEcc( (char*)pBuf , (char*)pBuf + 0x200 );
+		}
+	}
+	else if( nSize != fp.Read( m_pBuf , nSize ) )
 		return false;
 
 	m_bOpen = true;
@@ -59,6 +73,25 @@ bool CVPscMc::SaveMc( const CStringW& a_strPathName )
 		return false;
 
 	return ( m_Bufs.size() == fp.Write( m_pBuf , m_Bufs.size() ) );
+}
+
+bool CVPscMc::SaveMcNoEcc( const CStringW& a_strPathName )
+{
+	if( !isOpen() )
+		return false;
+
+	CWQSG_File fp;
+	if( !fp.OpenFile( a_strPathName.GetString() , 4 , 3 ) )
+		return false;
+
+	u8*const pEnd = m_pBuf + 0x00840000;
+	for ( u8* pBuf = m_pBuf ; pBuf < pEnd ; pBuf += 0x210 )
+	{
+		if( 0x200 != fp.Write( pBuf , 0x200 ) )
+			return false;
+	}
+
+	return true;
 }
 
 bool CVPscMc::Bak()

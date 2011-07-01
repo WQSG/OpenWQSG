@@ -54,11 +54,14 @@ public:
 	bool LoadMc( const CStringW& a_strPathName );
 	bool SaveMc( const CStringW& a_strPathName );
 
+	bool SaveMcNoEcc( const CStringW& a_strPathName );
+
 	bool isOpen()const{return m_bOpen;}
 	//-----------------------
 	bool Bak();
 	bool UnBak();
 protected:
+	void UpdateEcc( char* Page_Data, char* ECC_Data );
 	bool ReadPage( void* a_OutBuf , n32 a_nPageIndex );
 	bool WritePage( const void* a_OutBuf , n32 a_nPageIndex );
 	bool readCluster( void* a_pOutCluster, u32 a_uClusterIndex );

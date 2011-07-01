@@ -72,4 +72,5 @@ public:
 
 	bool Load_Psu( const CStringW& a_strFile , SPsuData& a_Files );
 	afx_msg void OnBnClickedButton1();
+	afx_msg void OnBnClickedButtonSaveBin();
 };

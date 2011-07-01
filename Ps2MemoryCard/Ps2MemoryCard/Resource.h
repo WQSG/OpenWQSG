@@ -17,6 +17,8 @@
 #define IDC_BUTTON_EXPORT_PSU           1004
 #define IDC_BUTTON_ABOUT                1005
 #define IDC_BUTTON1                     1006
+#define IDC_BUTTON_SAVE_MC3             1007
+#define IDC_BUTTON_SAVE_BIN             1007
 
 // Next default values for new objects
 // 
