@@ -23,7 +23,16 @@
 
 #include "VPscMc.h"
 #include "afxcmn.h"
+#include <hash_map>
+#include <string>
 
+typedef stdext::hash_map<std::string,std::vector<u8>> TPsuFile;
+
+struct SPsuData
+{
+	CStringA m_strName;
+	TPsuFile m_files;
+};
 // CPs2MemoryCardDlg ¶Ô»°¿ò
 class CPs2MemoryCardDlg : public CDialog
 {
@@ -60,4 +69,7 @@ private:
 public:
 	afx_msg void OnBnClickedButtonExportPsu();
 	afx_msg void OnBnClickedButtonAbout();
+
+	bool Load_Psu( const CStringW& a_strFile , SPsuData& a_Files );
+	afx_msg void OnBnClickedButton1();
 };

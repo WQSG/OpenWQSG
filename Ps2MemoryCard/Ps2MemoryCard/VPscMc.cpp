@@ -199,6 +199,8 @@ bool CVPscMc::Export_Psu( const CString& a_strPathName , const CStringA a_strDir
 	}
 	//------------------------------------------
 
+	psu_head.size = 2;
+
 	std::vector<SFileInfo> datas;
 	if( !GetFiles( datas , a_strDirName ) )
 		return false;
@@ -219,16 +221,20 @@ bool CVPscMc::Export_Psu( const CString& a_strPathName , const CStringA a_strDir
 			continue;
 		}
 
+		psu_head.size++;
+
 		SPsu_header psu_file = {};
 
 		//psu_file.attr = dirent_path.mode;
-		WQSG_strcpy( dirent_path.name , (char*)psu_file.name );
+		WQSG_strcpy( info.szName , (char*)psu_file.name );
 		//psu_file.cTime = dirent_path.created;
 		//psu_file.mTime = dirent_path.modified;
 
 		CWQSG_memFile mf;
 		if( !_Vmc_ReadFile( &mf , a_strDirName , info.szName , &psu_file.cTime , &psu_file.mTime , &psu_file.attr ) )
 			return false;
+
+		psu_file.size = info.uSize;
 
 		if( sizeof(psu_file) != fp.Write( &psu_file , sizeof(psu_file) ) )
 			return false;
@@ -246,6 +252,12 @@ bool CVPscMc::Export_Psu( const CString& a_strPathName , const CStringA a_strDir
 				return false;
 		}
 	}
+
+	//------------------------------------------
+	fp.Seek(0);
+	if( sizeof(psu_head) != fp.Write( &psu_head , sizeof(psu_head) ) )
+		return false;
+	//------------------------------------------
 
 	return true;
 }

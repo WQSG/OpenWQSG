@@ -278,8 +278,11 @@ u32 CVPscMc::getFreeCluster()
 		uFatHigh_Index < (sizeof(m_pHead->indir_fat_clusters)/sizeof(*m_pHead->indir_fat_clusters)) ;
 		++uFatHigh_Index )
 	{
+		if( m_pHead->indir_fat_clusters[ uFatHigh_Index ] < 8 )
+			return ERROR_CLUSTER;
+
 		if( !readCluster ( &indirect_cluster_High2Low[0] , m_pHead->indir_fat_clusters[ uFatHigh_Index ] ) )
-			return false;
+			return ERROR_CLUSTER;
 
 		for( std::vector<u32>::size_type uHigh2Low = 0 ; uHigh2Low < indirect_cluster_High2Low.size() ; ++uHigh2Low )
 		{
@@ -287,7 +290,7 @@ u32 CVPscMc::getFreeCluster()
 				continue;
 
 			if( !readCluster ( &fat_cluster[0] , indirect_cluster_High2Low[uHigh2Low] ) )
-				return false;
+				return ERROR_CLUSTER;
 
 			for( std::vector<u32>::size_type uFatLow = 0 ; uFatLow < fat_cluster.size() ; ++uFatLow )
 			{

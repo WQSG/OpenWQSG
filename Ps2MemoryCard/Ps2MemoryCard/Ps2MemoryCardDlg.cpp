@@ -57,6 +57,7 @@ BEGIN_MESSAGE_MAP(CPs2MemoryCardDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_IMPORT_PSU, &CPs2MemoryCardDlg::OnBnClickedButtonImportPsu)
 	ON_BN_CLICKED(IDC_BUTTON_EXPORT_PSU, &CPs2MemoryCardDlg::OnBnClickedButtonExportPsu)
 	ON_BN_CLICKED(IDC_BUTTON_ABOUT, &CPs2MemoryCardDlg::OnBnClickedButtonAbout)
+	ON_BN_CLICKED(IDC_BUTTON1, &CPs2MemoryCardDlg::OnBnClickedButton1)
 END_MESSAGE_MAP()
 
 
@@ -163,22 +164,25 @@ void CPs2MemoryCardDlg::OnBnClickedButtonImportPsu()
 	if( !m_Mc.isOpen() )
 		return ;
 
-	static CWQSGFileDialog_Open dlg( L"*.psu|*.psu||" );
+	static CWQSGFileDialog_OpenS dlg( L"*.psu|*.psu||" );
 	if( IDOK != dlg.DoModal() )
 		return;
 
-	m_Mc.Bak();
-	if( m_Mc.Import_Psu( dlg.GetPathName() ) )
+	CString strName;
+	POSITION pos = dlg.GetStartPosition();
+	while( dlg.GetNextPathName( strName , pos ) )
 	{
-		UpdateUI();
-		MessageBox( L"导入成功" );
+		m_Mc.Bak();
+		if( !m_Mc.Import_Psu( strName ) )
+		{
+			m_Mc.UnBak();
+			UpdateUI();
+			MessageBox( L"导入PSU失败" , strName );
+			return;
+		}
 	}
-	else
-	{
-		m_Mc.UnBak();
-		UpdateUI();
-		MessageBox( L"导入PSU失败" );
-	}
+	UpdateUI();
+	MessageBox( L"导入成功" );
 }
 
 void CPs2MemoryCardDlg::OnBnClickedButtonExportPsu()
@@ -285,4 +289,160 @@ void CPs2MemoryCardDlg::OnBnClickedButtonAbout()
 		L"项目svn : <A HREF=\"http://code.google.com/p/wqsg-umd\">http://code.google.com/p/OpenWqsg</A>\r\n"
 		L"依赖库svn : <A HREF=\"http://code.google.com/p/wqsglib\">http://code.google.com/p/wqsglib</A>\r\n                 <A HREF=\"http://wqsg.ys168.com\">http://wqsg.ys168.com</A>\r\n" ,
 		strAuthor2 + L"(" + strAuthor1 + L")" );
+}
+
+bool CPs2MemoryCardDlg::Load_Psu( const CStringW& a_strFile , SPsuData& a_Files )
+{
+	CWQSG_File fp;
+	if( !fp.OpenFile( a_strFile.GetString() , 1 , 3 ) )
+		return false;
+
+	SPsu_header psu_head = {};
+	if( sizeof(psu_head) != fp.Read( &psu_head , sizeof(psu_head) ) )
+		return false;
+
+	if( !(psu_head.attr & DF_DIRECTORY) )
+		return false;
+
+	if( !(psu_head.attr & DF_EXISTS) )
+		return false;
+
+	{
+		static const SPsu_header psu_x = {};
+
+		if( psu_head.unknown_1_u16 != 0 || psu_head.unknown_2_u64 != 0 || psu_head.EMS_used_u64 != 0 )
+			return false;
+
+		if( memcmp( psu_head.unknown_3_24_bytes , psu_x.unknown_3_24_bytes , sizeof(psu_x.unknown_3_24_bytes) ) != 0 ||
+			memcmp( psu_head.unknown_4_416_bytes , psu_x.unknown_4_416_bytes , sizeof(psu_x.unknown_4_416_bytes) ) != 0)
+			return false;
+	}
+
+
+	a_Files.m_strName = (const char*)psu_head.name;
+	a_Files.m_files.clear();
+
+	for( u32 i = 0 ; i < psu_head.size ; ++i )
+	{
+		SPsu_header head1 = {};
+		if( sizeof(head1) != fp.Read( &head1 , sizeof(head1) ) )
+			return false;
+
+		{
+			static const SPsu_header psu_x = {};
+
+			if( head1.unknown_1_u16 != 0 || head1.unknown_2_u64 != 0 || head1.EMS_used_u64 != 0 )
+				return false;
+
+			if( memcmp( head1.unknown_3_24_bytes , psu_x.unknown_3_24_bytes , sizeof(psu_x.unknown_3_24_bytes) ) != 0 ||
+				memcmp( head1.unknown_4_416_bytes , psu_x.unknown_4_416_bytes , sizeof(psu_x.unknown_4_416_bytes) ) != 0)
+				return false;
+		}
+
+		if( head1.attr & DF_DIRECTORY )
+		{
+			if( head1.size == 0 )
+				continue;
+
+			return false;
+		}
+
+		if( !(head1.attr & DF_EXISTS) )
+			return false;
+
+		std::vector<u8>& buff = a_Files.m_files[std::string((const char*)head1.name)];
+
+		if( head1.size )
+		{
+			buff.resize( head1.size , 0 );
+
+			if( head1.size != fp.Read( &buff[0] , head1.size ) )
+				return false;
+
+			const u32 p = head1.size % 0x400;
+
+			if( p )
+				fp.Seek( fp.Tell() + (0x400 - p) );
+
+			if( 0 )
+			{
+				CWQSG_File FP;
+				if( FP.OpenFile( L"D:\\WQSG\\ICON.BIN" , 4 , 3 ) )
+				{
+					FP.Write( &buff[0] , head1.size );
+					FP.Close();
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+void CPs2MemoryCardDlg::OnBnClickedButton1()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	static CWQSGFileDialog_Open dlg1( L"*.psu|*.psu||" );
+	if( IDOK != dlg1.DoModal() )
+		return;
+
+	static CWQSGFileDialog_Open dlg2( L"*.psu|*.psu||" );
+	if( IDOK != dlg2.DoModal() )
+		return;
+
+	SPsuData psu1;
+	SPsuData psu2;
+
+	if( !Load_Psu( dlg1.GetPathName() , psu1 ) )
+	{
+		MessageBox( L"读取失败" , dlg1.GetPathName() );
+		return;
+	}
+
+	if( !Load_Psu( dlg2.GetPathName() , psu2 ) )
+	{
+		MessageBox( L"读取失败" , dlg2.GetPathName() );
+		return;
+	}
+
+	if( psu1.m_strName != psu2.m_strName )
+	{
+		MessageBox( L"存档不同" );
+		return;
+	}
+
+	if( psu1.m_files.size() != psu2.m_files.size() )
+	{
+		MessageBox( L"文件数不等" );
+		return;
+	}
+
+	for( TPsuFile::const_iterator it1 = psu1.m_files.begin() ;
+		it1 != psu1.m_files.end() ; ++it1 )
+	{
+		TPsuFile::const_iterator it2 = psu2.m_files.find(it1->first);
+		if( it2 == psu2.m_files.end() )
+		{
+			MessageBox( L"文件名不等" );
+			return;
+		}
+
+		if( it1->second.size() != it2->second.size() )
+		{
+			CString str;
+			str = it1->first.c_str();
+			MessageBox( L"数据长度不等" , str );
+			return;
+		}
+
+		if( memcmp( &(it1->second[0]) , &(it2->second[0]) , it2->second.size() ) )
+		{
+			CString str;
+			str = it1->first.c_str();
+			MessageBox( L"数据不等" , str );
+			return;
+		}
+	}
+
+	MessageBox( L"相等" );
 }
