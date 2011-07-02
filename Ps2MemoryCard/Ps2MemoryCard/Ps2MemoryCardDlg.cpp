@@ -76,7 +76,7 @@ BOOL CPs2MemoryCardDlg::OnInitDialog()
 	// TODO: 在此添加额外的初始化代码
 	m_cList.SetExtendedStyle( m_cList.GetExtendedStyle() | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES );
 
-	m_cList.InsertColumn( 0 , L"存档名" , 0 , 350 );
+	m_cList.InsertColumn( 0 , L"存档名" , 0 , 450 );
 	m_cList.InsertColumn( 1 , L"size" , 0 , 40 );
 	m_cList.InsertColumn( 2 , L"原名" , 0 , 150 );
 
@@ -235,30 +235,38 @@ void CPs2MemoryCardDlg::UpdateUI()
 	{
 		const CVPscMc::SFileInfo& info = *it;
 
+		CStringW str;
+
 		CWQSG_memFile mf;
-		if( !m_Mc.Vmc_ReadFile( mf , info.szName , "icon.sys" ) )
-			continue;
-
-		mf.Seek( 0xC0 );
-
-		char buf[0x100];
-		if( sizeof(buf) != mf.Read( buf , sizeof(buf) ) )
+		if( m_Mc.Vmc_ReadFile( mf , info.szName , "icon.sys" ) )
 		{
-			MessageBox( L"取存档文件名失败" );
-			break;
+			mf.Seek( 0xC0 );
+
+			char buf[0x100];
+			if( sizeof(buf) != mf.Read( buf , sizeof(buf) ) )
+			{
+				MessageBox( L"取存档文件名失败" );
+				break;
+			}
+
+			WCHAR* pTitle = WQSG_char_W( buf , 932 );
+			str = pTitle;
+			delete[]pTitle;
+		}
+		else
+		{
+			WCHAR* pX = WQSG_char_W( info.szName , 932 );
+			str = pX;
+			delete[]pX;
 		}
 
-		WCHAR* pTitle = WQSG_char_W( buf , 932 );
-		const int iIndex = m_cList.InsertItem( m_cList.GetItemCount() , pTitle );
-		delete[]pTitle;
+		const int iIndex = m_cList.InsertItem( m_cList.GetItemCount() , str );
 
 		if( iIndex == -1 )
 		{
 			MessageBox( L"添加失败" );
 			break;
 		}
-
-		CString str;
 
 		str.Format( L"%d" , info.uSize );
 		m_cList.SetItemText( iIndex , 1 , str );
