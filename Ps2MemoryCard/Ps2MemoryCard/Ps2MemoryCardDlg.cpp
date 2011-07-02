@@ -292,7 +292,8 @@ void CPs2MemoryCardDlg::UpdateUI()
 		OutputDebugString( str );
 	}
 }
-
+// 00833A00 map? 00000000 ,总之全FF
+// 0083DF00 MAP  0000A500
 void CPs2MemoryCardDlg::OnBnClickedButtonAbout()
 {
 	// TODO: 在此添加控件通知处理程序代码

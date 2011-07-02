@@ -305,20 +305,19 @@ u32 CVPscMc::getFreeCluster( u32* a_puFreeCount ) const
 				if( FREE_CLUSTER == free_cluster ||
 					(ERROR_CLUSTER != free_cluster && (free_cluster & MASK_CLUSTER) != MASK_CLUSTER) )
 				{
+					const u32 uMod = m_pHead->cluster_size / sizeof(u32);
+
+					const u32 uRt = uFatLow + uHigh2Low * uMod + uFatHigh_Index * uMod * uMod;
+
+					if( uRt > (m_pHead->max_used-3) )
+						break;
+
 					if( a_puFreeCount )
 					{
-						const u32 uMod = m_pHead->cluster_size / sizeof(u32);
-
-						const u32 uRt = uFatLow + uHigh2Low * uMod + uFatHigh_Index * uMod * uMod;
-
 						(*a_puFreeCount)++;
 					}
 					else
 					{
-						const u32 uMod = m_pHead->cluster_size / sizeof(u32);
-
-						const u32 uRt = uFatLow + uHigh2Low * uMod + uFatHigh_Index * uMod * uMod;
-
 						return uRt;
 					}
 				}
@@ -544,6 +543,12 @@ bool CVPscMc::_Vmc_Mkdir( SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strNam
 	else
 		getPs2Time( &dirent_new.modified );
 	//-----------------------------------------------
+	dirent_new.length = 2;
+	dirent_new.cluster = ERROR_CLUSTER;
+
+	if( !addObject( uEntryIndex , a_DirEnt_Path , dirent_new , false ) )
+		return false;
+
 	dirent_new.cluster = getFreeCluster( NULL );
 	if( dirent_new.cluster == ERROR_CLUSTER )
 		return false;
@@ -551,12 +556,10 @@ bool CVPscMc::_Vmc_Mkdir( SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strNam
 	if( !setFatEntry( dirent_new.cluster , ERROR_CLUSTER , FAT_SET ) )
 		return false;
 
-	dirent_new.length = 2;
-
-	if( !addObject( uEntryIndex , a_DirEnt_Path , dirent_new , false ) )
+	if( !writeDirBase( dirent_new.cluster , a_DirEnt_Path , uEntryIndex ) )
 		return false;
 
-	if( !writeDirBase( dirent_new.cluster , a_DirEnt_Path , uEntryIndex ) )
+	if( !setDirentryFromDirentry( dirent_new , a_DirEnt_Path , uEntryIndex ) )
 		return false;
 
 	return true;
@@ -708,6 +711,10 @@ bool CVPscMc::_Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , SPs2DirEntry& 
 		dirent_file.modified = *a_pModified;
 	else
 		getPs2Time( &dirent_file.modified );
+
+
+	if( !addObject( uEntryIndex , a_DirEnt_Path , dirent_file , bHasOldFile ) )
+		return false;
 	//---------------------------------------------------
 	std::vector<u8> buffer;
 	buffer.resize( m_pHead->cluster_size , 0 );
@@ -736,6 +743,7 @@ bool CVPscMc::_Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , SPs2DirEntry& 
 		if( !setFatEntry( uCluster , ERROR_CLUSTER , FAT_SET ) )
 			return false;
 
+		memset( &buffer[0] , 0xFF , buffer.size() );
 		if( uRead != a_InFp.Read( &buffer[0] , uRead ) )
 			return false;
 
@@ -745,7 +753,7 @@ bool CVPscMc::_Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , SPs2DirEntry& 
 		uOldCluster = uCluster;
 	}
 	//---------------------------------------------------
-	return addObject( uOldCluster , a_DirEnt_Path , dirent_file , bHasOldFile );
+	return setDirentryFromDirentry( dirent_file , a_DirEnt_Path , uEntryIndex );
 }
 
 bool CVPscMc::_Vmc_ReadFile( CWQSG_xFile* a_pOutFp , const CStringA& a_strPath , const CStringA& a_strName , SPs2DateTime* a_pCreated , SPs2DateTime* a_pModified , u16* a_puMode ) const

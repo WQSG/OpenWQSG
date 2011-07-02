@@ -59,6 +59,9 @@ bool CVPscMc::LoadMc( const CStringW& a_strPathName )
 	else if( nSize != fp.Read( m_pBuf , nSize ) )
 		return false;
 
+	if( m_pHead->max_used < 3 )
+		return false;
+
 	m_bOpen = true;
 	return true;
 }
