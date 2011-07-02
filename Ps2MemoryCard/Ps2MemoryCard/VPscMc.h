@@ -52,9 +52,9 @@ public:
 	virtual ~CVPscMc(void);
 
 	bool LoadMc( const CStringW& a_strPathName );
-	bool SaveMc( const CStringW& a_strPathName );
+	bool SaveMc( const CStringW& a_strPathName ) const;;
 
-	bool SaveMcNoEcc( const CStringW& a_strPathName );
+	bool SaveMcNoEcc( const CStringW& a_strPathName ) const;;
 
 	bool isOpen()const{return m_bOpen;}
 	//-----------------------
@@ -62,9 +62,9 @@ public:
 	bool UnBak();
 protected:
 	void UpdateEcc( char* Page_Data, char* ECC_Data );
-	bool ReadPage( void* a_OutBuf , n32 a_nPageIndex );
+	bool ReadPage( void* a_OutBuf , n32 a_nPageIndex ) const;
 	bool WritePage( const void* a_OutBuf , n32 a_nPageIndex );
-	bool readCluster( void* a_pOutCluster, u32 a_uClusterIndex );
+	bool readCluster( void* a_pOutCluster, u32 a_uClusterIndex ) const;
 	bool writeCluster( const void* a_pOutCluster, u32 a_uClusterIndex );
 	//---------------------------------------------
 	typedef enum {
@@ -72,19 +72,19 @@ protected:
 		FAT_SET
 	} SetFat_Mode;
 
-	bool getFatEntry ( u32& a_uNextCluster , u32 a_uCluster );
+	bool getFatEntry ( u32& a_uNextCluster , u32 a_uCluster ) const;
 	bool setFatEntry ( u32 a_uCluster, u32 a_uValue , SetFat_Mode a_eMode );
 
-	u32 getFreeCluster();
+	u32 getFreeCluster( u32* a_puFreeCount ) const;
 	//---------------------------------------------
-	bool FindDirentryFromDirentry ( SPs2DirEntry& a_DirEnt , u32& a_uEntryIndex , const SPs2DirEntry& a_BaseDirEnt , const CStringA& a_strName , bool a_bMustExists );
+	bool FindDirentryFromDirentry ( SPs2DirEntry& a_DirEnt , u32& a_uEntryIndex , const SPs2DirEntry& a_BaseDirEnt , const CStringA& a_strName , bool a_bMustExists ) const;
 
-	bool getDirentryFromPath ( SPs2DirEntry& a_DirEnt , const CStringA& a_strPath , bool a_bMustExists );
+	bool getDirentryFromPath ( SPs2DirEntry& a_DirEnt , const CStringA& a_strPath , bool a_bMustExists ) const;
 
-	bool getDirentryFromDirentry ( SPs2DirEntry& a_DirEnt , const SPs2DirEntry& a_BaseDirEnt , u32 a_uDirEntIndex );
+	bool getDirentryFromDirentry ( SPs2DirEntry& a_DirEnt , const SPs2DirEntry& a_BaseDirEnt , u32 a_uDirEntIndex ) const;
 	bool setDirentryFromDirentry ( const SPs2DirEntry& a_DirEnt , const SPs2DirEntry& a_BaseDirEnt , u32 a_uDirEntIndex );
 
-	bool GetClusterIndex_ByEntryIndex( u32& a_OutClusterIndex , u32& a_OutPageOffset , const SPs2DirEntry& a_DirEnt , u32 a_uEntryIndex );
+	bool GetClusterIndex_ByEntryIndex( u32& a_OutClusterIndex , u32& a_OutPageOffset , const SPs2DirEntry& a_DirEnt , u32 a_uEntryIndex ) const;
 
 	bool _Vmc_Mkdir( SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified , const u16* a_puMode );
 
@@ -100,8 +100,8 @@ protected:
 
 	bool _Vmc_Mkdir( const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified , const u16* a_puMode );
 	bool _Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified , const u16* a_puMode );
-	bool _Vmc_ReadFile( CWQSG_xFile* a_pOutFp , const CStringA& a_strPath , const CStringA& a_strName , SPs2DateTime* a_pCreated , SPs2DateTime* a_pModified , u16* a_puMode );
-	bool _Vmc_ReadFile( CWQSG_xFile* a_pOutFp , const SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName , SPs2DateTime* a_pCreated , SPs2DateTime* a_pModified , u16* a_puMode );
+	bool _Vmc_ReadFile( CWQSG_xFile* a_pOutFp , const CStringA& a_strPath , const CStringA& a_strName , SPs2DateTime* a_pCreated , SPs2DateTime* a_pModified , u16* a_puMode ) const;
+	bool _Vmc_ReadFile( CWQSG_xFile* a_pOutFp , const SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName , SPs2DateTime* a_pCreated , SPs2DateTime* a_pModified , u16* a_puMode ) const;
 public:
 	bool Vmc_Mkdir( const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified );
 	bool Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified );
@@ -109,7 +109,18 @@ public:
 	bool Vmc_DeleteFile( const CStringA& a_strPath , const CStringA& a_strName );
 
 	bool Import_Psu( const CString& a_strPathName );
-	bool Export_Psu( const CString& a_strPathName , const CStringA a_strDirName );
+	bool Export_Psu( const CString& a_strPathName , const CStringA a_strDirName ) const;
 
-	bool GetFiles( std::vector<SFileInfo>& a_Datas , const CStringA& a_strPath );
+	bool GetFiles( std::vector<SFileInfo>& a_Datas , const CStringA& a_strPath ) const;
+
+	bool GetFreeClusterCount( u32& a_FreeCount ) const
+	{
+		return getFreeCluster( &a_FreeCount ) == 0;
+	}
+
+	u32 GetPreClusterSize() const
+	{
+		return m_pHead->cluster_size;
+	}
+	
 };

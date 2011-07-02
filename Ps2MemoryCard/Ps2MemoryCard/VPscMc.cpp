@@ -63,7 +63,7 @@ bool CVPscMc::LoadMc( const CStringW& a_strPathName )
 	return true;
 }
 
-bool CVPscMc::SaveMc( const CStringW& a_strPathName )
+bool CVPscMc::SaveMc( const CStringW& a_strPathName ) const
 {
 	if( !isOpen() )
 		return false;
@@ -75,7 +75,7 @@ bool CVPscMc::SaveMc( const CStringW& a_strPathName )
 	return ( m_Bufs.size() == fp.Write( m_pBuf , m_Bufs.size() ) );
 }
 
-bool CVPscMc::SaveMcNoEcc( const CStringW& a_strPathName )
+bool CVPscMc::SaveMcNoEcc( const CStringW& a_strPathName ) const
 {
 	if( !isOpen() )
 		return false;
@@ -187,7 +187,7 @@ bool CVPscMc::Import_Psu( const CString& a_strPathName )
 	return true;
 }
 
-bool CVPscMc::Export_Psu( const CString& a_strPathName , const CStringA a_strDirName )
+bool CVPscMc::Export_Psu( const CString& a_strPathName , const CStringA a_strDirName ) const
 {
 	if( !isOpen() )
 		return false;
@@ -295,7 +295,7 @@ bool CVPscMc::Export_Psu( const CString& a_strPathName , const CStringA a_strDir
 	return true;
 }
 
-bool CVPscMc::GetFiles( std::vector<SFileInfo>& a_Datas , const CStringA& a_strPath )
+bool CVPscMc::GetFiles( std::vector<SFileInfo>& a_Datas , const CStringA& a_strPath ) const
 {
 	a_Datas.clear();
 

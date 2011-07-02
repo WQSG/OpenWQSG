@@ -147,7 +147,7 @@ void CVPscMc::UpdateEcc( char* Page_Data, char* ECC_Data )
 	buildECC( Page_Data , ECC_Data );
 }
 
-bool CVPscMc::ReadPage( void* a_OutBuf , n32 a_nPageIndex )
+bool CVPscMc::ReadPage( void* a_OutBuf , n32 a_nPageIndex ) const
 {
 	size_t position = a_nPageIndex * (m_pHead->page_size + 0x10);
 
@@ -167,7 +167,7 @@ bool CVPscMc::WritePage( const void* a_OutBuf , n32 a_nPageIndex )
 	return true;
 }
 
-bool CVPscMc::readCluster( void* a_pOutCluster , u32 a_uClusterIndex ) 
+bool CVPscMc::readCluster( void* a_pOutCluster , u32 a_uClusterIndex ) const
 {
 	u32 uPage_Index = a_uClusterIndex * m_pHead->pages_per_cluster;
 
@@ -193,7 +193,7 @@ bool CVPscMc::writeCluster( const void* a_pOutCluster, u32 a_uClusterIndex )
 	return true;
 }
 //-----------------------------------------------------------------
-bool CVPscMc::getFatEntry ( u32& a_uNextCluster , u32 a_uCluster )
+bool CVPscMc::getFatEntry ( u32& a_uNextCluster , u32 a_uCluster ) const
 {
 	const u32 uMod = m_pHead->cluster_size / sizeof(u32);
 	// The fat index, aka which cluster we want to know about const u32& fat_index = a_uCluster;
@@ -269,8 +269,11 @@ bool CVPscMc::setFatEntry ( u32 a_uCluster, u32 a_uValue, SetFat_Mode a_eMode )
 	return writeCluster ( &fat_cluster[0] , indirect_cluster_High2Low[ uFatHigh_Offset ] );
 }
 
-u32 CVPscMc::getFreeCluster()
+u32 CVPscMc::getFreeCluster( u32* a_puFreeCount ) const
 {
+	if( a_puFreeCount )
+		(*a_puFreeCount) = 0;
+
 	std::vector<u32> indirect_cluster_High2Low;
 	indirect_cluster_High2Low.resize( m_pHead->pages_per_cluster * (m_pHead->page_size / sizeof(u32)) , ERROR_CLUSTER );
 
@@ -281,15 +284,15 @@ u32 CVPscMc::getFreeCluster()
 		uFatHigh_Index < (sizeof(m_pHead->indir_fat_clusters)/sizeof(*m_pHead->indir_fat_clusters)) ;
 		++uFatHigh_Index )
 	{
-		if( m_pHead->indir_fat_clusters[ uFatHigh_Index ] < 8 )
-			return ERROR_CLUSTER;
+		if( m_pHead->indir_fat_clusters[ uFatHigh_Index ] < 8 || m_pHead->indir_fat_clusters[ uFatHigh_Index ] == ERROR_CLUSTER )
+			break;
 
 		if( !readCluster ( &indirect_cluster_High2Low[0] , m_pHead->indir_fat_clusters[ uFatHigh_Index ] ) )
 			return ERROR_CLUSTER;
 
 		for( std::vector<u32>::size_type uHigh2Low = 0 ; uHigh2Low < indirect_cluster_High2Low.size() ; ++uHigh2Low )
 		{
-			if( ERROR_CLUSTER == indirect_cluster_High2Low[uHigh2Low] )
+			if( ERROR_CLUSTER == indirect_cluster_High2Low[uHigh2Low] || 0 == indirect_cluster_High2Low[uHigh2Low] )
 				continue;
 
 			if( !readCluster ( &fat_cluster[0] , indirect_cluster_High2Low[uHigh2Low] ) )
@@ -302,21 +305,28 @@ u32 CVPscMc::getFreeCluster()
 				if( FREE_CLUSTER == free_cluster ||
 					(ERROR_CLUSTER != free_cluster && (free_cluster & MASK_CLUSTER) != MASK_CLUSTER) )
 				{
-					const u32 uMod = m_pHead->cluster_size / sizeof(u32);
+					if( a_puFreeCount )
+					{
+						(*a_puFreeCount)++;
+					}
+					else
+					{
+						const u32 uMod = m_pHead->cluster_size / sizeof(u32);
 
-					const u32 uRt = uFatLow + uHigh2Low * uMod + uFatHigh_Index * uMod * uMod;
+						const u32 uRt = uFatLow + uHigh2Low * uMod + uFatHigh_Index * uMod * uMod;
 
-					return uRt;
+						return uRt;
+					}
 				}
 			}
 		}
 	}
 
-	return ERROR_CLUSTER;
+	return a_puFreeCount?0:ERROR_CLUSTER;
 }
 
 //-----------------------------------------------------------------
-bool CVPscMc::getDirentryFromPath( SPs2DirEntry& a_DirEnt , const CStringA& a_strPath , bool a_bMustExists )
+bool CVPscMc::getDirentryFromPath( SPs2DirEntry& a_DirEnt , const CStringA& a_strPath , bool a_bMustExists ) const
 {
 	if( !isOpen() )
 		return false;
@@ -378,7 +388,7 @@ bool CVPscMc::getDirentryFromPath( SPs2DirEntry& a_DirEnt , const CStringA& a_st
 	return true;
 }
 
-bool CVPscMc::getDirentryFromDirentry( SPs2DirEntry& a_DirEnt , const SPs2DirEntry& a_BaseDirEnt , u32 a_uDirEntIndex )
+bool CVPscMc::getDirentryFromDirentry( SPs2DirEntry& a_DirEnt , const SPs2DirEntry& a_BaseDirEnt , u32 a_uDirEntIndex ) const
 {
 	ASSERT( a_BaseDirEnt.mode & DF_DIRECTORY );
 	ASSERT( a_BaseDirEnt.mode & DF_EXISTS );
@@ -406,7 +416,7 @@ bool CVPscMc::setDirentryFromDirentry( const SPs2DirEntry& a_DirEnt , const SPs2
 	return false;
 }
 
-bool CVPscMc::FindDirentryFromDirentry( SPs2DirEntry& a_DirEnt , u32& a_uEntryIndex , const SPs2DirEntry& a_BaseDirEnt , const CStringA& a_strName , bool a_bMustExists )
+bool CVPscMc::FindDirentryFromDirentry( SPs2DirEntry& a_DirEnt , u32& a_uEntryIndex , const SPs2DirEntry& a_BaseDirEnt , const CStringA& a_strName , bool a_bMustExists ) const
 {
 	if( !(a_BaseDirEnt.mode & DF_DIRECTORY) )
 	{
@@ -436,7 +446,7 @@ bool CVPscMc::FindDirentryFromDirentry( SPs2DirEntry& a_DirEnt , u32& a_uEntryIn
 	return false;
 }
 
-bool CVPscMc::GetClusterIndex_ByEntryIndex( u32& a_OutClusterIndex , u32& a_OutPageOffset , const SPs2DirEntry& a_BaseDirEnt , u32 a_uEntryIndex )
+bool CVPscMc::GetClusterIndex_ByEntryIndex( u32& a_OutClusterIndex , u32& a_OutPageOffset , const SPs2DirEntry& a_BaseDirEnt , u32 a_uEntryIndex ) const
 {
 	ASSERT( a_BaseDirEnt.mode & DF_DIRECTORY );
 	ASSERT( a_BaseDirEnt.mode & DF_EXISTS );
@@ -530,7 +540,7 @@ bool CVPscMc::_Vmc_Mkdir( SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strNam
 	else
 		getPs2Time( &dirent_new.modified );
 	//-----------------------------------------------
-	dirent_new.cluster = getFreeCluster();
+	dirent_new.cluster = getFreeCluster( NULL );
 	if( dirent_new.cluster == ERROR_CLUSTER )
 		return false;
 
@@ -704,7 +714,7 @@ bool CVPscMc::_Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , SPs2DirEntry& 
 		const u32 uRead = (a_uSize > m_pHead->cluster_size)?m_pHead->cluster_size:a_uSize;
 		a_uSize -= uRead;
 
-		u32 uCluster = getFreeCluster();
+		const u32 uCluster = getFreeCluster( NULL );
 
 		if( uCluster == ERROR_CLUSTER )
 			return false;
@@ -734,7 +744,7 @@ bool CVPscMc::_Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , SPs2DirEntry& 
 	return addObject( uOldCluster , a_DirEnt_Path , dirent_file , bHasOldFile );
 }
 
-bool CVPscMc::_Vmc_ReadFile( CWQSG_xFile* a_pOutFp , const CStringA& a_strPath , const CStringA& a_strName , SPs2DateTime* a_pCreated , SPs2DateTime* a_pModified , u16* a_puMode )
+bool CVPscMc::_Vmc_ReadFile( CWQSG_xFile* a_pOutFp , const CStringA& a_strPath , const CStringA& a_strName , SPs2DateTime* a_pCreated , SPs2DateTime* a_pModified , u16* a_puMode ) const
 {
 	if( !isOpen() )
 		return false;
@@ -747,7 +757,7 @@ bool CVPscMc::_Vmc_ReadFile( CWQSG_xFile* a_pOutFp , const CStringA& a_strPath ,
 	
 }
 
-bool CVPscMc::_Vmc_ReadFile( CWQSG_xFile* a_pOutFp , const SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName , SPs2DateTime* a_pCreated , SPs2DateTime* a_pModified , u16* a_puMode )
+bool CVPscMc::_Vmc_ReadFile( CWQSG_xFile* a_pOutFp , const SPs2DirEntry& a_DirEnt_Path , const CStringA& a_strName , SPs2DateTime* a_pCreated , SPs2DateTime* a_pModified , u16* a_puMode ) const
 {
 	if( !isOpen() )
 		return false;
@@ -876,7 +886,7 @@ bool CVPscMc::addObject( u32& a_uEntryIndex , SPs2DirEntry& a_parent , SPs2DirEn
 				if( !GetClusterIndex_ByEntryIndex( current_cluster , uItem , a_parent , a_uEntryIndex - 1 ) )
 					return false;
 				// Get a free cluster because our object require an additional cluster
-				const u32 nextfree_cluster = getFreeCluster();
+				const u32 nextfree_cluster = getFreeCluster( NULL );
 
 				if( nextfree_cluster == ERROR_CLUSTER ) 
 				{

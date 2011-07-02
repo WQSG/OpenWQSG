@@ -129,7 +129,7 @@ void CPs2MemoryCardDlg::OnClose()
 void CPs2MemoryCardDlg::OnBnClickedButtonOpenMc()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	static CWQSGFileDialog_Open dlg( L"*.ps2|*.ps2||" );
+	static CWQSGFileDialog_Open dlg( L"*.ps2;*.bin|*.ps2;*.bin||" );
 	if( IDOK != dlg.DoModal() )
 		return;
 
@@ -277,6 +277,20 @@ void CPs2MemoryCardDlg::UpdateUI()
 	}
 
 	m_cList.SetRedraw( TRUE );
+
+	u32 count = 0;
+	if( m_Mc.GetFreeClusterCount( count ) )
+	{
+		CStringW str;
+		str.Format( L"空闲块 = %d , size = %d\r\n" , count , m_Mc.GetPreClusterSize() * count );
+		OutputDebugString( str );
+	}
+	else
+	{
+		CStringW str;
+		str.Format( L"取空闲块失败,空闲块 = %d , size = %d\r\n" , count , m_Mc.GetPreClusterSize() * count );
+		OutputDebugString( str );
+	}
 }
 
 void CPs2MemoryCardDlg::OnBnClickedButtonAbout()
