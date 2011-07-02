@@ -307,6 +307,10 @@ u32 CVPscMc::getFreeCluster( u32* a_puFreeCount ) const
 				{
 					if( a_puFreeCount )
 					{
+						const u32 uMod = m_pHead->cluster_size / sizeof(u32);
+
+						const u32 uRt = uFatLow + uHigh2Low * uMod + uFatHigh_Index * uMod * uMod;
+
 						(*a_puFreeCount)++;
 					}
 					else

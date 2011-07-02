@@ -309,7 +309,7 @@ void CPs2MemoryCardDlg::OnBnClickedButtonAbout()
 	strAuthor2.LoadString( IDS_APP_AUTHOR2 );
 
 	WQSG_About( m_hIcon , m_hWnd , L"关于本软件" , strAppName + L"\r\nv" + strAppVer ,
-		L"项目svn : <A HREF=\"http://code.google.com/p/wqsg-umd\">http://code.google.com/p/OpenWqsg</A>\r\n"
+		L"项目svn : <A HREF=\"http://code.google.com/p/openwqsg\">http://code.google.com/p/openwqsg</A>\r\n"
 		L"依赖库svn : <A HREF=\"http://code.google.com/p/wqsglib\">http://code.google.com/p/wqsglib</A>\r\n                 <A HREF=\"http://wqsg.ys168.com\">http://wqsg.ys168.com</A>\r\n" ,
 		strAuthor2 + L"(" + strAuthor1 + L")" );
 }
