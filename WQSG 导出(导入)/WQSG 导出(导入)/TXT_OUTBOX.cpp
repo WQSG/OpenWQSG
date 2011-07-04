@@ -446,8 +446,7 @@ BOOL CTXT_OutBox::OnInitDialog()
 	m_C文本在同目录.SetCheck( TRUE );
 	OnBnClickedCheck3();
 #if USE_XML
-	LoadXml( LockConfig() );
-	UnLockConfig();
+	LoadXml( LockConfig().GetConfig() );
 #endif
 	return TRUE;
 }
@@ -860,7 +859,8 @@ void CTXT_OutBox::LoadXml( TiXmlElement& a_Root )
 
 void CTXT_OutBox::SaveXml()
 {
-	TiXmlElement& a_Root = LockConfig();
+	CConfigLockGuard guard = LockConfig();
+	TiXmlElement& a_Root = guard.GetConfig();
 
 	TiXmlNode*const pOldNode = a_Root.FirstChildElement( "Export" );
 	TiXmlElement*const pNewNode = a_Root.LinkEndChild( new TiXmlElement( "Export" ) )->ToElement();
@@ -896,7 +896,6 @@ void CTXT_OutBox::SaveXml()
 		delete pOldNode;
 	}
 
-	UnLockConfig();
 	SaveConfig();
 }
 #endif

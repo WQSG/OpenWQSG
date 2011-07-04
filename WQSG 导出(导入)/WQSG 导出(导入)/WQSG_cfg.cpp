@@ -35,7 +35,7 @@ void InitConfig2()
 
 BOOL InitConfig()
 {
-	g_lock.Lock();
+	CConfigLockGuard guard = LockConfig();
 
 	FILE* fileXml = NULL;
 	BOOL bRt = FALSE;
@@ -88,36 +88,28 @@ BOOL InitConfig()
 
 	if( fileXml )
 		fclose(fileXml);
-	g_lock.UnLock();
+
 	return bRt;
 }
 
-TiXmlElement& LockConfig()
+CConfigLockGuard LockConfig()
 {
-	g_lock.Lock();
-	return *g_xmlConfig.FirstChildElement();
-}
-
-void UnLockConfig()
-{
-	g_lock.UnLock();
+	return CConfigLockGuard( g_lock , *g_xmlConfig.FirstChildElement() );
 }
 
 BOOL SaveConfig()
 {
-	g_lock.Lock();
+	CConfigLockGuard guard = LockConfig();
 
 	FILE* fileXml = _wfopen( g_strConfigSavePathName.GetString() , L"wb" );
 	if( NULL == fileXml )
 	{
-		g_lock.UnLock();
 		return FALSE;
 	}
 
 	const BOOL bOk = g_xmlConfig.SaveFile( fileXml );
 	fclose( fileXml );
 
-	g_lock.UnLock();
 	return bOk;
 }
 

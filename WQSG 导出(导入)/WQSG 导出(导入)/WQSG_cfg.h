@@ -54,9 +54,37 @@ enum
 };
 
 #if USE_XML
+
+class CConfigLockGuard
+{
+	CWQSG_CriticalSection& m_lock;
+	TiXmlElement& m_Config;
+public:
+	CConfigLockGuard( CWQSG_CriticalSection& a_lock , TiXmlElement& a_Config )
+		: m_lock(a_lock) , m_Config(a_Config)
+	{
+		m_lock.Lock();
+	}
+
+	CConfigLockGuard( const CConfigLockGuard& a_Guard )
+		: m_lock(a_Guard.m_lock) , m_Config(a_Guard.m_Config)
+	{
+		m_lock.Lock();
+	}
+
+	~CConfigLockGuard()
+	{
+		m_lock.UnLock();
+	}
+
+	TiXmlElement& GetConfig()
+	{
+		return m_Config;
+	}
+};
+
 BOOL InitConfig();
-TiXmlElement& LockConfig();
-void UnLockConfig();
+CConfigLockGuard LockConfig();
 BOOL SaveConfig();
 #endif
 

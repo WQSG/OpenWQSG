@@ -465,8 +465,7 @@ BOOL CTXT_INBOX::OnInitDialog()
 	m_C文本在同目录.SetCheck( TRUE );
 	OnBnClickedCheck3();
 #if USE_XML
-	LoadXml( LockConfig() );
-	UnLockConfig();
+	LoadXml( LockConfig().GetConfig() );
 #endif
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 异常: OCX 属性页应返回 FALSE
@@ -884,7 +883,8 @@ void CTXT_INBOX::LoadXml( TiXmlElement& a_Root )
 
 void CTXT_INBOX::SaveXml()
 {
-	TiXmlElement& a_Root = LockConfig();
+	CConfigLockGuard guard = LockConfig();
+	TiXmlElement& a_Root = guard.GetConfig();
 
 	TiXmlNode*const pOldNode = a_Root.FirstChildElement( "Import" );
 	TiXmlElement*const pNewNode = a_Root.LinkEndChild( new TiXmlElement( "Import" ) )->ToElement();
@@ -920,7 +920,6 @@ void CTXT_INBOX::SaveXml()
 		delete pOldNode;
 	}
 
-	UnLockConfig();
 	SaveConfig();
 }
 #endif
