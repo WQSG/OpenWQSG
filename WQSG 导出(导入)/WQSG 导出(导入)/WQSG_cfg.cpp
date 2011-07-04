@@ -26,6 +26,13 @@ static CWQSG_CriticalSection g_lock;
 
 static inline void Xml1_0_to_2_0( TiXmlDocument& a_XmlDoc );
 
+void InitConfig2()
+{
+	g_xmlConfig.Clear();
+	g_xmlConfig.InsertEndChild( TiXmlDeclaration("1.0","utf-8","0") );
+	g_xmlConfig.LinkEndChild( new TiXmlElement( Utf16le2Utf8( L"WQSG∫∫ªØ≈‰÷√2.0" ) ) );
+}
+
 BOOL InitConfig()
 {
 	g_lock.Lock();
@@ -44,16 +51,23 @@ BOOL InitConfig()
 		fileXml = _wfopen( g_strConfigSavePathName.GetString() , L"rb" );
 		if( NULL == fileXml )
 		{
+			InitConfig2();
 			bRt = TRUE;
 			break;
 		}
 
 		if( !g_xmlConfig.LoadFile( fileXml , TIXML_ENCODING_UTF8 ) )
+		{
+			InitConfig2();
 			break;
+		}
 
 		const TiXmlElement* pRoot = g_xmlConfig.FirstChildElement();
 		if( !pRoot )
+		{
+			InitConfig2();
 			break;
+		}
 
 		if( pRoot->Value() != Utf16le2Utf8( L"WQSG∫∫ªØ≈‰÷√2.0"  ) )
 		{
@@ -64,9 +78,7 @@ BOOL InitConfig()
 			}
 			else
 			{
-				g_xmlConfig.Clear();
-				g_xmlConfig.InsertEndChild( TiXmlDeclaration("1.0","utf-8","0") );
-				g_xmlConfig.LinkEndChild( new TiXmlElement( Utf16le2Utf8( L"WQSG∫∫ªØ≈‰÷√2.0" ) ) );
+				InitConfig2();
 				//ok
 			}
 		}
