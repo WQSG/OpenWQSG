@@ -51,10 +51,12 @@ public:
 	CVPscMc(void);
 	virtual ~CVPscMc(void);
 
-	bool LoadMc( const CStringW& a_strPathName );
-	bool SaveMc( const CStringW& a_strPathName ) const;;
+	bool FormatMc();
 
-	bool SaveMcNoEcc( const CStringW& a_strPathName ) const;;
+	bool LoadMc( const CStringW& a_strPathName );
+	bool SaveMc( const CStringW& a_strPathName ) const;
+
+	bool SaveMcNoEcc( const CStringW& a_strPathName ) const;
 
 	bool isOpen()const{return m_bOpen;}
 	//-----------------------
@@ -105,7 +107,7 @@ protected:
 public:
 	bool Vmc_Mkdir( const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified );
 	bool Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , const CStringA& a_strPath , const CStringA& a_strName , const SPs2DateTime* a_pCreated , const SPs2DateTime* a_pModified );
-	bool Vmc_ReadFile( CWQSG_xFile& a_OutFp , const CStringA& a_strPath , const CStringA& a_strName );
+	bool Vmc_ReadFile( CWQSG_xFile& a_OutFp , const CStringA& a_strPath , const CStringA& a_strName ) const;
 	bool Vmc_DeleteFile( const CStringA& a_strPath , const CStringA& a_strName );
 
 	bool Import_Psu( const CString& a_strPathName );

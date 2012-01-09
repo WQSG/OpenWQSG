@@ -30,13 +30,20 @@ CVPscMc::~CVPscMc(void)
 {
 }
 
+bool CVPscMc::FormatMc()
+{
+	m_bOpen = false;
+
+	return false;
+}
+
 bool CVPscMc::LoadMc( const CStringW& a_strPathName )
 {
 	CWQSG_File fp;
 	if( !fp.OpenFile( a_strPathName.GetString() , 1 , 3 ) )
 		return false;
 
-	n64 nSize = fp.GetFileSize();
+	const n64 nSize = fp.GetFileSize();
 
 	if( nSize != 0x00800000 && nSize != 0x00840000 )
 		return false;
@@ -56,7 +63,7 @@ bool CVPscMc::LoadMc( const CStringW& a_strPathName )
 			UpdateEcc( (char*)pBuf , (char*)pBuf + 0x200 );
 		}
 	}
-	else if( nSize != fp.Read( m_pBuf , nSize ) )
+	else if( nSize != fp.Read( m_pBuf , (u32)nSize ) )
 		return false;
 
 	if( m_pHead->max_used < 3 )

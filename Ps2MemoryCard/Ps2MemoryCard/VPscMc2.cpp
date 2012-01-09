@@ -1022,7 +1022,7 @@ bool CVPscMc::_Vmc_WriteFile( CWQSG_xFile& a_InFp , u32 a_uSize , const CStringA
 	return _Vmc_WriteFile( a_InFp , a_uSize , dirent_path , a_strName , a_pCreated , a_pModified , a_puMode );
 }
 
-bool CVPscMc::Vmc_ReadFile( CWQSG_xFile& a_OutFp , const CStringA& a_strPath , const CStringA& a_strName )
+bool CVPscMc::Vmc_ReadFile( CWQSG_xFile& a_OutFp , const CStringA& a_strPath , const CStringA& a_strName ) const
 {
 	return _Vmc_ReadFile( &a_OutFp , a_strPath , a_strName , NULL , NULL , NULL );
 }

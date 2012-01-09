@@ -33,6 +33,14 @@ struct SPsuData
 	CStringA m_strName;
 	TPsuFile m_files;
 };
+
+struct SItemSortData
+{
+	CStringW m_strTitleName;
+	n32 m_nSize;
+	CStringW m_strFileName;
+};
+
 // CPs2MemoryCardDlg 对话框
 class CPs2MemoryCardDlg : public CDialog
 {
@@ -50,7 +58,7 @@ public:
 // 实现
 protected:
 	HICON m_hIcon;
-	CVPscMc m_Mc;
+	CVPscMc m_Mc1;
 
 	// 生成的消息映射函数
 	virtual BOOL OnInitDialog();
@@ -59,21 +67,28 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnClose();
-	afx_msg void OnBnClickedButtonOpenMc();
-	afx_msg void OnBnClickedButtonSaveMc();
-	afx_msg void OnBnClickedButtonImportPsu();
+	afx_msg void OnBnClickedButtonOpenMc1();
+	afx_msg void OnBnClickedButtonCreateMc1();
+	afx_msg void OnBnClickedButtonSaveMc1();
+	afx_msg void OnBnClickedButtonSaveBin1();
+	afx_msg void OnBnClickedButtonImportPsu1();
+	afx_msg void OnBnClickedButtonExportPsu1();
 
-	void UpdateUI();
-	void UISort();
+	afx_msg void OnBnClickedButtonSelPsuDir();
+
+	void UpdateMcUI();
+	void UpdateDirUI();
+	void UIInsert( CListCtrl& a_cList , const SItemSortData& a_Data );
+	void UISort( CListCtrl& a_cList );
 private:
-	CListCtrl m_cList;
+	CListCtrl m_cList1;
+	CListCtrl m_cList2;
 public:
-	afx_msg void OnBnClickedButtonExportPsu();
 	afx_msg void OnBnClickedButtonAbout();
 
 	bool Load_Psu( const CStringW& a_strFile , SPsuData& a_Files );
 	afx_msg void OnBnClickedButton1();
-	afx_msg void OnBnClickedButtonSaveBin();
-	afx_msg void OnHdnItemclickList1(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnLvnDeleteitemList1(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnHdnItemclickList(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnLvnDeleteitemList(NMHDR *pNMHDR, LRESULT *pResult);
+
 };

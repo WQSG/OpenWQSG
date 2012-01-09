@@ -198,6 +198,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SelDir.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -241,6 +245,10 @@
 			</File>
 			<File
 				RelativePath=".\Resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SelDir.h"
 				>
 			</File>
 			<File

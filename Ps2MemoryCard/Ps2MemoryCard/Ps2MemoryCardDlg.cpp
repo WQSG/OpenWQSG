@@ -23,6 +23,7 @@
 #include "Ps2MemoryCard.h"
 #include "Ps2MemoryCardDlg.h"
 #include "VPscMc.h"
+#include "SelDir.h"
 
 
 #ifdef _DEBUG
@@ -31,13 +32,6 @@
 
 
 // CPs2MemoryCardDlg 对话框
-
-struct SItemSortData
-{
-	CStringW m_strTitleName;
-	n32 m_nSize;
-	CStringW m_strFileName;
-};
 
 int CALLBACK ItemSort( LPARAM a , LPARAM b , LPARAM c )
 {
@@ -66,7 +60,8 @@ CPs2MemoryCardDlg::CPs2MemoryCardDlg(CWnd* pParent /*=NULL*/)
 void CPs2MemoryCardDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_LIST1, m_cList);
+	DDX_Control(pDX, IDC_LIST1, m_cList1);
+	DDX_Control(pDX, IDC_LIST2, m_cList2);
 }
 
 BEGIN_MESSAGE_MAP(CPs2MemoryCardDlg, CDialog)
@@ -74,15 +69,19 @@ BEGIN_MESSAGE_MAP(CPs2MemoryCardDlg, CDialog)
 	ON_WM_QUERYDRAGICON()
 	//}}AFX_MSG_MAP
 	ON_WM_CLOSE()
-	ON_BN_CLICKED(IDC_BUTTON_OPEN_MC, &CPs2MemoryCardDlg::OnBnClickedButtonOpenMc)
-	ON_BN_CLICKED(IDC_BUTTON_SAVE_MC, &CPs2MemoryCardDlg::OnBnClickedButtonSaveMc)
-	ON_BN_CLICKED(IDC_BUTTON_IMPORT_PSU, &CPs2MemoryCardDlg::OnBnClickedButtonImportPsu)
-	ON_BN_CLICKED(IDC_BUTTON_EXPORT_PSU, &CPs2MemoryCardDlg::OnBnClickedButtonExportPsu)
+	ON_BN_CLICKED(IDC_BUTTON_OPEN_MC1, &CPs2MemoryCardDlg::OnBnClickedButtonOpenMc1)
+	ON_BN_CLICKED(IDC_BUTTON_CREATE_MC1, &CPs2MemoryCardDlg::OnBnClickedButtonCreateMc1)
+	ON_BN_CLICKED(IDC_BUTTON_SAVE_MC1, &CPs2MemoryCardDlg::OnBnClickedButtonSaveMc1)
+	ON_BN_CLICKED(IDC_BUTTON_SAVE_BIN1, &CPs2MemoryCardDlg::OnBnClickedButtonSaveBin1)
+	ON_BN_CLICKED(IDC_BUTTON_IMPORT_PSU1, &CPs2MemoryCardDlg::OnBnClickedButtonImportPsu1)
+	ON_BN_CLICKED(IDC_BUTTON_EXPORT_PSU1, &CPs2MemoryCardDlg::OnBnClickedButtonExportPsu1)
+	ON_BN_CLICKED(IDC_BUTTON_SEL_PSU_DIR, &CPs2MemoryCardDlg::OnBnClickedButtonSelPsuDir)
 	ON_BN_CLICKED(IDC_BUTTON_ABOUT, &CPs2MemoryCardDlg::OnBnClickedButtonAbout)
 	ON_BN_CLICKED(IDC_BUTTON1, &CPs2MemoryCardDlg::OnBnClickedButton1)
-	ON_BN_CLICKED(IDC_BUTTON_SAVE_BIN, &CPs2MemoryCardDlg::OnBnClickedButtonSaveBin)
-	ON_NOTIFY(HDN_ITEMCLICK, 0, &CPs2MemoryCardDlg::OnHdnItemclickList1)
-	ON_NOTIFY(LVN_DELETEITEM, IDC_LIST1, &CPs2MemoryCardDlg::OnLvnDeleteitemList1)
+
+	ON_NOTIFY(HDN_ITEMCLICK, 0, &CPs2MemoryCardDlg::OnHdnItemclickList)
+	ON_NOTIFY(LVN_DELETEITEM, IDC_LIST1, &CPs2MemoryCardDlg::OnLvnDeleteitemList)
+	ON_NOTIFY(LVN_DELETEITEM, IDC_LIST2, &CPs2MemoryCardDlg::OnLvnDeleteitemList)
 END_MESSAGE_MAP()
 
 
@@ -98,17 +97,28 @@ BOOL CPs2MemoryCardDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
-	m_cList.SetExtendedStyle( m_cList.GetExtendedStyle() | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES );
-
-	m_cList.InsertColumn( 0 , L"存档名" , 0 , 450 );
-	m_cList.InsertColumn( 1 , L"size" , 0 , 40 );
-	m_cList.InsertColumn( 2 , L"原名" , 0 , 150 );
-
 	HDITEM hi = {};
 	hi.mask = HDI_FORMAT;
-	m_cList.GetHeaderCtrl()->GetItem( 0 , &hi );
+
+	m_cList1.SetExtendedStyle( m_cList1.GetExtendedStyle() | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES );
+
+	m_cList1.InsertColumn( 0 , L"存档名" , 0 , 450 );
+	m_cList1.InsertColumn( 1 , L"size" , 0 , 40 );
+	m_cList1.InsertColumn( 2 , L"原名" , 0 , 180 );
+
+	m_cList1.GetHeaderCtrl()->GetItem( 0 , &hi );
 	hi.fmt |= HDF_SORTUP;
-	m_cList.GetHeaderCtrl()->SetItem( 0 , &hi );
+	m_cList1.GetHeaderCtrl()->SetItem( 0 , &hi );
+
+	m_cList2.SetExtendedStyle( m_cList2.GetExtendedStyle() | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES );
+
+	m_cList2.InsertColumn( 0 , L"存档名" , 0 , 450 );
+	m_cList2.InsertColumn( 1 , L"size" , 0 , 40 );
+	m_cList2.InsertColumn( 2 , L"原名" , 0 , 180 );
+
+	m_cList2.GetHeaderCtrl()->GetItem( 0 , &hi );
+	hi.fmt |= HDF_SORTUP;
+	m_cList2.GetHeaderCtrl()->SetItem( 0 , &hi );
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -156,43 +166,61 @@ void CPs2MemoryCardDlg::OnClose()
 	CDialog::OnClose();
 }
 
-void CPs2MemoryCardDlg::OnBnClickedButtonOpenMc()
+void CPs2MemoryCardDlg::OnBnClickedButtonOpenMc1()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	static CWQSGFileDialog_Open dlg( L"*.ps2;*.bin|*.ps2;*.bin||" );
 	if( IDOK != dlg.DoModal() )
 		return;
 
-	if( !m_Mc.LoadMc( dlg.GetPathName() ) )
+	if( !m_Mc1.LoadMc( dlg.GetPathName() ) )
 	{
-		UpdateUI();
+		SetDlgItemText( IDC_EDIT1 , L"" );
+		m_Mc1.FormatMc();
+		UpdateMcUI();
 		MessageBox( L"加载记忆卡失败" );
-		EndDialog( IDCANCEL );
+		return;
 	}
 
-	UpdateUI();
+	SetDlgItemText( IDC_EDIT1 , dlg.GetPathName() );
+	UpdateMcUI();
 }
 
-void CPs2MemoryCardDlg::OnBnClickedButtonSaveMc()
+void CPs2MemoryCardDlg::OnBnClickedButtonCreateMc1()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	if( !m_Mc.isOpen() )
+	SetDlgItemText( IDC_EDIT1 , L"" );
+	if( !m_Mc1.FormatMc() )
+	{
+		MessageBox( L"暂时不支持" );
+	}
+	UpdateMcUI();
+}
+
+void CPs2MemoryCardDlg::OnBnClickedButtonSaveMc1()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	if( !m_Mc1.isOpen() )
 		return ;
 
 	static CWQSGFileDialog_Save dlg( L"*.ps2|*.ps2||" , L"ps2" );
 	if( IDOK != dlg.DoModal() )
 		return;
 
-	if( !m_Mc.SaveMc( dlg.GetPathName() ) )
+	if( m_Mc1.SaveMc( dlg.GetPathName() ) )
+	{
+		SetDlgItemText( IDC_EDIT1 , dlg.GetPathName() );
+	}
+	else
 	{
 		MessageBox( L"保存记忆卡失败" );
 	}
 }
 
-void CPs2MemoryCardDlg::OnBnClickedButtonImportPsu()
+void CPs2MemoryCardDlg::OnBnClickedButtonImportPsu1()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	if( !m_Mc.isOpen() )
+	if( !m_Mc1.isOpen() )
 		return ;
 
 	static CWQSGFileDialog_OpenS dlg( L"*.psu|*.psu||" );
@@ -203,38 +231,38 @@ void CPs2MemoryCardDlg::OnBnClickedButtonImportPsu()
 	POSITION pos = dlg.GetStartPosition();
 	while( dlg.GetNextPathName( strName , pos ) )
 	{
-		m_Mc.Bak();
-		if( !m_Mc.Import_Psu( strName ) )
+		m_Mc1.Bak();
+		if( !m_Mc1.Import_Psu( strName ) )
 		{
-			m_Mc.UnBak();
-			UpdateUI();
+			m_Mc1.UnBak();
+			UpdateMcUI();
 			MessageBox( L"导入PSU失败" , strName );
 			return;
 		}
 	}
-	UpdateUI();
+	UpdateMcUI();
 	MessageBox( L"导入成功" );
 }
 
-void CPs2MemoryCardDlg::OnBnClickedButtonExportPsu()
+void CPs2MemoryCardDlg::OnBnClickedButtonExportPsu1()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	if( !m_Mc.isOpen() )
+	if( !m_Mc1.isOpen() )
 		return ;
 
-	POSITION pos = m_cList.GetFirstSelectedItemPosition();
-	const int iIndex = m_cList.GetNextSelectedItem( pos );
+	POSITION pos = m_cList1.GetFirstSelectedItemPosition();
+	const int iIndex = m_cList1.GetNextSelectedItem( pos );
 	if( iIndex == -1 )
 		return ;
 
-	const CString str = m_cList.GetItemText( iIndex , 2 );
+	const CString str = m_cList1.GetItemText( iIndex , 2 );
 
 	CWQSGFileDialog_Save dlg( L"*.psu|*.psu||" , L"psu" , str );
 	if( IDOK != dlg.DoModal() )
 		return;
 
 	char* pName = WQSG_W_char( str.GetString() , 932 );
-	if( m_Mc.Export_Psu( dlg.GetPathName() , pName ) )
+	if( m_Mc1.Export_Psu( dlg.GetPathName() , pName ) )
 	{
 		delete[]pName;
 		MessageBox( L"导出成功" );
@@ -246,9 +274,9 @@ void CPs2MemoryCardDlg::OnBnClickedButtonExportPsu()
 	}
 }
 
-void CPs2MemoryCardDlg::UISort()
+void CPs2MemoryCardDlg::UISort( CListCtrl& a_cList )
 {
-	CHeaderCtrl& cc = *m_cList.GetHeaderCtrl();
+	CHeaderCtrl& cc = *a_cList.GetHeaderCtrl();
 
 	HDITEM hi = {};
 	hi.mask = HDI_FORMAT;
@@ -268,32 +296,32 @@ void CPs2MemoryCardDlg::UISort()
 	if( hi.fmt & HDF_SORTDOWN )
 		uFlag |= 0xF0000000;
 
-	m_cList.SortItems( &ItemSort , uFlag );
+	a_cList.SortItems( &ItemSort , uFlag );
 }
 
-void CPs2MemoryCardDlg::UpdateUI()
+void CPs2MemoryCardDlg::UpdateMcUI()
 {
-	m_cList.DeleteAllItems();
-	if( !m_Mc.isOpen() )
+	m_cList1.DeleteAllItems();
+	if( !m_Mc1.isOpen() )
 		return ;
 
 	std::vector<CVPscMc::SFileInfo> files;
-	if( !m_Mc.GetFiles( files , "" ) )
+	if( !m_Mc1.GetFiles( files , "" ) )
 	{
 		MessageBox( L"获取文件列表失败" );
 		return;
 	}
 
-	m_cList.SetRedraw( FALSE );
+	m_cList1.SetRedraw( FALSE );
 	for( std::vector<CVPscMc::SFileInfo>::iterator it = files.begin() ;
 		it != files.end() ; ++it )
 	{
 		const CVPscMc::SFileInfo& info = *it;
 
-		CStringW str;
+		SItemSortData data;
 
 		CWQSG_memFile mf;
-		if( m_Mc.Vmc_ReadFile( mf , info.szName , "icon.sys" ) )
+		if( m_Mc1.Vmc_ReadFile( mf , info.szName , "icon.sys" ) )
 		{
 			mf.Seek( 0xC0 );
 
@@ -305,58 +333,132 @@ void CPs2MemoryCardDlg::UpdateUI()
 			}
 
 			WCHAR* pTitle = WQSG_char_W( buf , 932 );
-			str = pTitle;
+			data.m_strTitleName = pTitle;
 			delete[]pTitle;
 		}
 		else
 		{
 			WCHAR* pX = WQSG_char_W( info.szName , 932 );
-			str = pX;
+			data.m_strTitleName = pX;
 			delete[]pX;
 		}
 
-		const int iIndex = m_cList.InsertItem( m_cList.GetItemCount() , str );
-
-		if( iIndex == -1 )
-		{
-			MessageBox( L"添加失败" );
-			break;
-		}
-
-		SItemSortData* pData = new SItemSortData;
-		m_cList.SetItemData( iIndex , (DWORD_PTR)pData );
-
-		pData->m_strTitleName = str;
-		pData->m_nSize = info.uSize;
-		
-
-		str.Format( L"%d" , info.uSize );
-		m_cList.SetItemText( iIndex , 1 , str );
+		data.m_nSize = info.uSize;
 
 		WCHAR* pX = WQSG_char_W( info.szName , 932 );
-		pData->m_strFileName = pX;
+		data.m_strFileName = pX;
 		delete[]pX;
 
-		m_cList.SetItemText( iIndex , 2 , pData->m_strFileName );
+		UIInsert( m_cList1 , data );
 	}
 	//--------------------------
-	UISort();
+	UISort( m_cList1 );
 	//--------------------------
-	m_cList.SetRedraw( TRUE );
+	m_cList1.SetRedraw( TRUE );
 
 	u32 count = 0;
-	if( m_Mc.GetFreeClusterCount( count ) )
+	if( m_Mc1.GetFreeClusterCount( count ) )
 	{
 		CStringW str;
-		str.Format( L"空闲块 = %d , size = %d\r\n" , count , m_Mc.GetPreClusterSize() * count );
+		str.Format( L"空闲块 = %d , size = %d\r\n" , count , m_Mc1.GetPreClusterSize() * count );
 		OutputDebugString( str );
 	}
 	else
 	{
 		CStringW str;
-		str.Format( L"取空闲块失败,空闲块 = %d , size = %d\r\n" , count , m_Mc.GetPreClusterSize() * count );
+		str.Format( L"取空闲块失败,空闲块 = %d , size = %d\r\n" , count , m_Mc1.GetPreClusterSize() * count );
 		OutputDebugString( str );
 	}
+}
+
+void CPs2MemoryCardDlg::UpdateDirUI()
+{
+	m_cList2.DeleteAllItems();
+	CString strDir;
+	GetDlgItemText( IDC_EDIT2 , strDir );
+
+	if( strDir.GetLength() == 0 )
+		return;
+
+	strDir += L"\\";
+
+	WIN32_FIND_DATAW findData;
+	const HANDLE hFind = FindFirstFileW( strDir + L"*.psu" , &findData );
+	if( hFind == INVALID_HANDLE_VALUE )
+		return;
+
+	m_cList2.SetRedraw( FALSE );
+	do
+	{
+		if( findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
+			continue;
+
+		SPsuData files;
+		if( !Load_Psu( strDir + findData.cFileName , files ) )
+			continue;
+
+		SItemSortData data;
+
+		TPsuFile::iterator it = files.m_files.find( "icon.sys" );
+		if( it != files.m_files.end() )
+		{
+			CWQSG_memFile mf;
+			mf.Write( &it->second.at(0) , it->second.size() );
+
+			mf.Seek( 0xC0 );
+
+			char buf[0x100];
+			if( sizeof(buf) != mf.Read( buf , sizeof(buf) ) )
+			{
+				MessageBox( L"取存档文件名失败" );
+				break;
+			}
+
+			WCHAR* pTitle = WQSG_char_W( buf , 932 );
+			data.m_strTitleName = pTitle;
+			delete[]pTitle;
+		}
+		else
+		{
+			WCHAR* pX = WQSG_char_W( files.m_strName , 932 );
+			data.m_strTitleName = pX;
+			delete[]pX;
+		}
+
+		data.m_nSize = files.m_files.size();
+
+		WCHAR* pX = WQSG_char_W( files.m_strName , 932 );
+		data.m_strFileName = pX;
+		delete[]pX;
+
+		UIInsert( m_cList2 , data );
+	}
+	while( FindNextFileW( hFind , &findData ) );
+	//--------------------------
+	UISort( m_cList2 );
+	//--------------------------
+	m_cList2.SetRedraw( TRUE );
+}
+
+void CPs2MemoryCardDlg::UIInsert( CListCtrl& a_cList , const SItemSortData& a_Data )
+{
+	const int iIndex = a_cList.InsertItem( a_cList.GetItemCount() , a_Data.m_strTitleName );
+
+	if( iIndex == -1 )
+	{
+		MessageBox( L"添加失败" );
+		return;
+	}
+
+	SItemSortData* pData = new SItemSortData;
+	a_cList.SetItemData( iIndex , (DWORD_PTR)pData );
+
+	*pData = a_Data;
+
+	CString str;
+	str.Format( L"%d" , pData->m_nSize );
+	a_cList.SetItemText( iIndex , 1 , str );
+	a_cList.SetItemText( iIndex , 2 , pData->m_strFileName );
 }
 // 00833A00 map? 00000000 ,总之全FF
 // 0083DF00 MAP  0000A500
@@ -537,23 +639,27 @@ void CPs2MemoryCardDlg::OnBnClickedButton1()
 	MessageBox( L"相等" );
 }
 
-void CPs2MemoryCardDlg::OnBnClickedButtonSaveBin()
+void CPs2MemoryCardDlg::OnBnClickedButtonSaveBin1()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	if( !m_Mc.isOpen() )
+	if( !m_Mc1.isOpen() )
 		return ;
 
 	static CWQSGFileDialog_Save dlg( L"*.bin|*.bin||" , L"bin" );
 	if( IDOK != dlg.DoModal() )
 		return;
 
-	if( !m_Mc.SaveMcNoEcc( dlg.GetPathName() ) )
+	if( m_Mc1.SaveMcNoEcc( dlg.GetPathName() ) )
+	{
+		SetDlgItemText( IDC_EDIT1 , dlg.GetPathName() );
+	}
+	else
 	{
 		MessageBox( L"保存记忆卡失败" );
 	}
 }
 
-void CPs2MemoryCardDlg::OnHdnItemclickList1(NMHDR *pNMHDR, LRESULT *pResult)
+void CPs2MemoryCardDlg::OnHdnItemclickList(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMHEADER phdr = reinterpret_cast<LPNMHEADER>(pNMHDR);
 	// TODO: 在此添加控件通知处理程序代码
@@ -562,10 +668,11 @@ void CPs2MemoryCardDlg::OnHdnItemclickList1(NMHDR *pNMHDR, LRESULT *pResult)
 	if( phdr->iButton != 0 )
 		return;
 
+	CHeaderCtrl& cc = *(CHeaderCtrl*)CHeaderCtrl::FromHandle( phdr->hdr.hwndFrom );
+
 	HDITEM hi = {};
 	hi.mask = HDI_FORMAT;
 
-	CHeaderCtrl& cc = *m_cList.GetHeaderCtrl();
 	cc.GetItem( phdr->iItem , &hi );
 	if( hi.fmt & (HDF_SORTUP|HDF_SORTDOWN) )
 	{
@@ -596,14 +703,36 @@ void CPs2MemoryCardDlg::OnHdnItemclickList1(NMHDR *pNMHDR, LRESULT *pResult)
 
 	cc.SetItem( phdr->iItem , &hi );
 
-	UISort();
+	if( m_cList1.GetHeaderCtrl() == &cc )
+		UISort( m_cList1 );
+	else if( m_cList2.GetHeaderCtrl() == &cc )
+		UISort( m_cList2 );
 }
 
-void CPs2MemoryCardDlg::OnLvnDeleteitemList1(NMHDR *pNMHDR, LRESULT *pResult)
+void CPs2MemoryCardDlg::OnLvnDeleteitemList(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
 	// TODO: 在此添加控件通知处理程序代码
 	*pResult = 0;
 
-	delete (SItemSortData*)m_cList.GetItemData( pNMLV->iItem );
+	CListCtrl* pList = (CListCtrl*)CListCtrl::FromHandle( pNMLV->hdr.hwndFrom );
+
+	delete (SItemSortData*)pList->GetItemData( pNMLV->iItem );
+}
+
+
+void CPs2MemoryCardDlg::OnBnClickedButtonSelPsuDir()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	CString oldDir;
+
+	GetDlgItemText( IDC_EDIT2 , oldDir );
+
+	CSelDir dlg( oldDir );
+	if( dlg.DoModal() != IDOK )
+		return;
+
+	SetDlgItemText( IDC_EDIT2 , dlg.GetSel() );
+
+	UpdateDirUI();
 }
