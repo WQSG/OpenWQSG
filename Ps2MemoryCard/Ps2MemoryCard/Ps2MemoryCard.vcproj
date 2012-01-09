@@ -68,8 +68,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="zlib_MT.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="$(WQSG)"
+				AdditionalLibraryDirectories="&quot;$(WQSG)&quot;;zlib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -150,8 +151,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="zlib_MT.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="$(WQSG)"
+				AdditionalLibraryDirectories="&quot;$(WQSG)&quot;;zlib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"

@@ -30,7 +30,6 @@
 #define new DEBUG_NEW
 #endif
 
-
 // CPs2MemoryCardDlg 对话框
 
 int CALLBACK ItemSort( LPARAM a , LPARAM b , LPARAM c )
@@ -90,7 +89,6 @@ END_MESSAGE_MAP()
 BOOL CPs2MemoryCardDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
-
 	// 设置此对话框的图标。当应用程序主窗口不是对话框时，框架将自动
 	//  执行此操作
 	SetIcon(m_hIcon, TRUE);			// 设置大图标

@@ -19,6 +19,9 @@
 #include "StdAfx.h"
 #include "VPscMc.h"
 
+#include "zlib/zlib.h"
+#include "e_ps2.h"
+
 CVPscMc::CVPscMc(void)
 : m_bOpen(false)
 , m_pHead(NULL)
@@ -32,9 +35,17 @@ CVPscMc::~CVPscMc(void)
 
 bool CVPscMc::FormatMc()
 {
-	m_bOpen = false;
+	m_Bufs.resize( 0x00840000 , 0 );
+	m_pBuf = &m_Bufs[0];
+	m_pHead = (SPs2MemoryCardHead*)m_pBuf;
 
-	return false;
+	uLongf uDstSize = 0x00840000;
+
+	m_bOpen = Z_OK == uncompress( &m_Bufs[0] , &uDstSize , e_ps2 , size_e_ps2 );
+
+	m_pHead = (SPs2MemoryCardHead*)m_pBuf;
+
+	return m_bOpen;
 }
 
 bool CVPscMc::LoadMc( const CStringW& a_strPathName )
