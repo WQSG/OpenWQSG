@@ -32,8 +32,30 @@
 
 // CPs2MemoryCardDlg 对话框
 
+struct SItemSortData
+{
+	CStringW m_strTitleName;
+	n32 m_nSize;
+	CStringW m_strFileName;
+};
 
+int CALLBACK ItemSort( LPARAM a , LPARAM b , LPARAM c )
+{
+	SItemSortData* pData1 = (SItemSortData*)((c&0xF0000000)?a:b);
+	SItemSortData* pData2 = (SItemSortData*)((c&0xF0000000)?b:a);
 
+	switch ( c & 0x0FFFFFFF )
+	{
+	case 1:
+		return pData1->m_nSize - pData2->m_nSize;
+		break;
+	case 2:
+		return pData1->m_strFileName.Compare( pData2->m_strFileName );
+		break;
+	}
+
+	return pData1->m_strTitleName.Compare( pData2->m_strTitleName );
+}
 
 CPs2MemoryCardDlg::CPs2MemoryCardDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CPs2MemoryCardDlg::IDD, pParent)
@@ -59,6 +81,8 @@ BEGIN_MESSAGE_MAP(CPs2MemoryCardDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_ABOUT, &CPs2MemoryCardDlg::OnBnClickedButtonAbout)
 	ON_BN_CLICKED(IDC_BUTTON1, &CPs2MemoryCardDlg::OnBnClickedButton1)
 	ON_BN_CLICKED(IDC_BUTTON_SAVE_BIN, &CPs2MemoryCardDlg::OnBnClickedButtonSaveBin)
+	ON_NOTIFY(HDN_ITEMCLICK, 0, &CPs2MemoryCardDlg::OnHdnItemclickList1)
+	ON_NOTIFY(LVN_DELETEITEM, IDC_LIST1, &CPs2MemoryCardDlg::OnLvnDeleteitemList1)
 END_MESSAGE_MAP()
 
 
@@ -79,6 +103,12 @@ BOOL CPs2MemoryCardDlg::OnInitDialog()
 	m_cList.InsertColumn( 0 , L"存档名" , 0 , 450 );
 	m_cList.InsertColumn( 1 , L"size" , 0 , 40 );
 	m_cList.InsertColumn( 2 , L"原名" , 0 , 150 );
+
+	HDITEM hi = {};
+	hi.mask = HDI_FORMAT;
+	m_cList.GetHeaderCtrl()->GetItem( 0 , &hi );
+	hi.fmt |= HDF_SORTUP;
+	m_cList.GetHeaderCtrl()->SetItem( 0 , &hi );
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -216,6 +246,31 @@ void CPs2MemoryCardDlg::OnBnClickedButtonExportPsu()
 	}
 }
 
+void CPs2MemoryCardDlg::UISort()
+{
+	CHeaderCtrl& cc = *m_cList.GetHeaderCtrl();
+
+	HDITEM hi = {};
+	hi.mask = HDI_FORMAT;
+
+	u32 uFlag = 0;
+	for( int i = 0 ; i < cc.GetItemCount() ; ++i )
+	{
+		cc.GetItem( i , &hi );
+
+		if( hi.fmt & (HDF_SORTUP|HDF_SORTDOWN) )
+		{
+			uFlag = i;
+			break;
+		}
+	}
+
+	if( hi.fmt & HDF_SORTDOWN )
+		uFlag |= 0xF0000000;
+
+	m_cList.SortItems( &ItemSort , uFlag );
+}
+
 void CPs2MemoryCardDlg::UpdateUI()
 {
 	m_cList.DeleteAllItems();
@@ -268,14 +323,25 @@ void CPs2MemoryCardDlg::UpdateUI()
 			break;
 		}
 
+		SItemSortData* pData = new SItemSortData;
+		m_cList.SetItemData( iIndex , (DWORD_PTR)pData );
+
+		pData->m_strTitleName = str;
+		pData->m_nSize = info.uSize;
+		
+
 		str.Format( L"%d" , info.uSize );
 		m_cList.SetItemText( iIndex , 1 , str );
 
 		WCHAR* pX = WQSG_char_W( info.szName , 932 );
-		m_cList.SetItemText( iIndex , 2 , pX );
+		pData->m_strFileName = pX;
 		delete[]pX;
-	}
 
+		m_cList.SetItemText( iIndex , 2 , pData->m_strFileName );
+	}
+	//--------------------------
+	UISort();
+	//--------------------------
 	m_cList.SetRedraw( TRUE );
 
 	u32 count = 0;
@@ -485,4 +551,59 @@ void CPs2MemoryCardDlg::OnBnClickedButtonSaveBin()
 	{
 		MessageBox( L"保存记忆卡失败" );
 	}
+}
+
+void CPs2MemoryCardDlg::OnHdnItemclickList1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMHEADER phdr = reinterpret_cast<LPNMHEADER>(pNMHDR);
+	// TODO: 在此添加控件通知处理程序代码
+	*pResult = 0;
+
+	if( phdr->iButton != 0 )
+		return;
+
+	HDITEM hi = {};
+	hi.mask = HDI_FORMAT;
+
+	CHeaderCtrl& cc = *m_cList.GetHeaderCtrl();
+	cc.GetItem( phdr->iItem , &hi );
+	if( hi.fmt & (HDF_SORTUP|HDF_SORTDOWN) )
+	{
+	}
+	else
+	{
+		for( int i = 0 ; i < cc.GetItemCount() ; ++i )
+		{
+			cc.GetItem( i , &hi );
+
+			const int oldFmt = hi.fmt & (HDF_SORTUP|HDF_SORTDOWN);
+			if( oldFmt )
+			{
+				hi.fmt &= ~(HDF_SORTUP|HDF_SORTDOWN);
+				cc.SetItem( i , &hi );
+				break;
+			}
+		}
+		cc.GetItem( phdr->iItem , &hi );
+	}
+
+	const int oldFmt = hi.fmt & (HDF_SORTUP|HDF_SORTDOWN);
+	hi.fmt &= ~(HDF_SORTUP|HDF_SORTDOWN);
+	if( oldFmt & HDF_SORTUP )
+		hi.fmt |= HDF_SORTDOWN;
+	else
+		hi.fmt |= HDF_SORTUP;
+
+	cc.SetItem( phdr->iItem , &hi );
+
+	UISort();
+}
+
+void CPs2MemoryCardDlg::OnLvnDeleteitemList1(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
+	// TODO: 在此添加控件通知处理程序代码
+	*pResult = 0;
+
+	delete (SItemSortData*)m_cList.GetItemData( pNMLV->iItem );
 }

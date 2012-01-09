@@ -64,6 +64,7 @@ public:
 	afx_msg void OnBnClickedButtonImportPsu();
 
 	void UpdateUI();
+	void UISort();
 private:
 	CListCtrl m_cList;
 public:
@@ -73,4 +74,6 @@ public:
 	bool Load_Psu( const CStringW& a_strFile , SPsuData& a_Files );
 	afx_msg void OnBnClickedButton1();
 	afx_msg void OnBnClickedButtonSaveBin();
+	afx_msg void OnHdnItemclickList1(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnLvnDeleteitemList1(NMHDR *pNMHDR, LRESULT *pResult);
 };
