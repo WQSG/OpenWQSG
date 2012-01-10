@@ -83,6 +83,7 @@ public:
 private:
 	CListCtrl m_cList1;
 	CListCtrl m_cList2;
+	CString m_strLog;
 public:
 	afx_msg void OnBnClickedButtonAbout();
 
@@ -91,4 +92,5 @@ public:
 	afx_msg void OnHdnItemclickList(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnLvnDeleteitemList(NMHDR *pNMHDR, LRESULT *pResult);
 
+	afx_msg void OnBnClickedButtonClearLog();
 };

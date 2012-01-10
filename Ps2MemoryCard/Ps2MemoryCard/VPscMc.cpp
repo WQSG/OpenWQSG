@@ -43,8 +43,6 @@ bool CVPscMc::FormatMc()
 
 	m_bOpen = Z_OK == uncompress( &m_Bufs[0] , &uDstSize , e_ps2 , size_e_ps2 );
 
-	m_pHead = (SPs2MemoryCardHead*)m_pBuf;
-
 	return m_bOpen;
 }
 

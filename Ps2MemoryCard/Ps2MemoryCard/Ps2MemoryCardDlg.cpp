@@ -81,6 +81,7 @@ BEGIN_MESSAGE_MAP(CPs2MemoryCardDlg, CDialog)
 	ON_NOTIFY(HDN_ITEMCLICK, 0, &CPs2MemoryCardDlg::OnHdnItemclickList)
 	ON_NOTIFY(LVN_DELETEITEM, IDC_LIST1, &CPs2MemoryCardDlg::OnLvnDeleteitemList)
 	ON_NOTIFY(LVN_DELETEITEM, IDC_LIST2, &CPs2MemoryCardDlg::OnLvnDeleteitemList)
+	ON_BN_CLICKED(IDC_BUTTON_CLEAR_LOG, &CPs2MemoryCardDlg::OnBnClickedButtonClearLog)
 END_MESSAGE_MAP()
 
 
@@ -221,25 +222,57 @@ void CPs2MemoryCardDlg::OnBnClickedButtonImportPsu1()
 	if( !m_Mc1.isOpen() )
 		return ;
 
-	static CWQSGFileDialog_OpenS dlg( L"*.psu|*.psu||" );
-	if( IDOK != dlg.DoModal() )
-		return;
+	CString strDstPath;
+	GetDlgItemText( IDC_EDIT2 , strDstPath );
+	if( strDstPath.GetLength() == 0 )
+		return ;
 
-	CString strName;
-	POSITION pos = dlg.GetStartPosition();
-	while( dlg.GetNextPathName( strName , pos ) )
+	strDstPath += L"\\";
+
+	bool bShow = true;
+	int iOk = 0;
+	int iError = 0;
+
+	POSITION pos = m_cList2.GetFirstSelectedItemPosition();
+	while(true)
 	{
-		m_Mc1.Bak();
-		if( !m_Mc1.Import_Psu( strName ) )
+		const int iIndex = m_cList2.GetNextSelectedItem( pos );
+		if( iIndex == -1 )
+			break ;
+
+		if( bShow )
 		{
+			if( MessageBox( L"如有重复的存档,将会被覆盖,确定要导入吗?" , NULL , MB_YESNO ) != IDYES )
+				return;
+
+			bShow = false;
+		}
+
+		const CString str = m_cList2.GetItemText( iIndex , 2 );
+
+		m_Mc1.Bak();
+		const bool bOk = m_Mc1.Import_Psu( strDstPath + str + L".psu" );
+
+		if( bOk )
+		{
+			iOk++;
+		}
+		else
+		{
+			iError++;
 			m_Mc1.UnBak();
-			UpdateMcUI();
-			MessageBox( L"导入PSU失败" , strName );
-			return;
+
+			m_strLog.AppendFormat( L"导入 %s 失败\r\n" , str.GetString() );
+			SetDlgItemText( IDC_EDIT_LOG , m_strLog );
 		}
 	}
-	UpdateMcUI();
-	MessageBox( L"导入成功" );
+
+	if( iOk || iError )
+	{
+		UpdateMcUI();
+
+		MessageBox( L"导入完毕!" );
+	}
 }
 
 void CPs2MemoryCardDlg::OnBnClickedButtonExportPsu1()
@@ -248,27 +281,55 @@ void CPs2MemoryCardDlg::OnBnClickedButtonExportPsu1()
 	if( !m_Mc1.isOpen() )
 		return ;
 
-	POSITION pos = m_cList1.GetFirstSelectedItemPosition();
-	const int iIndex = m_cList1.GetNextSelectedItem( pos );
-	if( iIndex == -1 )
+	CString strDstPath;
+	GetDlgItemText( IDC_EDIT2 , strDstPath );
+	if( strDstPath.GetLength() == 0 )
 		return ;
 
-	const CString str = m_cList1.GetItemText( iIndex , 2 );
+	strDstPath += L"\\";
 
-	CWQSGFileDialog_Save dlg( L"*.psu|*.psu||" , L"psu" , str );
-	if( IDOK != dlg.DoModal() )
-		return;
+	bool bShow = true;
+	int iOk = 0;
+	int iError = 0;
 
-	char* pName = WQSG_W_char( str.GetString() , 932 );
-	if( m_Mc1.Export_Psu( dlg.GetPathName() , pName ) )
+	POSITION pos = m_cList1.GetFirstSelectedItemPosition();
+	while(true)
 	{
+		const int iIndex = m_cList1.GetNextSelectedItem( pos );
+		if( iIndex == -1 )
+			break ;
+
+		if( bShow )
+		{
+			if( MessageBox( L"如有重复的存档,将会被覆盖,确定要导出吗?" , NULL , MB_YESNO ) != IDYES )
+				return;
+
+			bShow = false;
+		}
+
+		const CString str = m_cList1.GetItemText( iIndex , 2 );
+
+		char* pName = WQSG_W_char( str.GetString() , 932 );
+		const bool bOk = m_Mc1.Export_Psu( strDstPath + str + L".psu" , pName );
 		delete[]pName;
-		MessageBox( L"导出成功" );
+
+		if( bOk )
+		{
+			iOk++;
+		}
+		else
+		{
+			iError++;
+			m_strLog.AppendFormat( L"导出 %s 失败\r\n" , str.GetString() );
+			SetDlgItemText( IDC_EDIT_LOG , m_strLog );
+		}
 	}
-	else
+
+	if( iOk || iError )
 	{
-		delete[]pName;
-		MessageBox( L"导出PSU失败" );
+		UpdateDirUI();
+
+		MessageBox( L"导出完毕!" );
 	}
 }
 
@@ -358,14 +419,18 @@ void CPs2MemoryCardDlg::UpdateMcUI()
 	if( m_Mc1.GetFreeClusterCount( count ) )
 	{
 		CStringW str;
-		str.Format( L"空闲块 = %d , size = %d\r\n" , count , m_Mc1.GetPreClusterSize() * count );
+		str.Format( L"空闲块 = %d KB , size = %d" , count , m_Mc1.GetPreClusterSize() * count );
 		OutputDebugString( str );
+		OutputDebugString( L"\r\n" );
+		SetDlgItemText( IDC_EDIT_MC_INFO , str );
 	}
 	else
 	{
 		CStringW str;
-		str.Format( L"取空闲块失败,空闲块 = %d , size = %d\r\n" , count , m_Mc1.GetPreClusterSize() * count );
+		str.Format( L"取空闲块失败 , 空闲块 = %d KB , size = %d" , count , m_Mc1.GetPreClusterSize() * count );
 		OutputDebugString( str );
+		OutputDebugString( L"\r\n" );
+		SetDlgItemText( IDC_EDIT_MC_INFO , str );
 	}
 }
 
@@ -733,4 +798,11 @@ void CPs2MemoryCardDlg::OnBnClickedButtonSelPsuDir()
 	SetDlgItemText( IDC_EDIT2 , dlg.GetSel() );
 
 	UpdateDirUI();
+}
+
+void CPs2MemoryCardDlg::OnBnClickedButtonClearLog()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	m_strLog = L"";
+	SetDlgItemText( IDC_EDIT_LOG , m_strLog );
 }
