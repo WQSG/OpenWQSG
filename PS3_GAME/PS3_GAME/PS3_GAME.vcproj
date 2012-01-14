@@ -50,7 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(WQSG)&quot;"
+				AdditionalIncludeDirectories="&quot;$(WQSG)&quot;;C:\WTL\include"
 				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -66,7 +66,7 @@
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="_DEBUG"
 				Culture="1033"
-				AdditionalIncludeDirectories="$(IntDir)"
+				AdditionalIncludeDirectories="&quot;$(IntDir)&quot;;C:\WTL\include"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -74,7 +74,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(WQSG)&quot;;&quot;$(WQSG)commonLib&quot;"
+				AdditionalLibraryDirectories="&quot;$(WQSG)&quot;;&quot;$(WQSG)\commonLib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -135,7 +135,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;$(WQSG)&quot;"
+				AdditionalIncludeDirectories="&quot;$(WQSG)&quot;;C:\WTL\include"
 				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;NDEBUG"
 				ExceptionHandling="0"
 				RuntimeLibrary="0"
@@ -150,7 +150,7 @@
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
 				Culture="1033"
-				AdditionalIncludeDirectories="$(IntDir)"
+				AdditionalIncludeDirectories="$(IntDir);C:\WTL\include"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -158,7 +158,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(WQSG)&quot;;&quot;$(WQSG)commonLib&quot;"
+				AdditionalLibraryDirectories="&quot;$(WQSG)&quot;;&quot;$(WQSG)\commonLib&quot;"
 				SubSystem="2"
 				TargetMachine="1"
 			/>

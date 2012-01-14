@@ -59,6 +59,7 @@ class CPs3GameInfo
 	CString m_strDirName;
 	CString m_strGameName;
 	CxImage* m_pLogo;
+	BOOL m_bHasBigFile;
 public:
 	CPs3GameInfo()
 		: m_pLogo(NULL)
@@ -84,6 +85,11 @@ public:
 	const CString& GetGameName()const
 	{
 		return m_strGameName;
+	}
+
+	BOOL IsHasBigFile()const
+	{
+		return m_bHasBigFile;
 	}
 
 	void Draw( HDC a_hdc, const RECT& a_rect )

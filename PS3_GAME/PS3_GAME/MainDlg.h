@@ -88,6 +88,7 @@ public:
 
 		m_cList.InsertColumn( 0 , L"文件夹" , 0 , 200 );
 		m_cList.InsertColumn( 1 , L"游戏名" , 0 , 300 );
+		m_cList.InsertColumn( 2 , L"大文件" , 0 , 50 );
 
 #if _DEBUG
 		m_strRootDir = L"F:\\ps3\\Game";
@@ -253,6 +254,7 @@ private:
 
 			const int iIndex = m_cList.InsertItem( m_cList.GetItemCount() , pInfo->GetDirName() );
 			m_cList.SetItemText( iIndex , 1 , pInfo->GetGameName() );
+			m_cList.SetItemText( iIndex , 2 , pInfo->IsHasBigFile()?L"O":L"X" );
 		}
 
 		m_cList.SetRedraw( TRUE );

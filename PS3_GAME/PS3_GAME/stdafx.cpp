@@ -44,6 +44,47 @@ struct SSfoPsfItem
 	n32 m_nDateSize;
 	n32 m_nDataOffset;
 };
+
+
+inline bool CheckDirX( CString a_strPath )
+{
+	if( a_strPath.Right(1) != L'\\' && a_strPath.Right(1) != L'/' )
+		a_strPath += L'\\';
+
+	WIN32_FIND_DATA data;
+	const HANDLE hFind = FindFirstFile( a_strPath + L"*" , &data );
+	if( hFind == INVALID_HANDLE_VALUE )
+		return false;
+
+	do 
+	{
+		const CString strName = data.cFileName;
+
+		if( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
+		{
+			if( strName == L"." || strName == L".." )
+				continue;
+
+			if( !CheckDirX( a_strPath + strName ) )
+			{
+				FindClose(hFind);
+				return false;
+			}
+		}
+		else
+		{
+			if( data.nFileSizeHigh )
+			{
+				FindClose(hFind);
+				return false;
+			}
+		}
+	}
+	while ( FindNextFile( hFind , &data ) );
+	FindClose(hFind);
+
+	return true;
+}
 // CPs3_GameDlg ¶Ô»°¿ò
 BOOL CPs3GameInfo::LoadInfo( CString a_strPath , const CString& a_strDirName )
 {
@@ -131,6 +172,8 @@ BOOL CPs3GameInfo::LoadInfo( CString a_strPath , const CString& a_strDirName )
 		}
 	}
 	while(false);
+
+	m_bHasBigFile = !CheckDirX( a_strPath + a_strDirName );
 
 	CxImage* pImage = new CxImage;
 	if( !pImage->Load( a_strPath + a_strDirName + L"\\PS3_GAME\\ICON0.PNG" , CXIMAGE_FORMAT_PNG ) )
