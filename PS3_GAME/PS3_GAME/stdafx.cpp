@@ -90,9 +90,12 @@ BOOL CPs3GameInfo::LoadInfo( CString a_strPath , const CString& a_strDirName )
 {
 	ATLASSERT( sizeof(SSfoPsfHead) == 20 );
 
+	m_bCheckBigFile = FALSE;
+
 	if( a_strPath.Right(1) != L'\\' && a_strPath.Right(1) != L'/' )
 		a_strPath += L'\\';
 
+	m_strPath = a_strPath;
 	m_strDirName = a_strDirName;
 	do
 	{
@@ -173,8 +176,6 @@ BOOL CPs3GameInfo::LoadInfo( CString a_strPath , const CString& a_strDirName )
 	}
 	while(false);
 
-	m_bHasBigFile = !CheckDirX( a_strPath + a_strDirName );
-
 	CxImage* pImage = new CxImage;
 	if( !pImage->Load( a_strPath + a_strDirName + L"\\PS3_GAME\\ICON0.PNG" , CXIMAGE_FORMAT_PNG ) )
 	{
@@ -184,4 +185,10 @@ BOOL CPs3GameInfo::LoadInfo( CString a_strPath , const CString& a_strDirName )
 
 	m_pLogo = pImage ;
 	return TRUE;
+}
+
+void CPs3GameInfo::CheckBigFile()
+{
+	m_bHasBigFile = !CheckDirX( m_strPath + m_strDirName );
+	m_bCheckBigFile = TRUE;
 }

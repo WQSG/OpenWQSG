@@ -56,13 +56,17 @@ extern CAppModule _Module;
 
 class CPs3GameInfo
 {
+	CString m_strPath;
 	CString m_strDirName;
 	CString m_strGameName;
 	CxImage* m_pLogo;
+	BOOL m_bCheckBigFile;
 	BOOL m_bHasBigFile;
 public:
 	CPs3GameInfo()
 		: m_pLogo(NULL)
+		, m_bCheckBigFile(false)
+		, m_bHasBigFile(false)
 	{
 	}
 
@@ -87,10 +91,17 @@ public:
 		return m_strGameName;
 	}
 
+	BOOL IsCheckBigFile()const
+	{
+		return m_bCheckBigFile;
+	}
+
 	BOOL IsHasBigFile()const
 	{
 		return m_bHasBigFile;
 	}
+
+	void CheckBigFile();
 
 	void Draw( HDC a_hdc, const RECT& a_rect )
 	{

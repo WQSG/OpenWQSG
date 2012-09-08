@@ -49,6 +49,7 @@ public:
 	BEGIN_MSG_MAP(CMainDlg)
 		COMMAND_ID_HANDLER(ID_32775, On32775)
 		NOTIFY_HANDLER(IDC_LIST1, LVN_ITEMCHANGED, OnLvnItemchangedList1)
+		NOTIFY_HANDLER(IDC_LIST1, LVN_ITEMACTIVATE, OnLvnItemactivateList1)
 		MESSAGE_HANDLER(WM_PAINT, OnPaint)
 		MESSAGE_HANDLER(WM_CLOSE, OnClose)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
@@ -177,6 +178,16 @@ public:
 		Invalidate();
 		return 0;
 	}
+	LRESULT OnLvnItemactivateList1(int idCtrl, LPNMHDR pnmh, BOOL& bHandled)
+	{
+		LPNMITEMACTIVATE lpnmia = (LPNMITEMACTIVATE)pnmh;
+
+		m_GameInfo[lpnmia->iItem]->CheckBigFile();
+		m_cList.SetItemText( lpnmia->iItem , 2 , m_GameInfo[lpnmia->iItem]->IsHasBigFile()?L"O":L"X" );
+
+		Invalidate();
+		return 0;
+	}
 	
 	LRESULT On32775(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 	{
@@ -254,7 +265,10 @@ private:
 
 			const int iIndex = m_cList.InsertItem( m_cList.GetItemCount() , pInfo->GetDirName() );
 			m_cList.SetItemText( iIndex , 1 , pInfo->GetGameName() );
-			m_cList.SetItemText( iIndex , 2 , pInfo->IsHasBigFile()?L"O":L"X" );
+			if( pInfo->IsCheckBigFile() )
+				m_cList.SetItemText( iIndex , 2 , pInfo->IsHasBigFile()?L"O":L"X" );
+			else
+				m_cList.SetItemText( iIndex , 2 , L"Ë«»÷" );
 		}
 
 		m_cList.SetRedraw( TRUE );
