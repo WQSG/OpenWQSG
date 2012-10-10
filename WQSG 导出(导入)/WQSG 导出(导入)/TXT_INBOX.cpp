@@ -917,7 +917,6 @@ void CTXT_INBOX::SaveXml()
 	if( pOldNode )
 	{
 		a_Root.RemoveChild( pOldNode );
-		delete pOldNode;
 	}
 
 	SaveConfig();

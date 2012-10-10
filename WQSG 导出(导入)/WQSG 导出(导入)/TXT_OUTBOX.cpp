@@ -893,7 +893,6 @@ void CTXT_OutBox::SaveXml()
 	if( pOldNode )
 	{
 		a_Root.RemoveChild( pOldNode );
-		delete pOldNode;
 	}
 
 	SaveConfig();
