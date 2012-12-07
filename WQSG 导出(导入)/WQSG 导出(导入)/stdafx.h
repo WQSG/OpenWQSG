@@ -147,7 +147,7 @@ inline BOOL CheckExt( CString test )
 		CString ext;
 		int pos = test.Find( L';' );
 
-		if( pos != -1 )
+		if( pos == -1 )
 		{
 			ext = test;
 			test = L"";
@@ -179,7 +179,7 @@ inline void ∑÷Ω‚Ext( CString test , std::vector<CStringW>& szExt )
 		CString ext;
 		int pos = test.Find( L';' );
 
-		if( pos != -1 )
+		if( pos == -1 )
 		{
 			ext = test;
 			test = L"";
