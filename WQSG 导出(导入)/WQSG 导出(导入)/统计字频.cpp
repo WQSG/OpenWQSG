@@ -431,7 +431,7 @@ void C统计字频::OnBnClickedButtonTbl()
 	// TODO: 在此添加控件通知处理程序代码
 	UpdateData();
 
-	static CWQSGFileDialog_Save fopendlg( _T("码表文件(*.TBL,*.TXT)|*.TBL;*.TXT||") );
+	static CWQSGFileDialog_Open fopendlg( _T("码表文件(*.TBL,*.TXT)|*.TBL;*.TXT||") );
 	fopendlg.SetWindowTitle( _T("选择一个码表...") );
 
 	if(IDOK == fopendlg.DoModal())

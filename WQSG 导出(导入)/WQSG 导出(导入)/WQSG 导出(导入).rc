@@ -139,8 +139,8 @@ BEGIN
 END
 
 IDD_DIALOG_TongJiZiPin DIALOGEX 0, 0, 315, 288
-STYLE DS_SETFONT | WS_CHILD
-FONT 8, "Microsoft Sans Serif", 400, 0, 0x0
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
+FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
     EDITTEXT        IDC_EDIT_TBL_1,3,98,128,186,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL
     EDITTEXT        IDC_EDIT_TBL_TBL,3,7,258,14,ES_AUTOHSCROLL | WS_DISABLED
@@ -362,8 +362,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,1,2012,12070
- PRODUCTVERSION 1,1,2012,12070
+ FILEVERSION 1,1,2012,12110
+ PRODUCTVERSION 1,1,2012,12110
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -381,12 +381,12 @@ BEGIN
             VALUE "Comments", "wqsg.ys168.com"
             VALUE "CompanyName", "D.W.(梦境)"
             VALUE "FileDescription", "文本导出(导入)工具"
-            VALUE "FileVersion", "1, 1, 2012, 12070"
+            VALUE "FileVersion", "1, 1, 2012, 12110"
             VALUE "InternalName", "WQSG 导出(导入).exe"
             VALUE "LegalCopyright", "WQSG(恶梦的死神)"
             VALUE "OriginalFilename", "WQSG 导出(导入).exe"
             VALUE "ProductName", "WQSG 导出(导入).exe"
-            VALUE "ProductVersion", "1, 1, 2012, 12070"
+            VALUE "ProductVersion", "1, 1, 2012, 12110"
         END
     END
     BLOCK "VarFileInfo"
@@ -678,7 +678,7 @@ IDR_EXE1                EXE                     "res\\[BIN]IPS自解压GUI.exe"
 STRINGTABLE 
 BEGIN
     IDS_APP_NAME            "WQSG导出(导入)"
-    IDS_APP_VER             "1.1.2012.12070"
+    IDS_APP_VER             "1.1.2012.12110"
     IDS_APP_WQSG            "恶梦的死神"
 END
 
