@@ -243,7 +243,7 @@ BOOL 转换文件( HWND hWnd , CStringW src , __TgCPCP_IN& cp_in , __TgCPCP_OUT& cp_
 		}
 		//-------------------------------------------------------
 		tfp.Clear();
-
+#if 1
 		CWQSG_File	fp;
 		if( !fp.OpenFile( src.GetString() , 4 , 3 ) )
 		{
@@ -259,11 +259,13 @@ BOOL 转换文件( HWND hWnd , CStringW src , __TgCPCP_IN& cp_in , __TgCPCP_OUT& cp_
 				return FALSE;
 			}
 		}
+		iLen--;
 		if( iLen != fp.Write( buffer , iLen ) )
 		{
 			MessageBox( hWnd , L"写文本失败" , src , MB_OK );
 			return FALSE;
 		}
+#endif
 	}
 	else
 	{
@@ -295,7 +297,7 @@ BOOL 转换文件( HWND hWnd , CStringW src , __TgCPCP_IN& cp_in , __TgCPCP_OUT& cp_
 		buffer[iLen] = L'\0';
 		//-------------------------------------------------------
 		tfp.Clear();
-
+#if 1
 		CWQSG_File	fp;
 		if( !fp.OpenFile( src.GetString() , 4 , 3 ) )
 		{
@@ -312,6 +314,7 @@ BOOL 转换文件( HWND hWnd , CStringW src , __TgCPCP_IN& cp_in , __TgCPCP_OUT& cp_
 			MessageBox( hWnd , L"写文本失败" , src , MB_OK );
 			return FALSE;
 		}
+#endif
 	}
 	return TRUE;
 }
