@@ -20,43 +20,6 @@
 
 
 // CTXT_INBOX 对话框
-struct SImportData
-{
-	CString     m_strItemName;
-
-	CString		m_strROMPath;
-	CString		m_strTXTPath;
-	CString		m_strTBLPathName;
-	CString		m_strTBL2PathName;
-	CString		m_strExtName;
-
-	BOOL		m_bUseDirectory;
-	BOOL		m_bCheckTblOverlap;
-	BOOL		m_bUseTBL2;
-	BOOL		m_bTxtDirDefault;
-	BOOL		m_bSubDir;
-	BOOL		m_bLenOverStop;
-	u32			m_uFill;
-	CString		m_strFillByte;
-	CString		m_strFillWord;
-
-	SImportData()
-		: m_strItemName()
-		, m_strROMPath() , m_strTXTPath()
-		, m_strTBLPathName() , m_strTBL2PathName()
-		, m_strExtName()
-		, m_bUseDirectory(FALSE)
-		, m_bCheckTblOverlap(TRUE)
-		, m_bUseTBL2(FALSE)
-		, m_bTxtDirDefault(FALSE)
-		, m_bSubDir(FALSE)
-		, m_bLenOverStop(FALSE)
-		, m_uFill(0)
-		, m_strFillByte(L"20")
-		, m_strFillWord(L"8140")
-	{
-	}
-};
 
 struct SImportDataEx
 {
@@ -108,7 +71,6 @@ class CTXT_INBOX : public CBaseDialog
 	CButton m_C文本在同目录;
 	CButton m_cSubDir;
 
-	std::vector<SImportData> m_ImportDatas;
 public:
 	CTXT_INBOX(CWnd* pParent = NULL);   // 标准构造函数
 	virtual ~CTXT_INBOX();
@@ -126,10 +88,8 @@ private:
 
 	void AppLog(CString str);
 	void UpdateImportData(SImportData& a_data);
-#if USE_XML
-	void LoadXml( TiXmlElement& a_Root );
-	void SaveXml();
-#endif
+
+	void LoadFromData();
 protected:
 	virtual void OnOK();
 	virtual void OnCancel();

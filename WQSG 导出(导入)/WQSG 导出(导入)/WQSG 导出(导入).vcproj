@@ -356,6 +356,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\xmlStorage.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\批量文本替换Dlg.cpp"
 				>
 			</File>
@@ -419,6 +423,10 @@
 			</File>
 			<File
 				RelativePath=".\WQSG_TXT_IO.h"
+				>
+			</File>
+			<File
+				RelativePath=".\xmlStorage.h"
 				>
 			</File>
 			<File

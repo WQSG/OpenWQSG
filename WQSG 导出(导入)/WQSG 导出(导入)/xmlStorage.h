@@ -15,23 +15,9 @@
 *  along with this program; if not, write to the Free Software
 *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 */
-
-#include "stdafx.h"
-#include "WQSG_cfg.h"
-#include "xmlStorage.h"
-
-std::vector<SImportData> CGlobalData::m_ImportDatas;
-std::vector<SExportData> CGlobalData::m_ExportDatas;
+#pragma once
 
 #if USE_XML
-BOOL CGlobalData::LoadXml()
-{
-	return ::LoadXml();
-}
-
-BOOL CGlobalData::SaveXml()
-{
-	return ::SaveXml();
-}
-#endif
-
+BOOL LoadXml();
+BOOL SaveXml();
+#endif // USE_XML

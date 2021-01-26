@@ -74,14 +74,6 @@
 
 #include <WQSG_LIB.h>
 #include <2/WQSG_afx.h>
-#if USE_XML
-#include <tinyxml.h>
-#if _DEBUG
-#pragma comment(lib, "tinyxmld.lib" )
-#else //_DEBUG
-#pragma comment(lib, "tinyxml.lib" )
-#endif //_DEBUG
-#endif //USE_XML
 #include "WQSG_cfg.h"
 
 
@@ -443,24 +435,24 @@ inline const CStringW Utf82Utf16le( const char* a_pUtf8 )
 	return str;
 }
 
-inline const CStringA X2Utf8( u32 a_u32 )
+inline const CStringW X2Str( u32 a_u32 )
 {
-	CStringA str;
-	str.Format( "%u" , a_u32 );
+	CStringW str;
+	str.Format( L"%u" , a_u32 );
 	return str;
 }
 
-inline const CStringA X2Utf8( u64 a_u64 )
+inline const CStringW X2Str( u64 a_u64 )
 {
-	CStringA str;
-	str.Format( "%llu" , a_u64 );
+	CStringW str;
+	str.Format( L"%llu" , a_u64 );
 	return str;
 }
 
-inline const CStringA X2Utf8( BOOL a_bool )
+inline const CStringW X2Str( BOOL a_bool )
 {
-	CStringA str;
-	str.Format( "%d" , a_bool );
+	CStringW str;
+	str.Format( L"%d" , a_bool );
 	return str;
 }
 

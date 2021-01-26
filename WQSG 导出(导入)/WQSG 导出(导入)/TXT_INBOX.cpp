@@ -464,9 +464,9 @@ BOOL CTXT_INBOX::OnInitDialog()
 	// TODO: 在此添加控件通知处理程序代码
 	m_C文本在同目录.SetCheck( TRUE );
 	OnBnClickedCheck3();
-#if USE_XML
-	LoadXml( LockConfig().GetConfig() );
-#endif
+
+	LoadFromData();
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// 异常: OCX 属性页应返回 FALSE
 }
@@ -681,12 +681,12 @@ void CTXT_INBOX::OnBnClickedButtonAdd()
 			return;
 		}
 	}
-	m_ImportDatas.push_back(SImportData());
-	(*m_ImportDatas.rbegin()).m_strItemName = m_NodeName;
-	UpdateImportData(*m_ImportDatas.rbegin());
+	CGlobalData::m_ImportDatas.push_back(SImportData());
+	(*CGlobalData::m_ImportDatas.rbegin()).m_strItemName = m_NodeName;
+	UpdateImportData(*CGlobalData::m_ImportDatas.rbegin());
 	m_CList.SetCurSel( m_CList.AddString( m_NodeName ) );
 #if USE_XML
-	SaveXml();
+	CGlobalData::SaveXml();
 #endif
 }
 
@@ -703,7 +703,7 @@ void CTXT_INBOX::OnLbnSelchangeList2()
 	int sel = m_CList.GetCurSel();
 	if( sel < 0 )return;
 
-	const SImportData& data = m_ImportDatas[sel];
+	const SImportData& data = CGlobalData::m_ImportDatas[sel];
 	{
 		CString NodeName;
 		m_CList.GetText( sel , NodeName );
@@ -761,16 +761,16 @@ void CTXT_INBOX::OnBnClickedButtonDel()
 		CString NodeName;
 		m_CList.GetText( sel , NodeName );
 
-		CString strNodeName = m_ImportDatas[sel].m_strItemName;
+		CString strNodeName = CGlobalData::m_ImportDatas[sel].m_strItemName;
 		ASSERT( strNodeName.MakeLower() == NodeName.MakeLower() );
 	}
 
 	m_CList.DeleteString( sel );
 	m_CList.SetCurSel( -1 );
 
-	m_ImportDatas.erase( m_ImportDatas.begin() + sel );
+	CGlobalData::m_ImportDatas.erase( CGlobalData::m_ImportDatas.begin() + sel );
 #if USE_XML
-	SaveXml();
+	CGlobalData::SaveXml();
 #endif
 }
 
@@ -788,7 +788,7 @@ void CTXT_INBOX::OnBnClickedButtonEdit()
 		CString NodeName;
 		m_CList.GetText( sel , NodeName );
 
-		CString strNodeName = m_ImportDatas[sel].m_strItemName;
+		CString strNodeName = CGlobalData::m_ImportDatas[sel].m_strItemName;
 		ASSERT( strNodeName.MakeLower() == NodeName.MakeLower() );
 	}
 
@@ -809,15 +809,15 @@ void CTXT_INBOX::OnBnClickedButtonEdit()
 			}
 		}
 
-		m_ImportDatas[sel].m_strItemName = m_NodeName;
+		CGlobalData::m_ImportDatas[sel].m_strItemName = m_NodeName;
 
 		m_CList.DeleteString( sel );
 		m_CList.InsertString( sel , m_NodeName );
 	}
 
-	UpdateImportData(m_ImportDatas[sel]);
+	UpdateImportData(CGlobalData::m_ImportDatas[sel]);
 #if USE_XML
-	SaveXml();
+	CGlobalData::SaveXml();
 #endif
 }
 
@@ -832,93 +832,18 @@ void CTXT_INBOX::OnBnClickedCheck3()
 	// TODO: 在此添加控件通知处理程序代码
 	GetDlgItem( IDC_EDIT_TXT_DIR )->EnableWindow( m_C文本在同目录.GetCheck() == 0 );
 }
-#if USE_XML
-void CTXT_INBOX::LoadXml( TiXmlElement& a_Root )
+
+void CTXT_INBOX::LoadFromData()
 {
 	while( m_CList.GetCount() )
 	{
 		m_CList.DeleteString( 0 );
 	}
 
-	m_ImportDatas.clear();
-
-	const TiXmlElement* pNode;
-
-	pNode = a_Root.FirstChildElement( "Import" );
-	if( pNode )
-	{
-		for( pNode = pNode->FirstChildElement( "ImportItem" ) ; pNode ; pNode = pNode->NextSiblingElement( "ImportItem" ) )
-		{
-			const char* pNameUtf8 = pNode->Attribute( "Name" );
-			if( !pNameUtf8 )
-				continue;
-
-			SImportData data;
-			data.m_strItemName = Utf82Utf16le( pNameUtf8 );
-#define DEF_FN_XYZ( b , c ) (pNode->Attribute( Utf16le2Utf8( b ) )?Utf82Utf16le(pNode->Attribute( Utf16le2Utf8( b ) )):c)
-
-			data.m_strROMPath = DEF_FN_XYZ( L"ROMPath" , L"" );
-			data.m_strTXTPath = DEF_FN_XYZ( L"TXTPath" , L"" );
-			data.m_strTBLPathName = DEF_FN_XYZ( L"TBLPathName" , L"" );
-			data.m_strTBL2PathName = DEF_FN_XYZ( L"TBL2PathName" , L"" );
-			data.m_strExtName = DEF_FN_XYZ( L"ExtName" , L"" );
-			data.m_bUseDirectory = 0 != _wtoi(DEF_FN_XYZ( L"UseDirectory" , L"0" ));
-			data.m_bCheckTblOverlap = 0 != _wtoi(DEF_FN_XYZ( L"CheckTblOverlap" , L"1" ));
-			data.m_bUseTBL2 = 0 != _wtoi(DEF_FN_XYZ( L"UseTBL2" , L"0" ));
-			data.m_bTxtDirDefault = 0 != _wtoi(DEF_FN_XYZ( L"TxtDirDefault" , L"0" ));
-			data.m_bSubDir = 0 != _wtoi(DEF_FN_XYZ( L"SubDir" , L"0" ));
-
-			data.m_bLenOverStop = 0 != _wtoi(DEF_FN_XYZ( L"LenOverStop" , L"0" ));
-			data.m_uFill = _wtoi(DEF_FN_XYZ( L"Fill" , L"0" ));
-			data.m_strFillByte = DEF_FN_XYZ( L"FillByte" , L"20" );
-			data.m_strFillWord = DEF_FN_XYZ( L"FillWord" , L"8140" );
-
-#undef DEF_FN_XYZ
-			m_ImportDatas.push_back( data );
-
-			m_CList.AddString( data.m_strItemName );
-		}
-	}
-}
-
-void CTXT_INBOX::SaveXml()
-{
-	CConfigLockGuard guard = LockConfig();
-	TiXmlElement& a_Root = guard.GetConfig();
-
-	TiXmlNode*const pOldNode = a_Root.FirstChildElement( "Import" );
-	TiXmlElement*const pNewNode = a_Root.LinkEndChild( new TiXmlElement( "Import" ) )->ToElement();
-
-	std::vector<SImportData>::iterator it = m_ImportDatas.begin();
-
-	for ( ; it != m_ImportDatas.end() ; ++it )
+	for(std::vector<SImportData>::iterator it = CGlobalData::m_ImportDatas.begin() ; it != CGlobalData::m_ImportDatas.end() ; ++it)
 	{
 		const SImportData& data = *it;
-		TiXmlElement*const pNode = pNewNode->LinkEndChild( new TiXmlElement( "ImportItem" ) )->ToElement();
-
-		pNode->SetAttribute( "Name" , Utf16le2Utf8( data.m_strItemName ) );
-		pNode->SetAttribute( "ROMPath" , Utf16le2Utf8( data.m_strROMPath ) );
-		pNode->SetAttribute( "TXTPath" , Utf16le2Utf8( data.m_strTXTPath ) );
-		pNode->SetAttribute( "TBLPathName" , Utf16le2Utf8( data.m_strTBLPathName ) );
-		pNode->SetAttribute( "TBL2PathName" , Utf16le2Utf8( data.m_strTBL2PathName ) );
-		pNode->SetAttribute( "ExtName" , Utf16le2Utf8( data.m_strExtName ) );
-		pNode->SetAttribute( "UseDirectory" , X2Utf8( data.m_bUseDirectory ) );
-		pNode->SetAttribute( "CheckTblOverlap" , X2Utf8( data.m_bCheckTblOverlap ) );
-		pNode->SetAttribute( "UseTBL2" , X2Utf8( data.m_bUseTBL2 ) );
-		pNode->SetAttribute( "TxtDirDefault" , X2Utf8( data.m_bTxtDirDefault ) );
-		pNode->SetAttribute( "SubDir" , X2Utf8( data.m_bSubDir ) );
-		//
-		pNode->SetAttribute( "LenOverStop" , X2Utf8( data.m_bLenOverStop ) );
-		pNode->SetAttribute( "Fill" , X2Utf8( data.m_uFill ) );
-		pNode->SetAttribute( "FillByte" , Utf16le2Utf8( data.m_strFillByte ) );
-		pNode->SetAttribute( "FillWord" , Utf16le2Utf8( data.m_strFillWord ) );
+		m_CList.AddString( data.m_strItemName );
 	}
-
-	if( pOldNode )
-	{
-		a_Root.RemoveChild( pOldNode );
-	}
-
-	SaveConfig();
 }
-#endif
+

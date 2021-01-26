@@ -25,67 +25,90 @@
 #define DEF_ON_ÎÄ±¾Ìæ»»		1
 #define DEF_ON_²îÖµËÑË÷		1
 
-
-enum
+struct SImportData
 {
-	WT_ID_MIN,
-#if DEF_ON_TXTIO
-	WT_ID_TXTIO,
-#endif
-#if DEF_ON_PTXTIO
-	WT_ID_PTXTIO,
-#endif
-#if DEF_ON_WIPS
-	WT_ID_WIPS,
-#endif
-#if DEF_ON_TBL
-	WT_ID_TBL,
-#endif
-#if DEF_ON_ÎÄ±¾Ìæ»»
-	WT_ID_ÎÄ±¾Ìæ»»,
-#endif
-#if DEF_ON_²îÖµËÑË÷
-	WT_ID_²îÖµËÑË÷,
-#endif
+	CString     m_strItemName;
 
-	WT_ID_ABOUT,
+	CString		m_strROMPath;
+	CString		m_strTXTPath;
+	CString		m_strTBLPathName;
+	CString		m_strTBL2PathName;
+	CString		m_strExtName;
 
-	WT_ID_MAX,
+	BOOL		m_bUseDirectory;
+	BOOL		m_bCheckTblOverlap;
+	BOOL		m_bUseTBL2;
+	BOOL		m_bTxtDirDefault;
+	BOOL		m_bSubDir;
+	BOOL		m_bLenOverStop;
+	u32			m_uFill;
+	CString		m_strFillByte;
+	CString		m_strFillWord;
+
+	SImportData()
+		: m_strItemName()
+		, m_strROMPath() , m_strTXTPath()
+		, m_strTBLPathName() , m_strTBL2PathName()
+		, m_strExtName()
+		, m_bUseDirectory(FALSE)
+		, m_bCheckTblOverlap(TRUE)
+		, m_bUseTBL2(FALSE)
+		, m_bTxtDirDefault(FALSE)
+		, m_bSubDir(FALSE)
+		, m_bLenOverStop(FALSE)
+		, m_uFill(0)
+		, m_strFillByte(L"20")
+		, m_strFillWord(L"8140")
+	{
+	}
 };
+
+struct SExportData
+{
+	CString     m_strItemName;
+
+	CString		m_strROMPath;
+	CString		m_strTXTPath;
+	CString		m_strTBLPathName;
+	CString		m_strTBL2PathName;
+	CString		m_strExtName;
+	u32			m_uSegmentAddr;
+	u32			m_uBeginOffset;
+	u32			m_uEndOffset;
+	u32			m_uMinLen;
+	u32			m_uMaxLen;
+	BOOL		m_bUseDirectory;
+	BOOL		m_bCheckTblOverlap;
+	BOOL		m_bUseTBL2;
+	BOOL		m_bTxtDirDefault;
+	BOOL		m_bSubDir;
+
+	SExportData()
+		: m_strItemName()
+		, m_strROMPath() , m_strTXTPath()
+		, m_strTBLPathName() , m_strTBL2PathName()
+		, m_strExtName() , m_uSegmentAddr(0)
+		, m_uBeginOffset(0) , m_uEndOffset(0)
+		, m_uMinLen(0) , m_uMaxLen(0)
+		, m_bUseDirectory(FALSE)
+		, m_bCheckTblOverlap(TRUE)
+		, m_bUseTBL2(FALSE)
+		, m_bTxtDirDefault(FALSE)
+		, m_bSubDir(FALSE)
+	{
+	}
+};
+
+class CGlobalData
+{
+public:
+	static std::vector<SImportData> m_ImportDatas;
+	static std::vector<SExportData> m_ExportDatas;
 
 #if USE_XML
-
-class CConfigLockGuard
-{
-	CWQSG_CriticalSection& m_lock;
-	TiXmlElement& m_Config;
-public:
-	CConfigLockGuard( CWQSG_CriticalSection& a_lock , TiXmlElement& a_Config )
-		: m_lock(a_lock) , m_Config(a_Config)
-	{
-		m_lock.Lock();
-	}
-
-	CConfigLockGuard( const CConfigLockGuard& a_Guard )
-		: m_lock(a_Guard.m_lock) , m_Config(a_Guard.m_Config)
-	{
-		m_lock.Lock();
-	}
-
-	~CConfigLockGuard()
-	{
-		m_lock.UnLock();
-	}
-
-	TiXmlElement& GetConfig()
-	{
-		return m_Config;
-	}
-};
-
-BOOL InitConfig();
-CConfigLockGuard LockConfig();
-BOOL SaveConfig();
+	static BOOL LoadXml();
+	static BOOL SaveXml();
 #endif
+};
 
 #endif

@@ -19,41 +19,6 @@
 #include "afxwin.h"
 #include <vector>
 // CTXT_OutBox ¶Ô»°¿ò
-struct SExportData
-{
-	CString     m_strItemName;
-
-	CString		m_strROMPath;
-	CString		m_strTXTPath;
-	CString		m_strTBLPathName;
-	CString		m_strTBL2PathName;
-	CString		m_strExtName;
-	u32			m_uSegmentAddr;
-	u32			m_uBeginOffset;
-	u32			m_uEndOffset;
-	u32			m_uMinLen;
-	u32			m_uMaxLen;
-	BOOL		m_bUseDirectory;
-	BOOL		m_bCheckTblOverlap;
-	BOOL		m_bUseTBL2;
-	BOOL		m_bTxtDirDefault;
-	BOOL		m_bSubDir;
-
-	SExportData()
-		: m_strItemName()
-		, m_strROMPath() , m_strTXTPath()
-		, m_strTBLPathName() , m_strTBL2PathName()
-		, m_strExtName() , m_uSegmentAddr(0)
-		, m_uBeginOffset(0) , m_uEndOffset(0)
-		, m_uMinLen(0) , m_uMaxLen(0)
-		, m_bUseDirectory(FALSE)
-		, m_bCheckTblOverlap(TRUE)
-		, m_bUseTBL2(FALSE)
-		, m_bTxtDirDefault(FALSE)
-		, m_bSubDir(FALSE)
-	{
-	}
-};
 
 struct SExportDataEx
 {
@@ -83,8 +48,6 @@ class CTXT_OutBox : public CBaseDialog
 	DECLARE_DYNAMIC(CTXT_OutBox)
 
 	SExportDataEx m_Data;
-
-	std::vector<SExportData> m_ExportDatas;
 
 	CButton m_cUseDirectory;
 	CString m_EDIT_ROMPath;
@@ -119,10 +82,8 @@ protected:
 private:
 	void AppLog(CString str);
 	void UpdateExportData( SExportData& a_data );
-#if USE_XML
-	void LoadXml( TiXmlElement& a_Root );
-	void SaveXml();
-#endif
+
+	void LoadFromData();
 public:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnClose();

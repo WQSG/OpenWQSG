@@ -111,7 +111,7 @@ BOOL CWQSG_MAIN::OnInitDialog()
 	if( 0 == GetModuleFileNameW( NULL , exePathName , MAX_PATH * 2 ) )
 		goto __gtErrExit;
 #if USE_XML
-	if( !InitConfig() )
+	if( !CGlobalData::LoadXml() )
 		goto __gtErrExit;
 #endif
 	{

@@ -445,9 +445,9 @@ BOOL CTXT_OutBox::OnInitDialog()
 
 	m_C文本在同目录.SetCheck( TRUE );
 	OnBnClickedCheck3();
-#if USE_XML
-	LoadXml( LockConfig().GetConfig() );
-#endif
+
+	LoadFromData();
+
 	return TRUE;
 }
 
@@ -597,12 +597,12 @@ void CTXT_OutBox::OnBnClickedButtonAdd()
 			return;
 		}
 	}
-	m_ExportDatas.push_back(SExportData());
-	(*m_ExportDatas.rbegin()).m_strItemName = m_NodeName;
-	UpdateExportData(*m_ExportDatas.rbegin());
+	CGlobalData::m_ExportDatas.push_back(SExportData());
+	(*CGlobalData::m_ExportDatas.rbegin()).m_strItemName = m_NodeName;
+	UpdateExportData(*CGlobalData::m_ExportDatas.rbegin());
 	m_CList.SetCurSel( m_CList.AddString( m_NodeName ) );
 #if USE_XML
-	SaveXml();
+	CGlobalData::SaveXml();
 #endif
 }
 
@@ -634,7 +634,7 @@ void CTXT_OutBox::OnLbnSelchangeList2()
 	int sel = m_CList.GetCurSel();
 	if( sel < 0 )return;
 
-	const SExportData& data = m_ExportDatas[sel];
+	const SExportData& data = CGlobalData::m_ExportDatas[sel];
 	{
 		CString NodeName;
 		m_CList.GetText( sel , NodeName );
@@ -688,15 +688,15 @@ void CTXT_OutBox::OnBnClickedButtonDel()
 		CString NodeName;
 		m_CList.GetText( sel , NodeName );
 
-		CString strNodeName = m_ExportDatas[sel].m_strItemName;
+		CString strNodeName = CGlobalData::m_ExportDatas[sel].m_strItemName;
 		ASSERT( strNodeName.MakeLower() == NodeName.MakeLower() );
 	}
-	m_ExportDatas.erase( m_ExportDatas.begin() + sel );
+	CGlobalData::m_ExportDatas.erase( CGlobalData::m_ExportDatas.begin() + sel );
 
 	m_CList.DeleteString( sel );
 	m_CList.SetCurSel( -1 );
 #if USE_XML
-	SaveXml();
+	CGlobalData::SaveXml();
 #endif
 }
 
@@ -715,7 +715,7 @@ void CTXT_OutBox::OnBnClickedButtonEdit()
 		CString NodeName;
 		m_CList.GetText( sel , NodeName );
 
-		CString strNodeName = m_ExportDatas[sel].m_strItemName;
+		CString strNodeName = CGlobalData::m_ExportDatas[sel].m_strItemName;
 		ASSERT( strNodeName.MakeLower() == NodeName.MakeLower() );
 	}
 
@@ -736,15 +736,15 @@ void CTXT_OutBox::OnBnClickedButtonEdit()
 			}
 		}
 
-		m_ExportDatas[sel].m_strItemName = m_NodeName;
+		CGlobalData::m_ExportDatas[sel].m_strItemName = m_NodeName;
 
 		m_CList.DeleteString( sel );
 		m_CList.InsertString( sel , m_NodeName );
 	}
 
-	UpdateExportData( m_ExportDatas[sel] );
+	UpdateExportData( CGlobalData::m_ExportDatas[sel] );
 #if USE_XML
-	SaveXml();
+	CGlobalData::SaveXml();
 #endif
 }
 
@@ -809,92 +809,17 @@ void CTXT_OutBox::OnBnClickedCheck3()
 	// TODO: 在此添加控件通知处理程序代码
 	GetDlgItem( IDC_EDIT_TXT_DIR )->EnableWindow( m_C文本在同目录.GetCheck() == 0 );
 }
-#if USE_XML
-void CTXT_OutBox::LoadXml( TiXmlElement& a_Root )
+
+void CTXT_OutBox::LoadFromData()
 {
 	while( m_CList.GetCount() )
 	{
 		m_CList.DeleteString( 0 );
 	}
 
-	m_ExportDatas.clear();
-
-	const TiXmlElement* pNode;
-
-	pNode = a_Root.FirstChildElement( "Export" );
-	if( !pNode )
-		return;
-
-	for( pNode = pNode->FirstChildElement( "ExportItem" ) ; pNode ; pNode = pNode->NextSiblingElement( "ExportItem" ) )
+	for(std::vector<SExportData>::iterator it = CGlobalData::m_ExportDatas.begin() ; it != CGlobalData::m_ExportDatas.end() ; ++it)
 	{
-		const char* pNameUtf8 = pNode->Attribute( "Name" );
-		if( !pNameUtf8 )
-			continue;
-
-		SExportData data;
-		data.m_strItemName = Utf82Utf16le( pNameUtf8 );
-#define DEF_FN_XYZ( b , c ) (pNode->Attribute( Utf16le2Utf8( b ) )?Utf82Utf16le(pNode->Attribute( Utf16le2Utf8( b ) )):c)
-
-		data.m_strROMPath = DEF_FN_XYZ( L"ROMPath" , L"" );
-		data.m_strTXTPath = DEF_FN_XYZ( L"TXTPath" , L"" );
-		data.m_strTBLPathName = DEF_FN_XYZ( L"TBLPathName" , L"" );
-		data.m_strTBL2PathName = DEF_FN_XYZ( L"TBL2PathName" , L"" );
-		data.m_strExtName = DEF_FN_XYZ( L"ExtName" , L"" );
-		data.m_uSegmentAddr = _wtoi(DEF_FN_XYZ( L"SegmentAddr" , L"0" ));
-		data.m_uBeginOffset = _wtoi(DEF_FN_XYZ( L"BeginOffset" , L"" ));
-		data.m_uEndOffset = _wtoi(DEF_FN_XYZ( L"EndOffset" , L"" ));
-		data.m_uMinLen = _wtoi(DEF_FN_XYZ( L"MinLen" , L"2" ));
-		data.m_uMaxLen = _wtoi(DEF_FN_XYZ( L"MaxLen" , L"9999" ));
-		data.m_bUseDirectory = 0 != _wtoi(DEF_FN_XYZ( L"UseDirectory" , L"0" ));
-		data.m_bCheckTblOverlap = 0 != _wtoi(DEF_FN_XYZ( L"CheckTblOverlap" , L"1" ));
-		data.m_bUseTBL2 = 0 != _wtoi(DEF_FN_XYZ( L"UseTBL2" , L"0" ));
-		data.m_bTxtDirDefault = 0 != _wtoi(DEF_FN_XYZ( L"TxtDirDefault" , L"0" ));
-		data.m_bSubDir = 0 != _wtoi(DEF_FN_XYZ( L"SubDir" , L"0" ));
-#undef DEF_FN_XYZ
-		m_ExportDatas.push_back( data );
-
+		const SExportData& data = *it;
 		m_CList.AddString( data.m_strItemName );
 	}
 }
-
-void CTXT_OutBox::SaveXml()
-{
-	CConfigLockGuard guard = LockConfig();
-	TiXmlElement& a_Root = guard.GetConfig();
-
-	TiXmlNode*const pOldNode = a_Root.FirstChildElement( "Export" );
-	TiXmlElement*const pNewNode = a_Root.LinkEndChild( new TiXmlElement( "Export" ) )->ToElement();
-
-	std::vector<SExportData>::iterator it = m_ExportDatas.begin();
-
-	for ( ; it != m_ExportDatas.end() ; ++it )
-	{
-		const SExportData& data = *it;
-		TiXmlElement*const pNode = pNewNode->LinkEndChild( new TiXmlElement( "ExportItem" ) )->ToElement();
-
-		pNode->SetAttribute( "Name" , Utf16le2Utf8( data.m_strItemName ) );
-		pNode->SetAttribute( "ROMPath" , Utf16le2Utf8( data.m_strROMPath ) );
-		pNode->SetAttribute( "TXTPath" , Utf16le2Utf8( data.m_strTXTPath ) );
-		pNode->SetAttribute( "TBLPathName" , Utf16le2Utf8( data.m_strTBLPathName ) );
-		pNode->SetAttribute( "TBL2PathName" , Utf16le2Utf8( data.m_strTBL2PathName ) );
-		pNode->SetAttribute( "ExtName" , Utf16le2Utf8( data.m_strExtName ) );
-		pNode->SetAttribute( "SegmentAddr" , X2Utf8( data.m_uSegmentAddr ) );
-		pNode->SetAttribute( "BeginOffset" , X2Utf8( data.m_uBeginOffset ) );
-		pNode->SetAttribute( "EndOffset" , X2Utf8( data.m_uEndOffset ) );
-		pNode->SetAttribute( "MinLen" , X2Utf8( data.m_uMinLen ) );
-		pNode->SetAttribute( "MaxLen" , X2Utf8( data.m_uMaxLen ) );
-		pNode->SetAttribute( "UseDirectory" , X2Utf8( data.m_bUseDirectory ) );
-		pNode->SetAttribute( "CheckTblOverlap" , X2Utf8( data.m_bCheckTblOverlap ) );
-		pNode->SetAttribute( "UseTBL2" , X2Utf8( data.m_bUseTBL2 ) );
-		pNode->SetAttribute( "TxtDirDefault" , X2Utf8( data.m_bTxtDirDefault ) );
-		pNode->SetAttribute( "SubDir" , X2Utf8( data.m_bSubDir ) );
-	}
-
-	if( pOldNode )
-	{
-		a_Root.RemoveChild( pOldNode );
-	}
-
-	SaveConfig();
-}
-#endif
