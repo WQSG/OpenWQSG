@@ -23,49 +23,87 @@
 #include "afxcmn.h"
 #include <vector>
 
-struct SItemInfo
+class CItemInfo
 {
-	TCHAR m_szName[MAX_PATH];
+public:
+	CStringW m_strName;
 	bool m_bDir;
 
 	LONGLONG m_nSize;
 
 	size_t m_Index;
 
-	friend bool operator<( _In_ const SItemInfo& str1, _In_ const SItemInfo& str2 )
+	explicit CItemInfo()
+		: m_strName()
+		, m_bDir(false)
+		, m_nSize(0)
+		, m_Index(0)
+	{
+	}
+
+	CItemInfo(const CItemInfo& info)
+	{
+		*this = info;
+	}
+
+	CItemInfo& operator=(const CItemInfo& info)
+	{
+		this->m_strName = info.m_strName;
+		this->m_bDir = info.m_bDir;
+		this->m_nSize = info.m_nSize;
+		this->m_Index = info.m_Index;
+		return *this;
+	}
+
+	friend bool operator<( _In_ const CItemInfo& str1, _In_ const CItemInfo& str2 )
 	{
 		return str1.m_nSize < str2.m_nSize;
 	}
-	friend bool operator>( _In_ const SItemInfo& str1, _In_ const SItemInfo& str2 )
+	friend bool operator>( _In_ const CItemInfo& str1, _In_ const CItemInfo& str2 )
 	{
 		return str1.m_nSize > str2.m_nSize;
 	}
 };
 
-typedef std::vector<SItemInfo> TItemInfos;
-struct SDirNode
+typedef std::vector<CItemInfo> TItemInfos;
+class CDirNode
 {
+public:
 	TItemInfos m_Infos;
 	LONGLONG m_AllSize;
 
-	SDirNode()
-		: m_AllSize(0)
+	explicit CDirNode()
+		: m_Infos()
+		, m_AllSize(0)
 	{
+	}
+
+	CDirNode(const CDirNode& node)
+	{
+		*this = node;
+	}
+
+	CDirNode& operator=(const CDirNode& info)
+	{
+		this->m_Infos = info.m_Infos;
+		this->m_AllSize = info.m_AllSize;
+		return *this;
 	}
 };
 
-struct SPathNode
+class CPathNode
 {
+public:
 	size_t m_Index;
 	CString m_strName;
 };
 
-typedef std::vector<SDirNode> TDirs;
+typedef std::vector<CDirNode> TDirs;
 // CDirSizeDlg 对话框
 class CDirSizeDlg : public CDialog
 {
 	TDirs m_Dirs;
-	std::vector<SPathNode> m_Path;
+	std::vector<CPathNode> m_Path;
 	CString m_strBasePath;
 	CString m_strFullPath;
 // 构造

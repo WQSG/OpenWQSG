@@ -135,7 +135,7 @@ END
 STRINGTABLE 
 BEGIN
     IDS_APP_NAME            "WQSG_DirSize"
-    IDS_APP_VER             "1.0.2010.03020"
+    IDS_APP_VER             "1.0.2021.04150"
     IDS_APP_AUTHOR          "WQSG"
     IDS_APP_AUTHOR2         "∂Ò√ŒµƒÀ¿…Ò"
 END

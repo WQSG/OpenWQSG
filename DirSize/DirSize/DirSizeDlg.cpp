@@ -196,8 +196,8 @@ BOOL CDirSizeDlg::Find( CString a_strPath , const size_t a_DirIndex )
 			continue;
 		}
 
-		SItemInfo info;
-		lstrcpy( info.m_szName , data.cFileName );
+		CItemInfo info;
+		info.m_strName = data.cFileName;
 		info.m_bDir = (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
 
 		CString strFile( data.cFileName );
@@ -208,7 +208,7 @@ BOOL CDirSizeDlg::Find( CString a_strPath , const size_t a_DirIndex )
 
 			info.m_Index = m_Dirs.size();
 
-			m_Dirs.push_back( SDirNode() );
+			m_Dirs.push_back( CDirNode() );
 
 			Find( a_strPath + strFile + L'\\' , info.m_Index  );
 
@@ -229,7 +229,7 @@ BOOL CDirSizeDlg::Find( CString a_strPath , const size_t a_DirIndex )
 
 	FindClose(handle);
 
-	sort( m_Dirs[a_DirIndex].m_Infos.begin() , m_Dirs[a_DirIndex].m_Infos.end() , std::greater<SItemInfo>() );
+	sort( m_Dirs[a_DirIndex].m_Infos.begin() , m_Dirs[a_DirIndex].m_Infos.end() , std::greater<CItemInfo>() );
 	m_Dirs[a_DirIndex].m_AllSize = nSizeAll;
 
 	return bRt;
@@ -282,35 +282,35 @@ void CDirSizeDlg::UpdateUI()
 	{
 		size_t dirIndex = 0;
 
-		for( std::vector<SPathNode>::iterator it = m_Path.begin() ;
+		for( std::vector<CPathNode>::iterator it = m_Path.begin() ;
 			it != m_Path.end() ; ++it )
 		{
-			const SPathNode& path = *it;
+			const CPathNode& path = *it;
 			m_strFullPath += (path.m_strName + L'\\');
 
 			dirIndex = path.m_Index;
 		}
 
-		const SDirNode& dirNode = m_Dirs[dirIndex];
+		const CDirNode& dirNode = m_Dirs[dirIndex];
 
 		for( TItemInfos::const_iterator it = dirNode.m_Infos.begin() ;
 			it != dirNode.m_Infos.end() ; ++it )
 		{
-			const SItemInfo& item = *it;
+			const CItemInfo& item = *it;
 
 			//const int iIndex = m_cList.InsertItem( m_cList.GetItemCount() , item.m_szName , (item.m_bDir?0:1) );
 			const int iIndex = m_WList.InsertItem( m_WList.GetItemCount() , (item.m_bDir?0:1) );
 
 			ASSERT( iIndex != -1 );
 
-			m_WList.SetItemText( iIndex , DEF_NAME , item.m_szName );
+			m_WList.SetItemText( iIndex , DEF_NAME , item.m_strName );
 			
 			LONGLONG nSize;
 
 			if( item.m_bDir )
 			{
 				ASSERT( item.m_Index > 0 && item.m_Index < m_Dirs.size() );
-				const SDirNode& dirNodeSub = m_Dirs[item.m_Index];
+				const CDirNode& dirNodeSub = m_Dirs[item.m_Index];
 
 				nSize = dirNodeSub.m_AllSize;
 
@@ -408,18 +408,18 @@ void CDirSizeDlg::OnLvnItemActivateList1(NMHDR *pNMHDR, LRESULT *pResult)
 	// TODO: 在此添加控件通知处理程序代码
 	*pResult = 0;
 
-	ASSERT( sizeof(m_WList.GetData( pNMIA->iItem )) == sizeof(const SItemInfo*) );
+	ASSERT( sizeof(m_WList.GetData( pNMIA->iItem )) == sizeof(const CItemInfo*) );
 
-	const SItemInfo* pInfo = (const SItemInfo*)m_WList.GetData( pNMIA->iItem );
+	const CItemInfo* pInfo = (const CItemInfo*)m_WList.GetData( pNMIA->iItem );
 	ASSERT(pInfo);
 	if( !pInfo->m_bDir )
 		return;
 
 	ASSERT( pInfo->m_Index > 0 && pInfo->m_Index < m_Dirs.size() );
 
-	SPathNode path;
+	CPathNode path;
 	path.m_Index = pInfo->m_Index;
-	path.m_strName = pInfo->m_szName;
+	path.m_strName = pInfo->m_strName;
 
 	m_Path.push_back( path );
 	UpdateUI();
